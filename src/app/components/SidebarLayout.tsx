@@ -68,14 +68,15 @@ export default function SidebarLayout({
     <div className="flex min-h-screen bg-gray-100">
       {/* Sidebar */}
       <div className="w-64 bg-gray-500 border-r border-gray-400 shadow-sm flex flex-col">
-        <div className="p-4 border-b border-gray-400">
-          <Link href="/" className="flex items-center">
+        <div className="p-4 border-b border-gray-400 flex items-center justify-center">
+          <Link href="/" className="inline-flex">
             <Image
               src="/inorail-logo.png"
               alt="InoRail logo"
-              width={160}
-              height={40}
+              width={220}
+              height={70}
               priority
+              className="h-10 w-auto max-w-full object-contain"
             />
             <span className="sr-only">Manhole Inspection</span>
           </Link>
