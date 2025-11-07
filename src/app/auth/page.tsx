@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabaseClient'
 
 export default function AuthPage() {
   const router = useRouter()
-  const defaultEmail = process.env.NEXT_PUBLIC_DEFAULT_LOGIN_EMAIL || 'jackboardman09@gmail.com'
+  const defaultEmail = process.env.NEXT_PUBLIC_DEFAULT_LOGIN_EMAIL || 'Example@example.co.uk'
   const [email, setEmail] = useState(defaultEmail)
   const [password, setPassword] = useState('')
   const [message, setMessage] = useState('')
