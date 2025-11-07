@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
@@ -67,7 +68,18 @@ export default function SidebarLayout({
     <div className="flex min-h-screen bg-gray-100">
       {/* Sidebar */}
       <div className="w-64 bg-gray-500 border-r border-gray-400 shadow-sm flex flex-col">
-        <h2 className="text-xl font-bold p-4 border-b border-gray-400 text-white">Manhole Inspection</h2>
+        <div className="p-4 border-b border-gray-400">
+          <Link href="/" className="flex items-center">
+            <Image
+              src="/inorail-logo.png"
+              alt="InoRail logo"
+              width={160}
+              height={40}
+              priority
+            />
+            <span className="sr-only">Manhole Inspection</span>
+          </Link>
+        </div>
         <nav className="p-4 space-y-2">
           {navItems.map((item) => (
             <Link
