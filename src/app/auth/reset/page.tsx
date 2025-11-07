@@ -1,6 +1,7 @@
+
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
 
@@ -11,6 +12,7 @@ export default function ResetPasswordPage() {
   const [message, setMessage] = useState('')
   const [recovering, setRecovering] = useState(false)
   const [updating, setUpdating] = useState(false)
+  const [fromInvite, setFromInvite] = useState(false)
 
   useEffect(() => {
     const init = async () => {
@@ -23,10 +25,24 @@ export default function ResetPasswordPage() {
       // Also check existing session as a fallback
       const { data } = await supabase.auth.getSession()
       if (data.session) setRecovering(true)
+      // Detect if the flow came from an invite
+      if (typeof window !== 'undefined') {
+        const params = new URLSearchParams(window.location.search)
+        setFromInvite(params.get('from') === 'invite')
+      }
       return () => sub.subscription.unsubscribe()
     }
     init()
   }, [])
+
+  const heading = useMemo(() => (fromInvite ? 'Create Password' : 'Reset Password'), [fromInvite])
+  const subcopy = useMemo(
+    () =>
+      fromInvite
+        ? 'Create a password to finish setting up your account.'
+        : 'Open this page from the password reset email link. If you reached this page directly, go back to the login screen and request a new reset email.',
+    [fromInvite]
+  )
 
   async function updatePassword() {
     if (!recovering) {
@@ -51,12 +67,8 @@ export default function ResetPasswordPage() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
       <div className="bg-white p-8 rounded-xl shadow-md w-full max-w-sm">
-        <h1 className="text-2xl font-bold mb-4 text-center">Reset Password</h1>
-        {!recovering && (
-          <p className="text-sm text-gray-600 mb-4">
-            Open this page from the password reset email link. If you reached this page directly, go back to the login screen and request a new reset email.
-          </p>
-        )}
+        <h1 className="text-2xl font-bold mb-4 text-center">{heading}</h1>
+        {!recovering && <p className="text-sm text-gray-600 mb-4">{subcopy}</p>}
         <input
           type="password"
           placeholder="New password"
@@ -76,11 +88,10 @@ export default function ResetPasswordPage() {
           disabled={!newPassword || !confirmPassword || updating}
           className={`w-full p-2 rounded text-white ${!newPassword || !confirmPassword || updating ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
         >
-          {updating ? 'Updating…' : 'Update Password'}
+          {updating ? (fromInvite ? 'Setting…' : 'Updating…') : (fromInvite ? 'Set Password' : 'Update Password')}
         </button>
         {message && <p className="mt-4 text-center text-sm">{message}</p>}
       </div>
     </div>
   )
 }
-

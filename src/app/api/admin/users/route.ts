@@ -74,10 +74,21 @@ export async function POST(req: NextRequest) {
     if (!email) return NextResponse.json({ error: 'Email required' }, { status: 400 })
     if (!admin) return NextResponse.json({ error: 'Server not configured' }, { status: 500 })
     // Determine the redirect URL for the invite link
-    const inviteRedirectTo =
+    // Build redirect URL and tag the flow as an invite so the UI can tailor copy
+    let inviteRedirectTo =
       process.env.INVITE_REDIRECT_URL ||
       process.env.NEXT_PUBLIC_AUTH_REDIRECT_URL ||
       undefined
+
+    try {
+      if (inviteRedirectTo) {
+        const u = new URL(inviteRedirectTo)
+        u.searchParams.set('from', 'invite')
+        inviteRedirectTo = u.toString()
+      }
+    } catch (_) {
+      // ignore malformed URL; fall back to provided value
+    }
 
     // Invite the user by email (sends email if SMTP configured)
     const { data: inviteData, error: inviteErr } = await admin.auth.admin.inviteUserByEmail(email, {
