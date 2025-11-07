@@ -73,8 +73,16 @@ export async function POST(req: NextRequest) {
     const desiredRole = normalizeRole(String(body?.role || 'viewer')) || 'viewer'
     if (!email) return NextResponse.json({ error: 'Email required' }, { status: 400 })
     if (!admin) return NextResponse.json({ error: 'Server not configured' }, { status: 500 })
+    // Determine the redirect URL for the invite link
+    const inviteRedirectTo =
+      process.env.INVITE_REDIRECT_URL ||
+      process.env.NEXT_PUBLIC_AUTH_REDIRECT_URL ||
+      undefined
+
     // Invite the user by email (sends email if SMTP configured)
-    const { data: inviteData, error: inviteErr } = await admin.auth.admin.inviteUserByEmail(email)
+    const { data: inviteData, error: inviteErr } = await admin.auth.admin.inviteUserByEmail(email, {
+      redirectTo: inviteRedirectTo,
+    })
     if (inviteErr) {
       return NextResponse.json({ error: inviteErr.message }, { status: 400 })
     }

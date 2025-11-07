@@ -54,7 +54,7 @@ export default function SidebarLayout({
     <div className="flex min-h-screen bg-gray-100">
       {/* Sidebar */}
       <div className="w-64 bg-white border-r border-gray-200 shadow-sm flex flex-col">
-        <h2 className="text-xl font-bold p-4 border-b">Manhole Inspector</h2>
+        <h2 className="text-xl font-bold p-4 border-b">Manhole Inspection</h2>
         <nav className="p-4 space-y-2">
           {navItems.map((item) => (
             <Link
