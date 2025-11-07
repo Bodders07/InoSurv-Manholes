@@ -25,6 +25,19 @@ export default function SidebarLayout({
     const init = async () => {
       const { data } = await supabase.auth.getSession()
       if (!data.session) router.replace('/auth')
+      // If the user arrived via an invite link and hit any app page,
+      // send them to the password setup flow.
+      try {
+        if (typeof window !== 'undefined') {
+          const url = new URL(window.location.href)
+          const from = url.searchParams.get('from')
+          const isOnReset = url.pathname.startsWith('/auth/reset')
+          if (from === 'invite' && !isOnReset) {
+            router.replace('/auth/reset?from=invite')
+            return
+          }
+        }
+      } catch {}
       const sub = supabase.auth.onAuthStateChange((_e, session) => {
         if (!session) router.replace('/auth')
       })
