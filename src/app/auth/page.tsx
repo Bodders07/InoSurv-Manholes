@@ -49,7 +49,7 @@ export default function AuthPage() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
       <div className="bg-white p-8 rounded-xl shadow-md w-full max-w-sm">
-        <h1 className="text-2xl font-bold mb-2 text-center">Inspector Login</h1>
+        <h1 className="text-2xl font-bold mb-2 text-center">Surveyor Login</h1>
         <p className="text-xs text-gray-600 mb-4 text-center">
           Accounts are created by administrator invitation only.
         </p>
