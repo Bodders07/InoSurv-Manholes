@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import SidebarLayout from '@/app/components/SidebarLayout'
 import { supabase } from '@/lib/supabaseClient'
 import { deriveRoleInfo, canAdminister, canManageEverything } from '@/lib/roles'
@@ -13,6 +14,7 @@ type Project = {
 }
 
 export default function ProjectsPage() {
+  const router = useRouter()
   // Create form state
   const [projectNumber, setProjectNumber] = useState('')
   const [client, setClient] = useState('')
@@ -239,12 +241,6 @@ export default function ProjectsPage() {
         <div className="px-4 py-3 border-b border-gray-200">
           <h2 className="font-semibold">Existing Projects</h2>
         </div>
-        {!hasExtendedFields && (
-          <div className="px-4 py-3 text-sm text-amber-700 bg-amber-50 border-b border-amber-200">
-            To enable Project Number and Client fields, add these columns in Supabase:
-            <pre className="mt-2 p-2 bg-white border rounded overflow-auto text-xs">{`-- In the Supabase SQL Editor\nALTER TABLE public.projects ADD COLUMN client text;\nALTER TABLE public.projects ADD COLUMN project_number text;\n-- Optional: ensure uniqueness\n-- ALTER TABLE public.projects ADD CONSTRAINT projects_project_number_unique UNIQUE (project_number);`}</pre>
-          </div>
-        )}
         <div className="p-0 overflow-x-auto">
           {loading ? (
             <p className="p-4">Loading…</p>
@@ -265,42 +261,9 @@ export default function ProjectsPage() {
                   const isEditing = editingId === p.id
                   return (
                     <tr key={p.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-2 border-b align-top">
-                        {isEditing && hasExtendedFields ? (
-                          <input
-                            className="w-full border rounded p-2"
-                            value={editProjectNumber}
-                            onChange={(e) => setEditProjectNumber(e.target.value)}
-                            placeholder="e.g., 24-001"
-                          />
-                        ) : (
-                          p.project_number || '-'
-                        )}
-                      </td>
-                      <td className="px-4 py-2 border-b align-top">
-                        {isEditing && hasExtendedFields ? (
-                          <input
-                            className="w-full border rounded p-2"
-                            value={editClient}
-                            onChange={(e) => setEditClient(e.target.value)}
-                            placeholder="Client name"
-                          />
-                        ) : (
-                          p.client || '-'
-                        )}
-                      </td>
-                      <td className="px-4 py-2 border-b align-top">
-                        {isEditing ? (
-                          <input
-                            className="w-full border rounded p-2"
-                            value={editProjectName}
-                            onChange={(e) => setEditProjectName(e.target.value)}
-                            placeholder="Project name"
-                          />
-                        ) : (
-                          p.name || '-'
-                        )}
-                      </td>
+                      <td className="px-4 py-2 border-b align-top">{p.project_number || '-'}</td>
+                      <td className="px-4 py-2 border-b align-top">{p.client || '-'}</td>
+                      <td className="px-4 py-2 border-b align-top">{p.name || '-'}</td>
                       <td className="px-4 py-2 border-b align-top text-right">
                         {isEditing ? (
                           <div className="flex gap-2 justify-end">
@@ -322,6 +285,12 @@ export default function ProjectsPage() {
                           </div>
                         ) : (
                           <div className="flex gap-2 justify-end">
+                            <button
+                              onClick={() => router.push(`/projects/${p.id}`)}
+                              className="px-3 py-1 rounded border border-gray-300 hover:bg-gray-50"
+                            >
+                              View
+                            </button>
                             <button
                               onClick={() => startEdit(p)}
                               className="px-3 py-1 rounded border border-gray-300 hover:bg-gray-50"
