@@ -66,18 +66,18 @@ export default function SidebarLayout({
   return (
     <div className="flex min-h-screen bg-gray-100">
       {/* Sidebar */}
-      <div className="w-64 bg-white border-r border-gray-200 shadow-sm flex flex-col">
-        <h2 className="text-xl font-bold p-4 border-b">Manhole Inspection</h2>
+      <div className="w-64 bg-gray-500 border-r border-gray-400 shadow-sm flex flex-col">
+        <h2 className="text-xl font-bold p-4 border-b border-gray-400 text-white">Manhole Inspection</h2>
         <nav className="p-4 space-y-2">
           {navItems.map((item) => (
             <Link
               key={item.id}
               href={item.href}
               onClick={() => setActive(item.id)}
-              className={`flex items-center gap-2 px-3 py-2 rounded-lg transition ${
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
                 active === item.id
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-700 hover:bg-gray-100'
+                  ? 'bg-blue-400 text-white'
+                  : 'text-gray-100 hover:bg-gray-600 hover:text-white'
               }`}
             >
               {item.icon}
