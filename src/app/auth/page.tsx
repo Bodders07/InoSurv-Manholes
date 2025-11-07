@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabaseClient'
 export default function AuthPage() {
   const router = useRouter()
   const defaultEmail = process.env.NEXT_PUBLIC_DEFAULT_LOGIN_EMAIL || 'Example@example.co.uk'
-  const [email, setEmail] = useState(defaultEmail)
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
@@ -58,7 +58,7 @@ export default function AuthPage() {
           placeholder={defaultEmail}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full border border-gray-300 rounded p-2 mb-3"
+          className="w-full border border-gray-300 rounded p-2 mb-3 placeholder:text-gray-400"
         />
         <input
           type="password"
