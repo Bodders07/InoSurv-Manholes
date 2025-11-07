@@ -48,9 +48,9 @@ export default function AuthPage() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
-      <div className="bg-white p-8 rounded-xl shadow-md w-full max-w-sm">
-        <h1 className="text-2xl font-bold mb-2 text-center">Surveyor Login</h1>
-        <p className="text-xs text-gray-600 mb-4 text-center">
+      <div className="bg-gray-500 border border-gray-400 text-white p-8 rounded-xl shadow-md w-full max-w-sm">
+        <h1 className="text-2xl font-bold mb-2 text-center text-white">Surveyor Login</h1>
+        <p className="text-xs text-gray-200 mb-4 text-center">
           Accounts are created by administrator invitation only.
         </p>
         <input
@@ -58,14 +58,14 @@ export default function AuthPage() {
           placeholder={defaultEmail}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full border border-gray-300 rounded p-2 mb-3 placeholder:text-gray-400"
+          className="w-full border border-gray-300 rounded p-2 mb-3 placeholder:text-gray-400 bg-white text-gray-900"
         />
         <input
           type="password"
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full border border-gray-300 rounded p-2 mb-4"
+          className="w-full border border-gray-300 rounded p-2 mb-4 bg-white text-gray-900"
         />
         <button
           onClick={signInWithPassword}
