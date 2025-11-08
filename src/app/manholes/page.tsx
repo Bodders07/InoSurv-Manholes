@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabaseClient'
+import { deriveRoleInfo, canAdminister, canManageEverything } from '@/lib/roles'
 import SidebarLayout from '@/app/components/SidebarLayout'
 
 type Project = { id: string; name: string | null; project_number: string | null }
@@ -18,6 +19,9 @@ export default function ManholesPage() {
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
   const [filterProject, setFilterProject] = useState<string>('')
   const [query, setQuery] = useState('')
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   useEffect(() => {
     async function loadData() {
@@ -34,6 +38,21 @@ export default function ManholesPage() {
       setLoading(false)
     }
     loadData()
+    // detect roles initially and on auth changes
+    const detect = async () => {
+      try {
+        const { data } = await supabase.auth.getUser()
+        const info = deriveRoleInfo(data.user)
+        setIsAdmin(canAdminister(info))
+        setIsSuperAdmin(canManageEverything(info))
+      } catch {
+        setIsAdmin(false)
+        setIsSuperAdmin(false)
+      }
+    }
+    detect()
+    const { data: sub } = supabase.auth.onAuthStateChange(() => detect())
+    return () => sub.subscription.unsubscribe()
   }, [])
 
   const projectById = useMemo(() => {
@@ -90,6 +109,18 @@ export default function ManholesPage() {
       <span className="ml-2 text-xs">{sortKey === keyName ? (sortDir === 'asc' ? '▲' : '▼') : ''}</span>
     </button>
   )
+
+  async function deleteManhole(id: string) {
+    if (!isAdmin && !isSuperAdmin) return
+    const proceed = typeof window !== 'undefined' ? window.confirm('Delete this manhole? This cannot be undone.') : true
+    if (!proceed) return
+    setMessage('')
+    setDeletingId(id)
+    const { error } = await supabase.from('manholes').delete().eq('id', id)
+    setDeletingId(null)
+    if (error) setMessage('Error: ' + error.message)
+    else setManholes((list) => list.filter((m) => m.id !== id))
+  }
 
   return (
     <SidebarLayout>
@@ -170,6 +201,17 @@ export default function ManholesPage() {
                     >
                       Edit
                     </Link>
+                    {(isAdmin || isSuperAdmin) && (
+                      <button
+                        onClick={() => deleteManhole(r.id)}
+                        disabled={deletingId === r.id}
+                        className={`ml-2 px-3 py-1 rounded text-white ${
+                          deletingId === r.id ? 'bg-gray-400 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'
+                        }`}
+                      >
+                        {deletingId === r.id ? 'Deleting…' : 'Delete'}
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
