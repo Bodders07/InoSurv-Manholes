@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { Suspense, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import SidebarLayout from '@/app/components/SidebarLayout'
 import { supabase } from '@/lib/supabaseClient'
@@ -45,7 +45,7 @@ function nextLabel(current: string) {
   return String.fromCharCode(Math.min(90, code + 1)) // up to 'Z'
 }
 
-export default function AddManholePage() {
+function AddManholeForm() {
   const params = useSearchParams()
   const [projects, setProjects] = useState<Project[]>([])
   const [projectId, setProjectId] = useState('')
@@ -353,5 +353,15 @@ export default function AddManholePage() {
         {message && <pre className="mt-4 whitespace-pre-wrap text-sm">{message}</pre>}
       </div>
     </SidebarLayout>
+  )
+}
+
+export const dynamic = 'force-dynamic'
+
+export default function AddManholePage() {
+  return (
+    <Suspense fallback={<div className="p-8">Loading…</div>}>
+      <AddManholeForm />
+    </Suspense>
   )
 }
