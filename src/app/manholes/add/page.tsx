@@ -73,7 +73,7 @@ function AddManholeForm() {
 
   // Pipes
   const [incoming, setIncoming] = useState<Pipe[]>(() =>
-    ['A','B','C','D','E','F'].map(l => ({ label: `Pipe ${l}`, func: '', shape: '', material: '', invert_depth_m: '', width_mm: '', height_mm: '', diameter_mm: '', notes: '' }))
+    ['A'].map(l => ({ label: `Pipe ${l}`, func: '', shape: '', material: '', invert_depth_m: '', width_mm: '', height_mm: '', diameter_mm: '', notes: '' }))
   )
   const [outgoing, setOutgoing] = useState<Pipe[]>(() =>
     ['X'].map(l => ({ label: `Pipe ${l}`, func: '', shape: '', material: '', invert_depth_m: '', width_mm: '', height_mm: '', diameter_mm: '', notes: '' }))
