@@ -80,6 +80,7 @@ function AddManholeForm() {
   )
 
   const [message, setMessage] = useState('')
+  const [copyList, setCopyList] = useState(false)
 
   useEffect(() => {
     async function fetchProjects() {
@@ -147,8 +148,27 @@ function AddManholeForm() {
       setMessage('Error: ' + error.message + hint)
     } else {
       setMessage('Success: Manhole created.')
-      // reset key fields minimally
+      // Reset fields; optionally keep project/date/tool when copyList is enabled
       setIdentifier('')
+      if (!copyList) {
+        setProjectId('')
+        setSurveyDate('')
+        setMeasuringTool('')
+      }
+      setLaserOffset('')
+      setLocationDesc('')
+      setLatitude('')
+      setLongitude('')
+      setEasting('')
+      setNorthing('')
+      setCoverLevel('')
+      setServiceType('')
+      setType('')
+      setTypeOther('')
+      setCoverLifted('')
+      setCoverNotReason('')
+      setIncoming([{ label: 'Pipe A', func: '', shape: '', material: '', invert_depth_m: '', width_mm: '', height_mm: '', diameter_mm: '', notes: '' }])
+      setOutgoing([{ label: 'Pipe X', func: '', shape: '', material: '', invert_depth_m: '', width_mm: '', height_mm: '', diameter_mm: '', notes: '' }])
     }
   }
 
@@ -185,6 +205,19 @@ function AddManholeForm() {
             {measuringTool === 'Laser Level' && (
               <input className="mt-2 w-full border p-2 rounded" placeholder="Offset (mm)" value={laserOffset} onChange={(e)=>setLaserOffset(e.target.value)} />
             )}
+          </div>
+
+          <div className="md:col-span-2 flex items-center justify-end gap-2">
+            <input
+              id="copy-list"
+              type="checkbox"
+              checked={copyList}
+              onChange={(e) => setCopyList(e.target.checked)}
+              className="h-4 w-4"
+            />
+            <label htmlFor="copy-list" className="text-sm text-gray-700">
+              Copy list (keep Project, Date, Measuring Tool for next manhole)
+            </label>
           </div>
 
           <div className="md:col-span-2">
