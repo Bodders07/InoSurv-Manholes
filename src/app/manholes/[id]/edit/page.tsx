@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import SidebarLayout from '@/app/components/SidebarLayout'
 import { supabase } from '@/lib/supabaseClient'
 
@@ -17,8 +17,9 @@ type Manhole = {
   chamber_construction: string | null
 }
 
-export default function EditManholePage({ params }: { params: { id: string } }) {
+export default function EditManholePage() {
   const router = useRouter()
+  const params = useParams() as { id: string }
   const manholeId = params.id
 
   const [loading, setLoading] = useState(true)
@@ -133,4 +134,3 @@ export default function EditManholePage({ params }: { params: { id: string } }) 
     </SidebarLayout>
   )
 }
-
