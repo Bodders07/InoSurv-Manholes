@@ -100,10 +100,18 @@ function AddManholeForm() {
     const next = nextLabel(last.replace('Pipe ', '') || 'A')
     setIncoming([...incoming, { label: `Pipe ${next}`, func: '', shape: '', material: '', invert_depth_m: '', width_mm: '', height_mm: '', diameter_mm: '', notes: '' }])
   }
+  function removeIncomingPipe(index: number) {
+    if (index === 0) return // keep Pipe A as default
+    setIncoming((arr) => arr.filter((_, i) => i !== index))
+  }
   function addOutgoingPipe() {
     const last = outgoing[outgoing.length - 1]?.label || 'Pipe X'
     const next = nextLabel(last.replace('Pipe ', '') || 'X')
     setOutgoing([...outgoing, { label: `Pipe ${next}`, func: '', shape: '', material: '', invert_depth_m: '', width_mm: '', height_mm: '', diameter_mm: '', notes: '' }])
+  }
+  function removeOutgoingPipe(index: number) {
+    if (index === 0) return // keep Pipe X as default
+    setOutgoing((arr) => arr.filter((_, i) => i !== index))
   }
 
   async function addManhole() {
@@ -289,6 +297,16 @@ function AddManholeForm() {
                   <input className="w-full border p-2 rounded" value={p.notes} onChange={(e)=>{const v=[...incoming]; v[idx].notes=e.target.value; setIncoming(v)}} />
                 </div>
               </div>
+              {idx > 0 && (
+                <div className="mt-3 text-right">
+                  <button
+                    onClick={() => removeIncomingPipe(idx)}
+                    className="px-3 py-1 rounded text-white bg-red-600 hover:bg-red-700"
+                  >
+                    Remove Pipe
+                  </button>
+                </div>
+              )}
             </div>
           ))}
           <button onClick={addIncomingPipe} className="px-3 py-2 rounded border border-gray-300 hover:bg-gray-50">Add pipe</button>
@@ -342,6 +360,16 @@ function AddManholeForm() {
                   <label className="block text-sm mb-1">Notes</label>
                   <input className="w-full border p-2 rounded" value={p.notes} onChange={(e)=>{const v=[...outgoing]; v[idx].notes=e.target.value; setOutgoing(v)}} />
                 </div>
+                {idx > 0 && (
+                  <div className="mt-3 text-right md:col-span-3">
+                    <button
+                      onClick={() => removeOutgoingPipe(idx)}
+                      className="px-3 py-1 rounded text-white bg-red-600 hover:bg-red-700"
+                    >
+                      Remove Pipe
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           ))}
