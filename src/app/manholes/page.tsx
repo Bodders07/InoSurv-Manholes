@@ -154,6 +154,7 @@ export default function ManholesPage() {
                 <th className="px-4 py-2 border-b"><SortButton label="Projects" keyName="project_number" /></th>
                 <th className="px-4 py-2 border-b"><SortButton label="Project Name" keyName="project_name" /></th>
                 <th className="px-4 py-2 border-b"><SortButton label="Manhole Number" keyName="identifier" /></th>
+                <th className="px-4 py-2 border-b w-px">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -162,6 +163,14 @@ export default function ManholesPage() {
                   <td className="px-4 py-2 border-b">{r.project_number || '-'}</td>
                   <td className="px-4 py-2 border-b">{r.project_name || '-'}</td>
                   <td className="px-4 py-2 border-b font-medium">{r.identifier || '-'}</td>
+                  <td className="px-4 py-2 border-b text-right">
+                    <Link
+                      href={`/manholes/${r.id}/edit`}
+                      className="px-3 py-1 rounded border border-gray-300 hover:bg-gray-50"
+                    >
+                      Edit
+                    </Link>
+                  </td>
                 </tr>
               ))}
             </tbody>
