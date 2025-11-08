@@ -16,6 +16,8 @@ export default function ManholesPage() {
   const [loading, setLoading] = useState(true)
   const [sortKey, setSortKey] = useState<SortKey>('project_number')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
+  const [filterProject, setFilterProject] = useState<string>('')
+  const [query, setQuery] = useState('')
 
   useEffect(() => {
     async function loadData() {
@@ -41,7 +43,7 @@ export default function ManholesPage() {
   }, [projects])
 
   const rows = useMemo(() => {
-    const data = manholes.map((m) => {
+    let data = manholes.map((m) => {
       const p = projectById.get(m.project_id) || { name: '', project_number: '' }
       return {
         id: m.id,
@@ -50,6 +52,20 @@ export default function ManholesPage() {
         project_number: p.project_number,
       }
     })
+    // filter by project
+    if (filterProject) {
+      data = data.filter((r) => r.project_number === filterProject || r.project_name === filterProject)
+    }
+    // search query across fields
+    if (query.trim()) {
+      const q = query.toLowerCase()
+      data = data.filter(
+        (r) =>
+          (r.identifier || '').toLowerCase().includes(q) ||
+          (r.project_name || '').toLowerCase().includes(q) ||
+          (r.project_number || '').toLowerCase().includes(q)
+      )
+    }
     const dir = sortDir === 'asc' ? 1 : -1
     return data.sort((a, b) => {
       const av = (a[sortKey] || '').toString().toLowerCase()
@@ -58,7 +74,7 @@ export default function ManholesPage() {
       if (av > bv) return 1 * dir
       return 0
     })
-  }, [manholes, projectById, sortKey, sortDir])
+  }, [manholes, projectById, sortKey, sortDir, filterProject, query])
 
   function toggleSort(key: SortKey) {
     if (sortKey === key) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
@@ -77,11 +93,51 @@ export default function ManholesPage() {
 
   return (
     <SidebarLayout>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-2">
         <h1 className="text-2xl font-bold">Manholes</h1>
-        <Link href="/manholes/add" className="bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700">
-          Add Manhole
-        </Link>
+        <Link href="/manholes/add" className="bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700">Add Manhole</Link>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-3 mb-6">
+        <div>
+          <label className="block text-xs text-gray-600 mb-1">Filter by Project</label>
+          <select
+            className="border rounded p-2 min-w-[220px]"
+            value={filterProject}
+            onChange={(e) => setFilterProject(e.target.value)}
+          >
+            <option value="">All projects</option>
+            {projects
+              .slice()
+              .sort((a, b) => (a.project_number || '').localeCompare(b.project_number || ''))
+              .map((p) => (
+                <option key={p.id} value={p.project_number || p.name || ''}>
+                  {p.project_number || '-'} {p.name ? `— ${p.name}` : ''}
+                </option>
+              ))}
+          </select>
+        </div>
+        <div className="flex-1 min-w-[220px]">
+          <label className="block text-xs text-gray-600 mb-1">Search</label>
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search by project or manhole number"
+            className="w-full border rounded p-2"
+          />
+        </div>
+        {(filterProject || query) && (
+          <button
+            onClick={() => {
+              setFilterProject('')
+              setQuery('')
+            }}
+            className="mt-5 h-9 px-3 rounded border border-gray-300 hover:bg-gray-50"
+          >
+            Clear filters
+          </button>
+        )}
       </div>
 
       {message && <p className="mb-4 text-red-600">{message}</p>}
@@ -115,4 +171,3 @@ export default function ManholesPage() {
     </SidebarLayout>
   )
 }
-
