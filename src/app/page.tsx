@@ -1,14 +1,37 @@
 'use client'
 
 import SidebarLayout from './components/SidebarLayout'
+import { useView } from './components/ViewContext'
+
+const viewSrc: Record<string, string> = {
+  projects: '/projects',
+  manholes: '/manholes',
+  inspections: '/inspections',
+  settings: '/settings',
+  users: '/admin/users',
+  privileges: '/privileges',
+}
 
 export default function HomePage() {
+  const { view } = useView()
+
   return (
     <SidebarLayout>
-      <h1 className="text-3xl font-semibold mb-4">Dashboard</h1>
-      <p className="text-gray-600">
-        Welcome to your dashboard! You can add summary widgets or quick links here.
-      </p>
+      {view === 'dashboard' && (
+        <>
+          <h1 className="text-3xl font-semibold mb-4">Dashboard</h1>
+          <p className="text-gray-600">Welcome to your dashboard! Use the sidebar to navigate.</p>
+        </>
+      )}
+
+      {view !== 'dashboard' && (
+        <iframe
+          title={view}
+          src={viewSrc[view]}
+          className="w-full"
+          style={{ height: 'calc(100vh - 4rem)', border: 'none', background: 'transparent' }}
+        />
+      )}
     </SidebarLayout>
   )
 }

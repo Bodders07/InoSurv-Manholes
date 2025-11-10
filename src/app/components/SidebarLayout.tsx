@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
 import { deriveRoleInfo, canManageEverything } from '@/lib/roles'
+import { useView, type AppView } from '@/app/components/ViewContext'
 import {
   LayoutDashboard,
   FolderKanban,
@@ -23,6 +24,7 @@ export default function SidebarLayout({
   const [isSuperAdmin, setIsSuperAdmin] = useState(false)
   const [roleReady, setRoleReady] = useState(false)
   const [pageOpacity, setPageOpacity] = useState(1)
+  const { view, setView } = useView()
 
   // Basic auth guard: redirect to /auth if no session
   useEffect(() => {
@@ -86,16 +88,16 @@ export default function SidebarLayout({
     }
   }
 
-  const publicNav = [
-    { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={16} />, href: '/' },
-    { id: 'projects', label: 'Projects', icon: <FolderKanban size={16} />, href: '/projects' },
-    { id: 'manholes', label: 'Manholes', icon: <ClipboardList size={16} />, href: '/manholes' },
-    { id: 'inspections', label: 'Inspections', icon: <ClipboardList size={16} />, href: '/inspections' },
-    { id: 'settings', label: 'Settings', icon: <Settings size={16} />, href: '/settings' },
+  const publicNav: { id: AppView; label: string; icon: React.ReactNode }[] = [
+    { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={16} /> },
+    { id: 'projects', label: 'Projects', icon: <FolderKanban size={16} /> },
+    { id: 'manholes', label: 'Manholes', icon: <ClipboardList size={16} /> },
+    { id: 'inspections', label: 'Inspections', icon: <ClipboardList size={16} /> },
+    { id: 'settings', label: 'Settings', icon: <Settings size={16} /> },
   ]
-  const adminNav = isSuperAdmin ? [
-    { id: 'users', label: 'User Management', icon: <Settings size={16} />, href: '/admin/users' },
-    { id: 'privileges', label: 'User Privileges', icon: <Settings size={16} />, href: '/privileges' },
+  const adminNav: { id: AppView; label: string; icon: React.ReactNode }[] = isSuperAdmin ? [
+    { id: 'users', label: 'User Management', icon: <Settings size={16} /> },
+    { id: 'privileges', label: 'User Privileges', icon: <Settings size={16} /> },
   ] : []
   const navItems = [...publicNav, ...adminNav]
 
@@ -130,11 +132,12 @@ export default function SidebarLayout({
         </div>
         <nav className="p-4 space-y-1">
           {navItems.map((item) => {
-            const isActive = pathname === item.href
+            const isActive = view === item.id
             return (
-            <Link
+            <button
               key={item.id}
-              href={item.href}
+              type="button"
+              onClick={() => setView(item.id)}
               className={`flex items-center gap-2 px-3 py-1.5 rounded-md transition-colors text-sm leading-6 ${
                 isActive
                   ? 'bg-blue-500 text-white font-semibold'
@@ -143,7 +146,7 @@ export default function SidebarLayout({
             >
               {item.icon}
               <span className="whitespace-nowrap">{item.label}</span>
-            </Link>
+            </button>
             )
           })}
         </nav>
