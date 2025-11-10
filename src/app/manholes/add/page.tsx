@@ -97,6 +97,11 @@ function AddManholeForm({ standaloneLayout = true }: { standaloneLayout?: boolea
   const [chamberLength, setChamberLength] = useState('')
   const [chamberMaterial, setChamberMaterial] = useState('')
   const [chamberMaterialOther, setChamberMaterialOther] = useState('')
+  // Photos
+  const [internalPhoto, setInternalPhoto] = useState<File | null>(null)
+  const [internalPreview, setInternalPreview] = useState('')
+  const [externalPhoto, setExternalPhoto] = useState<File | null>(null)
+  const [externalPreview, setExternalPreview] = useState('')
 
   useEffect(() => {
     async function fetchProjects() {
@@ -598,6 +603,55 @@ ALTER TABLE public.manholes
             </div>
           ))}
           <button onClick={addOutgoingPipe} className="px-3 py-2 rounded border border-gray-300 hover:bg-gray-50">Add pipe</button>
+        </div>
+
+        {/* Photos */}
+        <h2 className="text-xl font-semibold mt-10 mb-3">Internal Photo</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-start">
+          <div className="md:col-span-2">
+            <input
+              type="file"
+              accept="image/*"
+              capture="environment"
+              onChange={(e) => {
+                const f = e.currentTarget.files?.[0] || null
+                setInternalPhoto(f)
+                setInternalPreview(f ? URL.createObjectURL(f) : '')
+              }}
+              className="block w-full text-sm text-gray-900 file:mr-3 file:py-2 file:px-3 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+            />
+            <p className="text-xs text-gray-600 mt-1">Choose a photo or take one on mobile (camera prompt).</p>
+          </div>
+          {internalPreview && (
+            <div className="mt-2">
+              <img src={internalPreview} alt="Internal preview" className="max-h-40 rounded border" />
+              <button type="button" onClick={() => { setInternalPhoto(null); setInternalPreview('') }} className="mt-2 px-3 py-1 rounded border border-gray-300 hover:bg-gray-50">Remove</button>
+            </div>
+          )}
+        </div>
+
+        <h2 className="text-xl font-semibold mt-8 mb-3">External Photo</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-start">
+          <div className="md:col-span-2">
+            <input
+              type="file"
+              accept="image/*"
+              capture="environment"
+              onChange={(e) => {
+                const f = e.currentTarget.files?.[0] || null
+                setExternalPhoto(f)
+                setExternalPreview(f ? URL.createObjectURL(f) : '')
+              }}
+              className="block w-full text-sm text-gray-900 file:mr-3 file:py-2 file:px-3 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+            />
+            <p className="text-xs text-gray-600 mt-1">Choose a photo or take one on mobile (camera prompt).</p>
+          </div>
+          {externalPreview && (
+            <div className="mt-2">
+              <img src={externalPreview} alt="External preview" className="max-h-40 rounded border" />
+              <button type="button" onClick={() => { setExternalPhoto(null); setExternalPreview('') }} className="mt-2 px-3 py-1 rounded border border-gray-300 hover:bg-gray-50">Remove</button>
+            </div>
+          )}
         </div>
 
         <button onClick={addManhole} className="mt-8 w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700">Save Manhole</button>

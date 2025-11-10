@@ -69,6 +69,12 @@ export default function EditManholePage() {
   const [chamberWidth, setChamberWidth] = useState('')
   const [chamberLength, setChamberLength] = useState('')
 
+  // photos
+  const [internalPhotoUrl, setInternalPhotoUrl] = useState('')
+  const [externalPhotoUrl, setExternalPhotoUrl] = useState('')
+  const [internalPhotoFile, setInternalPhotoFile] = useState<File | null>(null)
+  const [externalPhotoFile, setExternalPhotoFile] = useState<File | null>(null)
+
   // pipes
   const [incoming, setIncoming] = useState<Pipe[]>([])
   const [outgoing, setOutgoing] = useState<Pipe[]>([])
@@ -108,6 +114,8 @@ export default function EditManholePage() {
         setTypeOther(data.type_other || '')
         setCoverLifted(data.cover_lifted || '')
         setCoverNotReason(data.cover_lifted_reason || '')
+        setInternalPhotoUrl(data.internal_photo_url || '')
+        setExternalPhotoUrl(data.external_photo_url || '')
         setIncoming(Array.isArray(data.incoming_pipes) && data.incoming_pipes.length
           ? data.incoming_pipes
           : [{ label: 'Pipe A', func: '', shape: '', material: '', invert_depth_m: '', width_mm: '', height_mm: '', diameter_mm: '', notes: '' }])
@@ -169,8 +177,35 @@ export default function EditManholePage() {
       outgoing_pipes: outgoing,
     }
     const { error } = await supabase.from('manholes').update(update).eq('id', manholeId)
-    if (error) setMessage('Error: ' + error.message)
-    else setMessage('Success: Manhole updated.')
+    if (error) {
+      setMessage('Error: ' + error.message)
+      return
+    }
+    // Upload any new photos
+    let uploadMsg = ''
+    const bucket = supabase.storage.from('manhole-photos')
+    async function uploadOne(file: File | null, kind: 'internal' | 'external') {
+      if (!file) return null
+      const ext = (file.name.split('.').pop() || 'jpg').toLowerCase()
+      const path = `${manholeId}/${kind}-${Date.now()}.${ext}`
+      const up = await bucket.upload(path, file, { upsert: true })
+      if (up.error) {
+        uploadMsg += `\nNote: Failed to upload ${kind} photo (${up.error.message}).`
+        return null
+      }
+      const pub = bucket.getPublicUrl(path)
+      const url = pub.data.publicUrl
+      await supabase
+        .from('manholes')
+        .update(kind === 'internal' ? { internal_photo_url: url } : { external_photo_url: url })
+        .eq('id', manholeId)
+      if (kind === 'internal') setInternalPhotoUrl(url)
+      else setExternalPhotoUrl(url)
+      return url
+    }
+    await uploadOne(internalPhotoFile, 'internal')
+    await uploadOne(externalPhotoFile, 'external')
+    setMessage('Success: Manhole updated.' + uploadMsg)
   }
 
   return (
@@ -459,6 +494,65 @@ export default function EditManholePage() {
                 </div>
               ))}
               <button onClick={addOutgoingPipe} className="px-3 py-2 rounded border border-gray-300 hover:bg-gray-50">Add pipe</button>
+            </div>
+
+            {/* Photos */}
+            <h2 className="text-xl font-semibold mt-10 mb-3">Internal Photo</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-start">
+              <div className="md:col-span-2">
+                <input
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  onChange={(e) => {
+                    const f = e.currentTarget.files?.[0] || null
+                    setInternalPhotoFile(f)
+                  }}
+                  className="block w-full text-sm text-gray-900 file:mr-3 file:py-2 file:px-3 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                />
+                <p className="text-xs text-gray-600 mt-1">Upload a replacement or take a photo on mobile.</p>
+              </div>
+              <div className="mt-2">
+                {internalPhotoFile ? (
+                  <span className="text-xs text-gray-600">New photo selected</span>
+                ) : internalPhotoUrl ? (
+                  <img src={internalPhotoUrl} alt="Internal" className="max-h-40 rounded border" />
+                ) : (
+                  <span className="text-xs text-gray-500">No photo</span>
+                )}
+                {internalPhotoUrl && !internalPhotoFile && (
+                  <button type="button" onClick={() => setInternalPhotoUrl('')} className="mt-2 px-3 py-1 rounded border border-gray-300 hover:bg-gray-50">Remove existing</button>
+                )}
+              </div>
+            </div>
+
+            <h2 className="text-xl font-semibold mt-8 mb-3">External Photo</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-start">
+              <div className="md:col-span-2">
+                <input
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  onChange={(e) => {
+                    const f = e.currentTarget.files?.[0] || null
+                    setExternalPhotoFile(f)
+                  }}
+                  className="block w-full text-sm text-gray-900 file:mr-3 file:py-2 file:px-3 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                />
+                <p className="text-xs text-gray-600 mt-1">Upload a replacement or take a photo on mobile.</p>
+              </div>
+              <div className="mt-2">
+                {externalPhotoFile ? (
+                  <span className="text-xs text-gray-600">New photo selected</span>
+                ) : externalPhotoUrl ? (
+                  <img src={externalPhotoUrl} alt="External" className="max-h-40 rounded border" />
+                ) : (
+                  <span className="text-xs text-gray-500">No photo</span>
+                )}
+                {externalPhotoUrl && !externalPhotoFile && (
+                  <button type="button" onClick={() => setExternalPhotoUrl('')} className="mt-2 px-3 py-1 rounded border border-gray-300 hover:bg-gray-50">Remove existing</button>
+                )}
+              </div>
             </div>
 
             <div className="mt-6 flex gap-3">
