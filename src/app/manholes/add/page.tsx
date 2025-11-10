@@ -82,6 +82,12 @@ function AddManholeForm() {
   const [message, setMessage] = useState('')
   const [copyList, setCopyList] = useState(false)
 
+  // Cover shape
+  const [coverShape, setCoverShape] = useState('')
+  const [coverDiameter, setCoverDiameter] = useState('')
+  const [coverWidth, setCoverWidth] = useState('')
+  const [coverLength, setCoverLength] = useState('')
+
   useEffect(() => {
     async function fetchProjects() {
       const { data, error } = await supabase.from('projects').select('id, name')
@@ -133,6 +139,11 @@ function AddManholeForm() {
       easting: easting || null,
       northing: northing || null,
       cover_level: coverLevel || null,
+      // cover shape specifics
+      cover_shape: coverShape || null,
+      cover_diameter_mm: coverShape === 'Circle' ? (coverDiameter || null) : null,
+      cover_width_mm: coverShape && coverShape !== 'Circle' ? (coverWidth || null) : null,
+      cover_length_mm: coverShape && coverShape !== 'Circle' ? (coverLength || null) : null,
       service_type: serviceType || null,
       type: type || null,
       type_other: type === 'Other' ? (typeOther || null) : null,
@@ -144,7 +155,7 @@ function AddManholeForm() {
 
     const { error } = await supabase.from('manholes').insert([payload])
     if (error) {
-      const hint = `\nTo support these fields, add columns in Supabase (run once):\n\nALTER TABLE public.manholes\n  ADD COLUMN IF NOT EXISTS survey_date date,\n  ADD COLUMN IF NOT EXISTS measuring_tool text,\n  ADD COLUMN IF NOT EXISTS measuring_offset_mm integer,\n  ADD COLUMN IF NOT EXISTS location_desc text,\n  ADD COLUMN IF NOT EXISTS latitude numeric,\n  ADD COLUMN IF NOT EXISTS longitude numeric,\n  ADD COLUMN IF NOT EXISTS easting numeric,\n  ADD COLUMN IF NOT EXISTS northing numeric,\n  ADD COLUMN IF NOT EXISTS cover_level numeric,\n  ADD COLUMN IF NOT EXISTS type text,\n  ADD COLUMN IF NOT EXISTS type_other text,\n  ADD COLUMN IF NOT EXISTS cover_lifted text,\n  ADD COLUMN IF NOT EXISTS cover_lifted_reason text,\n  ADD COLUMN IF NOT EXISTS incoming_pipes jsonb,\n  ADD COLUMN IF NOT EXISTS outgoing_pipes jsonb;`
+      const hint = `\nTo support these fields, add columns in Supabase (run once):\n\nALTER TABLE public.manholes\n  ADD COLUMN IF NOT EXISTS survey_date date,\n  ADD COLUMN IF NOT EXISTS measuring_tool text,\n  ADD COLUMN IF NOT EXISTS measuring_offset_mm integer,\n  ADD COLUMN IF NOT EXISTS location_desc text,\n  ADD COLUMN IF NOT EXISTS latitude numeric,\n  ADD COLUMN IF NOT EXISTS longitude numeric,\n  ADD COLUMN IF NOT EXISTS easting numeric,\n  ADD COLUMN IF NOT EXISTS northing numeric,\n  ADD COLUMN IF NOT EXISTS cover_level numeric,\n  ADD COLUMN IF NOT EXISTS cover_shape text,\n  ADD COLUMN IF NOT EXISTS cover_diameter_mm integer,\n  ADD COLUMN IF NOT EXISTS cover_width_mm integer,\n  ADD COLUMN IF NOT EXISTS cover_length_mm integer,\n  ADD COLUMN IF NOT EXISTS type text,\n  ADD COLUMN IF NOT EXISTS type_other text,\n  ADD COLUMN IF NOT EXISTS cover_lifted text,\n  ADD COLUMN IF NOT EXISTS cover_lifted_reason text,\n  ADD COLUMN IF NOT EXISTS incoming_pipes jsonb,\n  ADD COLUMN IF NOT EXISTS outgoing_pipes jsonb;`
       setMessage('Error: ' + error.message + hint)
     } else {
       setMessage('Success: Manhole created.')
@@ -167,6 +178,10 @@ function AddManholeForm() {
       setTypeOther('')
       setCoverLifted('')
       setCoverNotReason('')
+      setCoverShape('')
+      setCoverDiameter('')
+      setCoverWidth('')
+      setCoverLength('')
       setIncoming([{ label: 'Pipe A', func: '', shape: '', material: '', invert_depth_m: '', width_mm: '', height_mm: '', diameter_mm: '', notes: '' }])
       setOutgoing([{ label: 'Pipe X', func: '', shape: '', material: '', invert_depth_m: '', width_mm: '', height_mm: '', diameter_mm: '', notes: '' }])
     }
@@ -276,6 +291,35 @@ function AddManholeForm() {
               <input className="mt-2 w-full border p-2 rounded" placeholder="If No, specify why" value={coverNotReason} onChange={(e)=>setCoverNotReason(e.target.value)} />
             )}
           </div>
+        </div>
+
+        {/* Cover Shape */}
+        <h2 className="text-xl font-semibold mt-8 mb-3">Cover Shape</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div>
+            <label className="block text-sm mb-1">Shape</label>
+            <select className="w-full border p-2 rounded" value={coverShape} onChange={(e)=>setCoverShape(e.target.value)}>
+              <option value="">Select shape</option>
+              {['Circle','Square','Rectangle','Triangle'].map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </div>
+          {coverShape === 'Circle' ? (
+            <div>
+              <label className="block text-sm mb-1">Diameter (mm)</label>
+              <input className="w-full border p-2 rounded" value={coverDiameter} onChange={(e)=>setCoverDiameter(e.target.value)} />
+            </div>
+          ) : coverShape ? (
+            <>
+              <div>
+                <label className="block text-sm mb-1">Width (mm)</label>
+                <input className="w-full border p-2 rounded" value={coverWidth} onChange={(e)=>setCoverWidth(e.target.value)} />
+              </div>
+              <div>
+                <label className="block text-sm mb-1">Length (mm)</label>
+                <input className="w-full border p-2 rounded" value={coverLength} onChange={(e)=>setCoverLength(e.target.value)} />
+              </div>
+            </>
+          ) : null}
         </div>
 
         {/* Incoming Pipes */}
