@@ -21,7 +21,6 @@ export default function SidebarLayout({
   const pathname = usePathname()
   const router = useRouter()
   const [isSuperAdmin, setIsSuperAdmin] = useState(false)
-  const [showAdminMenu, setShowAdminMenu] = useState(false)
 
   // Basic auth guard: redirect to /auth if no session
   useEffect(() => {
@@ -61,19 +60,10 @@ export default function SidebarLayout({
       const info = deriveRoleInfo(data.user)
       const isSA = canManageEverything(info)
       setIsSuperAdmin(isSA)
-      if (!isSA) {
-        setShowAdminMenu(false)
-      } else {
-        // Restore previous toggle choice across navigations
-        if (typeof window !== 'undefined') {
-          const saved = window.localStorage.getItem('adminMenu')
-          if (saved === '1') setShowAdminMenu(true)
-          if (saved === '0') setShowAdminMenu(false)
-        }
-      }
+      // nothing else needed; visibility handled in nav items
     } catch {
       setIsSuperAdmin(false)
-      setShowAdminMenu(false)
+      // ensure hidden when not superadmin
     }
   }
 
@@ -84,23 +74,11 @@ export default function SidebarLayout({
     { id: 'inspections', label: 'Inspections', icon: <ClipboardList size={18} />, href: '/inspections' },
     { id: 'settings', label: 'Settings', icon: <Settings size={18} />, href: '/settings' },
   ]
-  const adminNav = [
+  const adminNav = isSuperAdmin ? [
     { id: 'users', label: 'User Management', icon: <Settings size={18} />, href: '/admin/users' },
     { id: 'privileges', label: 'User Privileges', icon: <Settings size={18} />, href: '/privileges' },
-  ]
-  const navItems = showAdminMenu ? adminNav : publicNav
-
-  function onLogoClick(e: React.MouseEvent) {
-    if (!isSuperAdmin) return
-    e.preventDefault()
-    setShowAdminMenu((s) => {
-      const next = !s
-      try {
-        window.localStorage.setItem('adminMenu', next ? '1' : '0')
-      } catch {}
-      return next
-    })
-  }
+  ] : []
+  const navItems = [...publicNav, ...adminNav]
 
   async function handleSignOut() {
     await supabase.auth.signOut()
@@ -112,41 +90,17 @@ export default function SidebarLayout({
       {/* Sidebar */}
       <div className="app-sidebar w-64 bg-gray-500 border-r border-gray-400 shadow-sm flex flex-col">
         <div className="p-4 border-b border-gray-400 flex flex-col items-center justify-center gap-2">
-          {isSuperAdmin ? (
-            <button
-              type="button"
-              onClick={onLogoClick}
-              title={showAdminMenu ? 'Hide admin tools' : 'Show admin tools'}
-              className="inline-flex cursor-pointer bg-transparent border-0 p-0"
-            >
-              <Image
-                src="/inorail-logo.png"
-                alt="Toggle admin tools"
-                width={220}
-                height={70}
-                priority
-                className="h-10 w-auto max-w-full object-contain"
-              />
-              <span className="sr-only">Toggle admin tools</span>
-            </button>
-          ) : (
-            <Link href="/" className="inline-flex">
-              <Image
-                src="/inorail-logo.png"
-                alt="InoRail logo"
-                width={220}
-                height={70}
-                priority
-                className="h-10 w-auto max-w-full object-contain"
-              />
-              <span className="sr-only">Manhole Inspection</span>
-            </Link>
-          )}
-          {isSuperAdmin && showAdminMenu && (
-            <span className="text-xs px-2 py-1 rounded bg-blue-600 text-white" title="Admin tools are visible">
-              Admin Tools
-            </span>
-          )}
+          <Link href="/" className="inline-flex">
+            <Image
+              src="/inorail-logo.png"
+              alt="InoRail logo"
+              width={220}
+              height={70}
+              priority
+              className="h-10 w-auto max-w-full object-contain"
+            />
+            <span className="sr-only">Manhole Inspection</span>
+          </Link>
         </div>
         <nav className="p-4 space-y-2">
           {navItems.map((item) => {
