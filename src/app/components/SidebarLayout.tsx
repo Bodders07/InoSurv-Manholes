@@ -61,7 +61,16 @@ export default function SidebarLayout({
       const info = deriveRoleInfo(data.user)
       const isSA = canManageEverything(info)
       setIsSuperAdmin(isSA)
-      if (!isSA) setShowAdminMenu(false)
+      if (!isSA) {
+        setShowAdminMenu(false)
+      } else {
+        // Restore previous toggle choice across navigations
+        if (typeof window !== 'undefined') {
+          const saved = window.localStorage.getItem('adminMenu')
+          if (saved === '1') setShowAdminMenu(true)
+          if (saved === '0') setShowAdminMenu(false)
+        }
+      }
     } catch {
       setIsSuperAdmin(false)
       setShowAdminMenu(false)
@@ -84,7 +93,13 @@ export default function SidebarLayout({
   function onLogoClick(e: React.MouseEvent) {
     if (!isSuperAdmin) return
     e.preventDefault()
-    setShowAdminMenu((s) => !s)
+    setShowAdminMenu((s) => {
+      const next = !s
+      try {
+        window.localStorage.setItem('adminMenu', next ? '1' : '0')
+      } catch {}
+      return next
+    })
   }
 
   async function handleSignOut() {
