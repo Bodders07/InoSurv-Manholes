@@ -45,7 +45,7 @@ function nextLabel(current: string) {
   return String.fromCharCode(Math.min(90, code + 1)) // up to 'Z'
 }
 
-export function AddManholeForm({ standaloneLayout = true }: { standaloneLayout?: boolean }) {
+function AddManholeForm({ standaloneLayout = true }: { standaloneLayout?: boolean }) {
   const params = useSearchParams()
   const [projects, setProjects] = useState<Project[]>([])
   const [projectId, setProjectId] = useState('')
