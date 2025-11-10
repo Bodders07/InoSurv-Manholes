@@ -2,7 +2,8 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  /* Increase contrast for light mode text (near-black) */
+  --foreground: #0b0b0b;
 }
 
 @theme inline {
@@ -15,7 +16,7 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
-    --foreground: #ededed;
+    --foreground: #f2f2f2;
   }
 }
 
@@ -23,4 +24,20 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Explicit theme classes override media preference */
+.theme-light {
+  --background: #ffffff;
+  --foreground: #0b0b0b;
+}
+
+.theme-dark {
+  --background: #0a0a0a;
+  --foreground: #f2f2f2;
+}
+
+/* Subtle transition when switching themes */
+html, body {
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
