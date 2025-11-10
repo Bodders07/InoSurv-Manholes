@@ -96,7 +96,7 @@ export default function SidebarLayout({
     <div className="flex min-h-screen">
       {/* Sidebar */}
       <div className="app-sidebar w-64 bg-gray-500 border-r border-gray-400 shadow-sm flex flex-col">
-        <div className="p-4 border-b border-gray-400 flex items-center justify-center">
+        <div className="p-4 border-b border-gray-400 flex flex-col items-center justify-center gap-2">
           {isSuperAdmin ? (
             <a
               href="/"
@@ -126,6 +126,11 @@ export default function SidebarLayout({
               />
               <span className="sr-only">Manhole Inspection</span>
             </Link>
+          )}
+          {isSuperAdmin && showAdminMenu && (
+            <span className="text-xs px-2 py-1 rounded bg-blue-600 text-white" title="Admin tools are visible">
+              Admin Tools
+            </span>
           )}
         </div>
         <nav className="p-4 space-y-2">
