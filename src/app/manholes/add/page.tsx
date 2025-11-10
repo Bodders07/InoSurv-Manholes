@@ -401,18 +401,23 @@ function AddManholeForm() {
                   <label className="block text-sm mb-1">Invert Depth (m)</label>
                   <input className="w-full border p-2 rounded" value={p.invert_depth_m} onChange={(e)=>{const v=[...incoming]; v[idx].invert_depth_m=e.target.value; setIncoming(v)}} />
                 </div>
-                <div>
-                  <label className="block text-sm mb-1">Pipe Width (mm)</label>
-                  <input className="w-full border p-2 rounded" value={p.width_mm} onChange={(e)=>{const v=[...incoming]; v[idx].width_mm=e.target.value; setIncoming(v)}} />
-                </div>
-                <div>
-                  <label className="block text-sm mb-1">Pipe Height (mm)</label>
-                  <input className="w-full border p-2 rounded" value={p.height_mm} onChange={(e)=>{const v=[...incoming]; v[idx].height_mm=e.target.value; setIncoming(v)}} />
-                </div>
-                <div>
-                  <label className="block text-sm mb-1">Pipe Diameter (mm)</label>
-                  <input className="w-full border p-2 rounded" value={p.diameter_mm} onChange={(e)=>{const v=[...incoming]; v[idx].diameter_mm=e.target.value; setIncoming(v)}} />
-                </div>
+                {['Circular','Egg','Brick Arch','Unknown','Other'].includes(p.shape) ? (
+                  <div>
+                    <label className="block text-sm mb-1">Pipe Diameter (mm)</label>
+                    <input className="w-full border p-2 rounded" value={p.diameter_mm} onChange={(e)=>{const v=[...incoming]; v[idx].diameter_mm=e.target.value; setIncoming(v)}} />
+                  </div>
+                ) : (
+                  <>
+                    <div>
+                      <label className="block text-sm mb-1">Pipe Width (mm)</label>
+                      <input className="w-full border p-2 rounded" value={p.width_mm} onChange={(e)=>{const v=[...incoming]; v[idx].width_mm=e.target.value; setIncoming(v)}} />
+                    </div>
+                    <div>
+                      <label className="block text-sm mb-1">Pipe Height (mm)</label>
+                      <input className="w-full border p-2 rounded" value={p.height_mm} onChange={(e)=>{const v=[...incoming]; v[idx].height_mm=e.target.value; setIncoming(v)}} />
+                    </div>
+                  </>
+                )}
                 <div className="md:col-span-2">
                   <label className="block text-sm mb-1">Notes</label>
                   <input className="w-full border p-2 rounded" value={p.notes} onChange={(e)=>{const v=[...incoming]; v[idx].notes=e.target.value; setIncoming(v)}} />
@@ -465,18 +470,23 @@ function AddManholeForm() {
                   <label className="block text-sm mb-1">Invert Depth (m)</label>
                   <input className="w-full border p-2 rounded" value={p.invert_depth_m} onChange={(e)=>{const v=[...outgoing]; v[idx].invert_depth_m=e.target.value; setOutgoing(v)}} />
                 </div>
-                <div>
-                  <label className="block text-sm mb-1">Pipe Width (mm)</label>
-                  <input className="w-full border p-2 rounded" value={p.width_mm} onChange={(e)=>{const v=[...outgoing]; v[idx].width_mm=e.target.value; setOutgoing(v)}} />
-                </div>
-                <div>
-                  <label className="block text-sm mb-1">Pipe Height (mm)</label>
-                  <input className="w-full border p-2 rounded" value={p.height_mm} onChange={(e)=>{const v=[...outgoing]; v[idx].height_mm=e.target.value; setOutgoing(v)}} />
-                </div>
-                <div>
-                  <label className="block text-sm mb-1">Pipe Diameter (mm)</label>
-                  <input className="w-full border p-2 rounded" value={p.diameter_mm} onChange={(e)=>{const v=[...outgoing]; v[idx].diameter_mm=e.target.value; setOutgoing(v)}} />
-                </div>
+                {['Circular','Egg','Brick Arch','Unknown','Other'].includes(p.shape) ? (
+                  <div>
+                    <label className="block text-sm mb-1">Pipe Diameter (mm)</label>
+                    <input className="w-full border p-2 rounded" value={p.diameter_mm} onChange={(e)=>{const v=[...outgoing]; v[idx].diameter_mm=e.target.value; setOutgoing(v)}} />
+                  </div>
+                ) : (
+                  <>
+                    <div>
+                      <label className="block text-sm mb-1">Pipe Width (mm)</label>
+                      <input className="w-full border p-2 rounded" value={p.width_mm} onChange={(e)=>{const v=[...outgoing]; v[idx].width_mm=e.target.value; setOutgoing(v)}} />
+                    </div>
+                    <div>
+                      <label className="block text-sm mb-1">Pipe Height (mm)</label>
+                      <input className="w-full border p-2 rounded" value={p.height_mm} onChange={(e)=>{const v=[...outgoing]; v[idx].height_mm=e.target.value; setOutgoing(v)}} />
+                    </div>
+                  </>
+                )}
                 <div className="md:col-span-2">
                   <label className="block text-sm mb-1">Notes</label>
                   <input className="w-full border p-2 rounded" value={p.notes} onChange={(e)=>{const v=[...outgoing]; v[idx].notes=e.target.value; setOutgoing(v)}} />
