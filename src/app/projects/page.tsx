@@ -261,9 +261,9 @@ export default function ProjectsPage() {
             )}
             <button
               onClick={addProject}
-              disabled={disableCreateSave || !hasExtendedFields}
+              disabled={disableCreateSave}
               className={`px-4 py-2 rounded text-white ${
-                disableCreateSave || !hasExtendedFields
+                disableCreateSave
                   ? 'bg-gray-400 cursor-not-allowed'
                   : 'bg-blue-600 hover:bg-blue-700'
               }`}
