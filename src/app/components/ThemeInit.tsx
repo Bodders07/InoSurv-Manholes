@@ -17,12 +17,13 @@ export default function ThemeInit() {
       }
     }
 
-    const saved = (localStorage.getItem('theme') as ThemeChoice) || 'system'
+    // Default to dark on first load if user has not saved a preference
+    const saved = (localStorage.getItem('theme') as ThemeChoice) || 'dark'
     apply(saved)
 
     const mq = window.matchMedia('(prefers-color-scheme: dark)')
     const handler = () => {
-      const current = (localStorage.getItem('theme') as ThemeChoice) || 'system'
+      const current = (localStorage.getItem('theme') as ThemeChoice) || 'dark'
       if (current === 'system') apply('system')
     }
     mq.addEventListener?.('change', handler)
@@ -31,4 +32,3 @@ export default function ThemeInit() {
 
   return null
 }
-

@@ -22,23 +22,30 @@ function applyTheme(choice: ThemeChoice) {
 }
 
 export default function SettingsPage() {
-  const [theme, setTheme] = useState<ThemeChoice>('system')
+  const [choice, setChoice] = useState<ThemeChoice>('dark')
+  const [saved, setSaved] = useState<ThemeChoice>('dark')
 
   useEffect(() => {
-    const saved = (localStorage.getItem('theme') as ThemeChoice) || 'system'
-    setTheme(saved)
-    applyTheme(saved)
+    const savedLS = (localStorage.getItem('theme') as ThemeChoice) || 'dark'
+    setChoice(savedLS)
+    setSaved(savedLS)
+    applyTheme(savedLS)
     // Keep in sync if system preference changes
     const mq = window.matchMedia('(prefers-color-scheme: dark)')
-    const handler = () => theme === 'system' && applyTheme('system')
+    const handler = () => (choice === 'system') && applyTheme('system')
     mq.addEventListener?.('change', handler)
     return () => mq.removeEventListener?.('change', handler)
   }, [])
 
   function onChange(next: ThemeChoice) {
-    setTheme(next)
-    localStorage.setItem('theme', next)
+    setChoice(next)
+    // Preview immediately, save only when the user clicks Save
     applyTheme(next)
+  }
+
+  function onSave() {
+    localStorage.setItem('theme', choice)
+    setSaved(choice)
   }
 
   return (
@@ -54,7 +61,7 @@ export default function SettingsPage() {
               type="radio"
               name="theme"
               value="system"
-              checked={theme === 'system'}
+              checked={choice === 'system'}
               onChange={() => onChange('system')}
             />
             <span>System</span>
@@ -64,7 +71,7 @@ export default function SettingsPage() {
               type="radio"
               name="theme"
               value="light"
-              checked={theme === 'light'}
+              checked={choice === 'light'}
               onChange={() => onChange('light')}
             />
             <span>Light</span>
@@ -74,14 +81,30 @@ export default function SettingsPage() {
               type="radio"
               name="theme"
               value="dark"
-              checked={theme === 'dark'}
+              checked={choice === 'dark'}
               onChange={() => onChange('dark')}
             />
             <span>Dark</span>
           </label>
         </div>
+        <div className="mt-4 flex gap-3">
+          <button
+            onClick={onSave}
+            disabled={choice === saved}
+            className={`px-4 py-2 rounded text-white ${choice === saved ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
+          >
+            Save Preference
+          </button>
+          {choice !== saved && (
+            <button
+              onClick={() => { setChoice(saved); applyTheme(saved) }}
+              className="px-4 py-2 rounded border border-gray-300 hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+          )}
+        </div>
       </div>
     </SidebarLayout>
   )
 }
-
