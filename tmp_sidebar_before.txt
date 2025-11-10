@@ -26,7 +26,6 @@ export default function SidebarLayout({
   const [pageOpacity, setPageOpacity] = useState(1)
   const { view, setView } = useView()
   const [collapsed, setCollapsed] = useState(false)
-  const [isSmallScreen, setIsSmallScreen] = useState(false)
 
   // Basic auth guard: redirect to /auth if no session
   useEffect(() => {
@@ -78,24 +77,19 @@ export default function SidebarLayout({
     }
   }, [router])
 
-  // Track small screens and update on resize
-  useEffect(() => {
-    const onResize = () => {
-      try { setIsSmallScreen(window.innerWidth < 768) } catch {}
-    }
-    onResize()
-    window.addEventListener('resize', onResize)
-    return () => window.removeEventListener('resize', onResize)
-  }, [])
-
   // Restore collapsed state and auto-collapse on small screens for focused views
   useEffect(() => {
     try {
       const saved = localStorage.getItem('sidebarCollapsed')
       if (saved != null) setCollapsed(saved === '1')
-      if (isSmallScreen && view === 'manholes_add') setCollapsed(true)
+      if (typeof window !== 'undefined') {
+        const small = window.innerWidth < 768
+        if (small && (view === 'manholes_add')) {
+          setCollapsed(true)
+        }
+      }
     } catch {}
-  }, [view, isSmallScreen])
+  }, [view])
 
   function toggleCollapsed() {
     setCollapsed((c) => {
@@ -142,11 +136,11 @@ export default function SidebarLayout({
     return () => clearTimeout(t)
   }, [pathname])
 
-  const sidebarWidth = isSmallScreen ? (collapsed ? 'w-0' : 'w-64') : (collapsed ? 'w-14' : 'w-64')
+  const sidebarWidth = collapsed ? 'w-14' : 'w-64'
   return (
     <div className="flex min-h-screen">
       {/* Sidebar */}
-      <div className={`app-sidebar ${sidebarWidth} bg-gray-500 border-r border-gray-400 shadow-sm flex flex-col transition-all duration-200 ease-in-out overflow-hidden`}>
+      <div className={`app-sidebar ${sidebarWidth} bg-gray-500 border-r border-gray-400 shadow-sm flex flex-col transition-all duration-200 ease-in-out`}>
         <div className="p-3 border-b border-gray-400 flex items-center justify-between gap-2">
           <button
             type="button"
@@ -176,7 +170,7 @@ export default function SidebarLayout({
             <button
               key={item.id}
               type="button"
-              onClick={() => { setView(item.id); try { if (window.innerWidth < 768) setCollapsed(true) } catch {} }}
+              onClick={() => setView(item.id)}
               className={`flex items-center gap-2 ${collapsed ? 'px-2 justify-center' : 'px-3'} py-1.5 rounded-md transition-colors text-sm leading-6 ${
                 isActive
                   ? 'bg-blue-500 text-white font-semibold'
@@ -199,16 +193,6 @@ export default function SidebarLayout({
         </div>
       </div>
 
-      {/* Mobile hamburger */}
-      <button
-        type="button"
-        aria-label="Open menu"
-        onClick={() => setCollapsed(false)}
-        className="fixed left-2 top-2 z-50 md:hidden px-3 py-2 rounded bg-gray-700 text-white shadow"
-      >
-        ☰
-      </button>
-
       {/* Main content area */}
       <main className="flex-1 p-4 md:p-8 overflow-auto" style={{ opacity: pageOpacity, transition: 'opacity 220ms ease' }}>
         {children}
@@ -216,3 +200,4 @@ export default function SidebarLayout({
     </div>
   )
 }
+
