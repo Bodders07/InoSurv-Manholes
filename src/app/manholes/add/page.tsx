@@ -88,6 +88,12 @@ function AddManholeForm() {
   const [coverWidth, setCoverWidth] = useState('')
   const [coverLength, setCoverLength] = useState('')
 
+  // Chamber shape
+  const [chamberShape, setChamberShape] = useState('')
+  const [chamberDiameter, setChamberDiameter] = useState('')
+  const [chamberWidth, setChamberWidth] = useState('')
+  const [chamberLength, setChamberLength] = useState('')
+
   useEffect(() => {
     async function fetchProjects() {
       const { data, error } = await supabase.from('projects').select('id, name')
@@ -144,6 +150,11 @@ function AddManholeForm() {
       cover_diameter_mm: coverShape === 'Circle' ? (coverDiameter || null) : null,
       cover_width_mm: coverShape && coverShape !== 'Circle' ? (coverWidth || null) : null,
       cover_length_mm: coverShape && coverShape !== 'Circle' ? (coverLength || null) : null,
+      // chamber shape specifics
+      chamber_shape: chamberShape || null,
+      chamber_diameter_mm: (chamberShape === 'Circle' || chamberShape === 'Hexagon') ? (chamberDiameter || null) : null,
+      chamber_width_mm: (chamberShape === 'Square' || chamberShape === 'Rectangle') ? (chamberWidth || null) : null,
+      chamber_length_mm: (chamberShape === 'Square' || chamberShape === 'Rectangle') ? (chamberLength || null) : null,
       service_type: serviceType || null,
       type: type || null,
       type_other: type === 'Other' ? (typeOther || null) : null,
@@ -155,7 +166,7 @@ function AddManholeForm() {
 
     const { error } = await supabase.from('manholes').insert([payload])
     if (error) {
-      const hint = `\nTo support these fields, add columns in Supabase (run once):\n\nALTER TABLE public.manholes\n  ADD COLUMN IF NOT EXISTS survey_date date,\n  ADD COLUMN IF NOT EXISTS measuring_tool text,\n  ADD COLUMN IF NOT EXISTS measuring_offset_mm integer,\n  ADD COLUMN IF NOT EXISTS location_desc text,\n  ADD COLUMN IF NOT EXISTS latitude numeric,\n  ADD COLUMN IF NOT EXISTS longitude numeric,\n  ADD COLUMN IF NOT EXISTS easting numeric,\n  ADD COLUMN IF NOT EXISTS northing numeric,\n  ADD COLUMN IF NOT EXISTS cover_level numeric,\n  ADD COLUMN IF NOT EXISTS cover_shape text,\n  ADD COLUMN IF NOT EXISTS cover_diameter_mm integer,\n  ADD COLUMN IF NOT EXISTS cover_width_mm integer,\n  ADD COLUMN IF NOT EXISTS cover_length_mm integer,\n  ADD COLUMN IF NOT EXISTS type text,\n  ADD COLUMN IF NOT EXISTS type_other text,\n  ADD COLUMN IF NOT EXISTS cover_lifted text,\n  ADD COLUMN IF NOT EXISTS cover_lifted_reason text,\n  ADD COLUMN IF NOT EXISTS incoming_pipes jsonb,\n  ADD COLUMN IF NOT EXISTS outgoing_pipes jsonb;`
+      const hint = `\nTo support these fields, add columns in Supabase (run once):\n\nALTER TABLE public.manholes\n  ADD COLUMN IF NOT EXISTS survey_date date,\n  ADD COLUMN IF NOT EXISTS measuring_tool text,\n  ADD COLUMN IF NOT EXISTS measuring_offset_mm integer,\n  ADD COLUMN IF NOT EXISTS location_desc text,\n  ADD COLUMN IF NOT EXISTS latitude numeric,\n  ADD COLUMN IF NOT EXISTS longitude numeric,\n  ADD COLUMN IF NOT EXISTS easting numeric,\n  ADD COLUMN IF NOT EXISTS northing numeric,\n  ADD COLUMN IF NOT EXISTS cover_level numeric,\n  ADD COLUMN IF NOT EXISTS cover_shape text,\n  ADD COLUMN IF NOT EXISTS cover_diameter_mm integer,\n  ADD COLUMN IF NOT EXISTS cover_width_mm integer,\n  ADD COLUMN IF NOT EXISTS cover_length_mm integer,\n  ADD COLUMN IF NOT EXISTS chamber_shape text,\n  ADD COLUMN IF NOT EXISTS chamber_diameter_mm integer,\n  ADD COLUMN IF NOT EXISTS chamber_width_mm integer,\n  ADD COLUMN IF NOT EXISTS chamber_length_mm integer,\n  ADD COLUMN IF NOT EXISTS type text,\n  ADD COLUMN IF NOT EXISTS type_other text,\n  ADD COLUMN IF NOT EXISTS cover_lifted text,\n  ADD COLUMN IF NOT EXISTS cover_lifted_reason text,\n  ADD COLUMN IF NOT EXISTS incoming_pipes jsonb,\n  ADD COLUMN IF NOT EXISTS outgoing_pipes jsonb;`
       setMessage('Error: ' + error.message + hint)
     } else {
       setMessage('Success: Manhole created.')
@@ -182,6 +193,10 @@ function AddManholeForm() {
       setCoverDiameter('')
       setCoverWidth('')
       setCoverLength('')
+      setChamberShape('')
+      setChamberDiameter('')
+      setChamberWidth('')
+      setChamberLength('')
       setIncoming([{ label: 'Pipe A', func: '', shape: '', material: '', invert_depth_m: '', width_mm: '', height_mm: '', diameter_mm: '', notes: '' }])
       setOutgoing([{ label: 'Pipe X', func: '', shape: '', material: '', invert_depth_m: '', width_mm: '', height_mm: '', diameter_mm: '', notes: '' }])
     }
@@ -317,6 +332,35 @@ function AddManholeForm() {
               <div>
                 <label className="block text-sm mb-1">Length (mm)</label>
                 <input className="w-full border p-2 rounded" value={coverLength} onChange={(e)=>setCoverLength(e.target.value)} />
+              </div>
+            </>
+          ) : null}
+        </div>
+
+        {/* Chamber Shape */}
+        <h2 className="text-xl font-semibold mt-8 mb-3">Chamber Shape</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div>
+            <label className="block text-sm mb-1">Shape</label>
+            <select className="w-full border p-2 rounded" value={chamberShape} onChange={(e)=>setChamberShape(e.target.value)}>
+              <option value="">Select shape</option>
+              {['Circle','Square','Rectangle','Hexagon'].map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </div>
+          {(chamberShape === 'Circle' || chamberShape === 'Hexagon') ? (
+            <div>
+              <label className="block text-sm mb-1">Diameter (mm)</label>
+              <input className="w-full border p-2 rounded" value={chamberDiameter} onChange={(e)=>setChamberDiameter(e.target.value)} />
+            </div>
+          ) : (chamberShape === 'Square' || chamberShape === 'Rectangle') ? (
+            <>
+              <div>
+                <label className="block text-sm mb-1">Width (mm)</label>
+                <input className="w-full border p-2 rounded" value={chamberWidth} onChange={(e)=>setChamberWidth(e.target.value)} />
+              </div>
+              <div>
+                <label className="block text-sm mb-1">Length (mm)</label>
+                <input className="w-full border p-2 rounded" value={chamberLength} onChange={(e)=>setChamberLength(e.target.value)} />
               </div>
             </>
           ) : null}
