@@ -80,13 +80,8 @@ export default function ProjectsPage() {
     }
   }
 
-  const disableCreateSave = useMemo(() => {
-    if (saving) return true
-    if (!projectName) return true
-    // If extended fields are available, require them; otherwise allow save with just name
-    if (hasExtendedFields) return !projectNumber || !client
-    return false
-  }, [projectNumber, client, projectName, saving, hasExtendedFields])
+  // Allow saving as long as a name is provided; optional fields are included if present
+  const disableCreateSave = useMemo(() => saving || !projectName, [projectName, saving])
 
   async function addProject() {
     setMessage('')
@@ -96,10 +91,8 @@ export default function ProjectsPage() {
     }
     setSaving(true)
     const payload: any = { name: projectName }
-    if (hasExtendedFields) {
-      payload.project_number = projectNumber
-      payload.client = client
-    }
+    if (projectNumber) payload.project_number = projectNumber
+    if (client) payload.client = client
     const { error } = await supabase.from('projects').insert([payload])
     setSaving(false)
     if (error) setMessage('Error: ' + error.message)
