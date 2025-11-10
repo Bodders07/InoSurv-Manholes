@@ -56,3 +56,6 @@ html, body {
 .theme-dark .app-sidebar h2 { color: #fff !important; border-color: #222 !important; }
 .theme-dark .app-sidebar a { color: #e5e7eb; }
 .theme-dark .app-sidebar a:hover { background-color: #1f2937 !important; color: #fff !important; }
+
+/* Privileges page: force white text in dark mode */
+.theme-dark .privileges-text { color: #ffffff !important; }
