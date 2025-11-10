@@ -80,10 +80,13 @@ export default function ProjectsPage() {
     }
   }
 
-  const disableCreateSave = useMemo(
-    () => !projectNumber || !client || !projectName || saving,
-    [projectNumber, client, projectName, saving]
-  )
+  const disableCreateSave = useMemo(() => {
+    if (saving) return true
+    if (!projectName) return true
+    // If extended fields are available, require them; otherwise allow save with just name
+    if (hasExtendedFields) return !projectNumber || !client
+    return false
+  }, [projectNumber, client, projectName, saving, hasExtendedFields])
 
   async function addProject() {
     setMessage('')
@@ -92,15 +95,20 @@ export default function ProjectsPage() {
       return
     }
     setSaving(true)
-    const { error } = await supabase.from('projects').insert([
-      { project_number: projectNumber, client, name: projectName },
-    ])
+    const payload: any = { name: projectName }
+    if (hasExtendedFields) {
+      payload.project_number = projectNumber
+      payload.client = client
+    }
+    const { error } = await supabase.from('projects').insert([payload])
     setSaving(false)
     if (error) setMessage('Error: ' + error.message)
     else {
       setMessage('Success: Project created.')
-      setProjectNumber('')
-      setClient('')
+      if (hasExtendedFields) {
+        setProjectNumber('')
+        setClient('')
+      }
       setProjectName('')
       await refreshProjects()
     }

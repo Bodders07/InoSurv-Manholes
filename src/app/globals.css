@@ -57,5 +57,26 @@ html, body {
 .theme-dark .app-sidebar a { color: #e5e7eb; }
 .theme-dark .app-sidebar a:hover { background-color: #1f2937 !important; color: #fff !important; }
 
+/* Inputs in dark mode (explicit tweaks requested) */
+/* Make the date picker calendar icon white on dark backgrounds */
+.theme-dark input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1) brightness(1.8);
+}
+/* Ensure date inputs are readable in dark mode */
+.theme-dark input[type="date"] {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
+/* Select dropdowns: keep white background with black text in dark mode */
+.theme-dark select {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+.theme-dark select option {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
 /* Privileges page: force white text in dark mode */
 .theme-dark .privileges-text { color: #ffffff !important; }
