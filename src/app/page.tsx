@@ -2,15 +2,11 @@
 
 import SidebarLayout from './components/SidebarLayout'
 import { useView } from './components/ViewContext'
-
-const viewSrc: Record<string, string> = {
-  projects: '/projects',
-  manholes: '/manholes',
-  inspections: '/inspections',
-  settings: '/settings',
-  users: '/admin/users',
-  privileges: '/privileges',
-}
+import ProjectsPanel from './components/panels/ProjectsPanel'
+import ManholesPanel from './components/panels/ManholesPanel'
+import UsersPanel from './components/panels/UsersPanel'
+import PrivilegesPanel from './components/panels/PrivilegesPanel'
+import SettingsPanel from './components/panels/SettingsPanel'
 
 export default function HomePage() {
   const { view } = useView()
@@ -24,15 +20,15 @@ export default function HomePage() {
         </>
       )}
 
-      {view !== 'dashboard' && (
-        <iframe
-          title={view}
-          src={viewSrc[view]}
-          className="w-full"
-          style={{ height: 'calc(100vh - 4rem)', border: 'none', background: 'transparent' }}
-        />
+      {view === 'projects' && <ProjectsPanel />}
+      {view === 'manholes' && <ManholesPanel />}
+      {view === 'users' && <UsersPanel />}
+      {view === 'privileges' && <PrivilegesPanel />}
+      {view === 'settings' && <SettingsPanel />}
+
+      {view === 'inspections' && (
+        <div className="p-4 text-gray-600">Inspections coming soon…</div>
       )}
     </SidebarLayout>
   )
 }
-
