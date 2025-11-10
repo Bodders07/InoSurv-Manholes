@@ -22,6 +22,7 @@ export default function SidebarLayout({
   const router = useRouter()
   const [isSuperAdmin, setIsSuperAdmin] = useState(false)
   const [roleReady, setRoleReady] = useState(false)
+  const [pageOpacity, setPageOpacity] = useState(1)
 
   // Basic auth guard: redirect to /auth if no session
   useEffect(() => {
@@ -103,6 +104,13 @@ export default function SidebarLayout({
     router.replace('/auth')
   }
 
+  // Smooth fade between pages when pathname changes
+  useEffect(() => {
+    setPageOpacity(0)
+    const t = setTimeout(() => setPageOpacity(1), 140)
+    return () => clearTimeout(t)
+  }, [pathname])
+
   return (
     <div className="flex min-h-screen">
       {/* Sidebar */}
@@ -150,7 +158,9 @@ export default function SidebarLayout({
       </div>
 
       {/* Main content area */}
-      <main className="flex-1 p-8">{children}</main>
+      <main className="flex-1 p-8" style={{ opacity: pageOpacity, transition: 'opacity 220ms ease' }}>
+        {children}
+      </main>
     </div>
   )
 }
