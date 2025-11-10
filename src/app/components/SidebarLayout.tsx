@@ -57,6 +57,7 @@ export default function SidebarLayout({
     { id: 'inspections', label: 'Inspections', icon: <ClipboardList size={18} />, href: '/inspections' },
     { id: 'settings', label: 'Settings', icon: <Settings size={18} />, href: '/settings' },
     { id: 'users', label: 'Users', icon: <Settings size={18} />, href: '/admin/users' },
+    { id: 'privileges', label: 'User Privileges', icon: <Settings size={18} />, href: '/privileges' },
   ]
 
   async function handleSignOut() {
