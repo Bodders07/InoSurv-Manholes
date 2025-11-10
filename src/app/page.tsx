@@ -4,6 +4,7 @@ import SidebarLayout from './components/SidebarLayout'
 import { useView } from './components/ViewContext'
 import ProjectsPanel from './components/panels/ProjectsPanel'
 import ManholesPanel from './components/panels/ManholesPanel'
+import AddManholePanel from './components/panels/AddManholePanel'
 import UsersPanel from './components/panels/UsersPanel'
 import PrivilegesPanel from './components/panels/PrivilegesPanel'
 import SettingsPanel from './components/panels/SettingsPanel'
@@ -22,6 +23,7 @@ export default function HomePage() {
 
       {view === 'projects' && <ProjectsPanel />}
       {view === 'manholes' && <ManholesPanel />}
+      {view === 'manholes_add' && <AddManholePanel />}
       {view === 'users' && <UsersPanel />}
       {view === 'privileges' && <PrivilegesPanel />}
       {view === 'settings' && <SettingsPanel />}

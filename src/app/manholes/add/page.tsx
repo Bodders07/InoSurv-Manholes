@@ -45,7 +45,7 @@ function nextLabel(current: string) {
   return String.fromCharCode(Math.min(90, code + 1)) // up to 'Z'
 }
 
-function AddManholeForm() {
+export function AddManholeForm({ standaloneLayout = true }: { standaloneLayout?: boolean }) {
   const params = useSearchParams()
   const [projects, setProjects] = useState<Project[]>([])
   const [projectId, setProjectId] = useState('')
@@ -206,10 +206,7 @@ function AddManholeForm() {
       setIncoming([{ label: 'Pipe A', func: '', shape: '', material: '', invert_depth_m: '', width_mm: '', height_mm: '', diameter_mm: '', notes: '' }])
       setOutgoing([{ label: 'Pipe X', func: '', shape: '', material: '', invert_depth_m: '', width_mm: '', height_mm: '', diameter_mm: '', notes: '' }])
     }
-  }
-
-  return (
-    <SidebarLayout>
+  }\n  const content = (<>
       <div className="p-8 max-w-4xl mx-auto">
         <h1 className="text-2xl font-bold mb-4">Add Manhole</h1>
 
@@ -529,11 +526,8 @@ function AddManholeForm() {
 
         {message && <pre className="mt-4 whitespace-pre-wrap text-sm">{message}</pre>}
       </div>
-    </SidebarLayout>
-  )
-}
-
-export const dynamic = 'force-dynamic'
+    </>);
+  )\n  if (standaloneLayout) { return (<SidebarLayout>{content}</SidebarLayout>); }\n  return content;\n}\n\nexport const dynamic = 'force-dynamic'
 
 export default function AddManholePage() {
   return (
@@ -542,6 +536,10 @@ export default function AddManholePage() {
     </Suspense>
   )
 }
+
+
+
+
 
 
 

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
+import { useView } from '@/app/components/ViewContext'
 import { supabase } from '@/lib/supabaseClient'
 import { deriveRoleInfo, canAdminister, canManageEverything } from '@/lib/roles'
 
@@ -10,6 +11,7 @@ type Manhole = { id: string; identifier: string | null; project_id: string }
 type SortKey = 'project_number' | 'project_name' | 'identifier'
 
 export default function ManholesContent() {
+  const { setView } = useView()
   const [projects, setProjects] = useState<Project[]>([])
   const [manholes, setManholes] = useState<Manhole[]>([])
   const [message, setMessage] = useState('')
@@ -122,7 +124,7 @@ export default function ManholesContent() {
     <>
       <div className="flex items-center justify-between mb-2">
         <h1 className="text-2xl font-bold">Manholes</h1>
-        <Link href="/manholes/add" className="bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700">Add Manhole</Link>
+        <button onClick={() => setView('manholes_add')} className="bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700">Add Manhole</button>
       </div>
 
       <div className="flex flex-wrap items-center gap-3 mb-6">
@@ -218,4 +220,3 @@ export default function ManholesContent() {
     </>
   )
 }
-

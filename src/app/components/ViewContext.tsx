@@ -10,6 +10,7 @@ export type AppView =
   | 'settings'
   | 'users'
   | 'privileges'
+  | 'manholes_add'
 
 type ViewCtx = {
   view: AppView
@@ -44,4 +45,3 @@ export function useView() {
   if (!ctx) throw new Error('useView must be used within ViewProvider')
   return ctx
 }
-
