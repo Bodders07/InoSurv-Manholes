@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
 import { deriveRoleInfo, canManageEverything } from '@/lib/roles'
 import {
@@ -18,7 +18,7 @@ export default function SidebarLayout({
 }: {
   children: React.ReactNode
 }) {
-  const [active, setActive] = useState('dashboard')
+  const pathname = usePathname()
   const router = useRouter()
   const [isSuperAdmin, setIsSuperAdmin] = useState(false)
   const [showAdminMenu, setShowAdminMenu] = useState(false)
@@ -149,13 +149,14 @@ export default function SidebarLayout({
           )}
         </div>
         <nav className="p-4 space-y-2">
-          {navItems.map((item) => (
+          {navItems.map((item) => {
+            const isActive = pathname === item.href
+            return (
             <Link
               key={item.id}
               href={item.href}
-              onClick={() => setActive(item.id)}
               className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
-                active === item.id
+                isActive
                   ? 'bg-blue-400 text-white'
                   : 'text-gray-100 hover:bg-gray-600 hover:text-white'
               }`}
@@ -163,7 +164,8 @@ export default function SidebarLayout({
               {item.icon}
               <span>{item.label}</span>
             </Link>
-          ))}
+            )
+          })}
         </nav>
         <div className="mt-auto p-4 border-t">
           <button
