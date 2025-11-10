@@ -160,17 +160,51 @@ export default function ProjectsPage() {
       setMessage('Error: Only admins can delete projects.')
       return
     }
-    const proceed = typeof window !== 'undefined' ? window.confirm('Delete this project? This cannot be undone.') : true
+
+    // Check if the project has related manholes to provide clearer guidance
+    const rel = await supabase
+      .from('manholes')
+      .select('id', { count: 'exact', head: true })
+      .eq('project_id', id)
+    const relatedCount = rel.count ?? 0
+
+    let confirmText = 'Delete this project? This cannot be undone.'
+    if (relatedCount > 0) {
+      confirmText = `Delete this project and its ${relatedCount} manhole(s)? This cannot be undone. If your database is not set to cascade deletes, this will fail.`
+    }
+
+    const proceed = typeof window !== 'undefined' ? window.confirm(confirmText) : true
     if (!proceed) return
+
     setMessage('')
     setDeletingId(id)
-    const { error } = await supabase.from('projects').delete().eq('id', id)
+
+    // Ask PostgREST to return rows so we can detect no-op deletions under RLS
+    const { error, data } = await supabase
+      .from('projects')
+      .delete()
+      .eq('id', id)
+      .select('id')
+
     setDeletingId(null)
-    if (error) setMessage('Error: ' + error.message)
-    else {
-      setMessage('Success: Project deleted.')
-      await refreshProjects()
+
+    if (error) {
+      // Common case: foreign key restriction
+      if (error.message.toLowerCase().includes('foreign key')) {
+        setMessage('Error: Project has related manholes. Enable ON DELETE CASCADE on manholes.project_id or delete the manholes first.')
+      } else {
+        setMessage('Error: ' + error.message)
+      }
+      return
     }
+
+    if (!data || data.length === 0) {
+      setMessage('Error: Project not deleted (RLS or missing permissions). Ensure a DELETE policy exists for your role.')
+      return
+    }
+
+    setMessage('Success: Project deleted.')
+    await refreshProjects()
   }
 
   return (
@@ -322,4 +356,3 @@ export default function ProjectsPage() {
     </SidebarLayout>
   )
 }
-
