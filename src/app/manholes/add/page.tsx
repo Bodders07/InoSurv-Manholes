@@ -170,9 +170,35 @@ export function AddManholeForm({ standaloneLayout = true }: { standaloneLayout?:
 
     const { error } = await supabase.from('manholes').insert([payload])
     if (error) {
-      const hint = `\nTo support these fields, add columns in Supabase (run once):\n\nALTER TABLE public.manholes\n  ADD COLUMN IF NOT EXISTS survey_date date,\n  ADD COLUMN IF NOT EXISTS measuring_tool text,\n  ADD COLUMN IF NOT EXISTS measuring_offset_mm integer,\n  ADD COLUMN IF NOT EXISTS location_desc text,\n  ADD COLUMN IF NOT EXISTS latitude numeric,\n  ADD COLUMN IF NOT EXISTS longitude numeric,\n  ADD COLUMN IF NOT EXISTS easting numeric,\n  ADD COLUMN IF NOT EXISTS northing numeric,\n  ADD COLUMN IF NOT EXISTS cover_level numeric,\n  ADD COLUMN IF NOT EXISTS cover_shape text,\n  ADD COLUMN IF NOT EXISTS cover_diameter_mm integer,\n  ADD COLUMN IF NOT EXISTS cover_width_mm integer,\n  ADD COLUMN IF NOT EXISTS cover_length_mm integer,
+      const hint = `
+To support these fields, add columns in Supabase (run once):
+
+ALTER TABLE public.manholes
+  ADD COLUMN IF NOT EXISTS survey_date date,
+  ADD COLUMN IF NOT EXISTS measuring_tool text,
+  ADD COLUMN IF NOT EXISTS measuring_offset_mm integer,
+  ADD COLUMN IF NOT EXISTS location_desc text,
+  ADD COLUMN IF NOT EXISTS latitude numeric,
+  ADD COLUMN IF NOT EXISTS longitude numeric,
+  ADD COLUMN IF NOT EXISTS easting numeric,
+  ADD COLUMN IF NOT EXISTS northing numeric,
+  ADD COLUMN IF NOT EXISTS cover_level numeric,
+  ADD COLUMN IF NOT EXISTS cover_shape text,
+  ADD COLUMN IF NOT EXISTS cover_diameter_mm integer,
+  ADD COLUMN IF NOT EXISTS cover_width_mm integer,
+  ADD COLUMN IF NOT EXISTS cover_length_mm integer,
   ADD COLUMN IF NOT EXISTS cover_material text,
-  ADD COLUMN IF NOT EXISTS cover_material_other text,\n  ADD COLUMN IF NOT EXISTS chamber_shape text,\n  ADD COLUMN IF NOT EXISTS chamber_diameter_mm integer,\n  ADD COLUMN IF NOT EXISTS chamber_width_mm integer,\n  ADD COLUMN IF NOT EXISTS chamber_length_mm integer,\n  ADD COLUMN IF NOT EXISTS type text,\n  ADD COLUMN IF NOT EXISTS type_other text,\n  ADD COLUMN IF NOT EXISTS cover_lifted text,\n  ADD COLUMN IF NOT EXISTS cover_lifted_reason text,\n  ADD COLUMN IF NOT EXISTS incoming_pipes jsonb,\n  ADD COLUMN IF NOT EXISTS outgoing_pipes jsonb;`
+  ADD COLUMN IF NOT EXISTS cover_material_other text,
+  ADD COLUMN IF NOT EXISTS chamber_shape text,
+  ADD COLUMN IF NOT EXISTS chamber_diameter_mm integer,
+  ADD COLUMN IF NOT EXISTS chamber_width_mm integer,
+  ADD COLUMN IF NOT EXISTS chamber_length_mm integer,
+  ADD COLUMN IF NOT EXISTS type text,
+  ADD COLUMN IF NOT EXISTS type_other text,
+  ADD COLUMN IF NOT EXISTS cover_lifted text,
+  ADD COLUMN IF NOT EXISTS cover_lifted_reason text,
+  ADD COLUMN IF NOT EXISTS incoming_pipes jsonb,
+  ADD COLUMN IF NOT EXISTS outgoing_pipes jsonb;`
       setMessage('Error: ' + error.message + hint)
     } else {
       setMessage('Success: Manhole created.')
@@ -206,7 +232,9 @@ export function AddManholeForm({ standaloneLayout = true }: { standaloneLayout?:
       setIncoming([{ label: 'Pipe A', func: '', shape: '', material: '', invert_depth_m: '', width_mm: '', height_mm: '', diameter_mm: '', notes: '' }])
       setOutgoing([{ label: 'Pipe X', func: '', shape: '', material: '', invert_depth_m: '', width_mm: '', height_mm: '', diameter_mm: '', notes: '' }])
     }
-  }\n  const content = (<>
+  }
+
+  const content = (<>
       <div className="p-8 max-w-4xl mx-auto">
         <h1 className="text-2xl font-bold mb-4">Add Manhole</h1>
 
@@ -527,7 +555,11 @@ export function AddManholeForm({ standaloneLayout = true }: { standaloneLayout?:
         {message && <pre className="mt-4 whitespace-pre-wrap text-sm">{message}</pre>}
       </div>
     </>);
-  )\n  if (standaloneLayout) { return (<SidebarLayout>{content}</SidebarLayout>); }\n  return content;\n}\n\nexport const dynamic = 'force-dynamic'
+  if (standaloneLayout) { return (<SidebarLayout>{content}</SidebarLayout>); }
+  return content;
+}
+
+export const dynamic = 'force-dynamic'
 
 export default function AddManholePage() {
   return (
@@ -536,6 +568,7 @@ export default function AddManholePage() {
     </Suspense>
   )
 }
+
 
 
 
