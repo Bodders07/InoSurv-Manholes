@@ -55,6 +55,18 @@ export default function EditManholePage() {
   const [coverLifted, setCoverLifted] = useState('')
   const [coverNotReason, setCoverNotReason] = useState('')
 
+  // Cover shape
+  const [coverShape, setCoverShape] = useState('')
+  const [coverDiameter, setCoverDiameter] = useState('')
+  const [coverWidth, setCoverWidth] = useState('')
+  const [coverLength, setCoverLength] = useState('')
+
+  // Chamber shape
+  const [chamberShape, setChamberShape] = useState('')
+  const [chamberDiameter, setChamberDiameter] = useState('')
+  const [chamberWidth, setChamberWidth] = useState('')
+  const [chamberLength, setChamberLength] = useState('')
+
   // pipes
   const [incoming, setIncoming] = useState<Pipe[]>([])
   const [outgoing, setOutgoing] = useState<Pipe[]>([])
@@ -79,6 +91,14 @@ export default function EditManholePage() {
         setEasting((data.easting ?? '').toString())
         setNorthing((data.northing ?? '').toString())
         setCoverLevel((data.cover_level ?? '').toString())
+        setCoverShape(data.cover_shape || '')
+        setCoverDiameter((data.cover_diameter_mm ?? '').toString())
+        setCoverWidth((data.cover_width_mm ?? '').toString())
+        setCoverLength((data.cover_length_mm ?? '').toString())
+        setChamberShape(data.chamber_shape || '')
+        setChamberDiameter((data.chamber_diameter_mm ?? '').toString())
+        setChamberWidth((data.chamber_width_mm ?? '').toString())
+        setChamberLength((data.chamber_length_mm ?? '').toString())
         setServiceType(data.service_type || '')
         setType(data.type || '')
         setTypeOther(data.type_other || '')
@@ -126,6 +146,14 @@ export default function EditManholePage() {
       easting: easting || null,
       northing: northing || null,
       cover_level: coverLevel || null,
+      cover_shape: coverShape || null,
+      cover_diameter_mm: coverShape === 'Circle' ? (coverDiameter || null) : null,
+      cover_width_mm: coverShape && coverShape !== 'Circle' ? (coverWidth || null) : null,
+      cover_length_mm: coverShape && coverShape !== 'Circle' ? (coverLength || null) : null,
+      chamber_shape: chamberShape || null,
+      chamber_diameter_mm: (chamberShape === 'Circle' || chamberShape === 'Hexagon') ? (chamberDiameter || null) : null,
+      chamber_width_mm: (chamberShape === 'Square' || chamberShape === 'Rectangle') ? (chamberWidth || null) : null,
+      chamber_length_mm: (chamberShape === 'Square' || chamberShape === 'Rectangle') ? (chamberLength || null) : null,
       service_type: serviceType || null,
       type: type || null,
       type_other: type === 'Other' ? (typeOther || null) : null,
@@ -223,9 +251,67 @@ export default function EditManholePage() {
                   <input className="mt-2 w-full border p-2 rounded" placeholder="If No, specify why" value={coverNotReason} onChange={(e)=>setCoverNotReason(e.target.value)} />
                 )}
               </div>
-            </div>
+          </div>
 
-            {/* Incoming Pipes */}
+          {/* Cover Shape */}
+          <h2 className="text-xl font-semibold mt-8 mb-3">Cover Shape</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div>
+              <label className="block text-sm mb-1">Shape</label>
+              <select className="w-full border p-2 rounded" value={coverShape} onChange={(e)=>setCoverShape(e.target.value)}>
+                <option value="">Select shape</option>
+                {['Circle','Square','Rectangle','Triangle'].map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
+            {coverShape === 'Circle' ? (
+              <div>
+                <label className="block text-sm mb-1">Diameter (mm)</label>
+                <input className="w-full border p-2 rounded" value={coverDiameter} onChange={(e)=>setCoverDiameter(e.target.value)} />
+              </div>
+            ) : coverShape ? (
+              <>
+                <div>
+                  <label className="block text-sm mb-1">Width (mm)</label>
+                  <input className="w-full border p-2 rounded" value={coverWidth} onChange={(e)=>setCoverWidth(e.target.value)} />
+                </div>
+                <div>
+                  <label className="block text-sm mb-1">Length (mm)</label>
+                  <input className="w-full border p-2 rounded" value={coverLength} onChange={(e)=>setCoverLength(e.target.value)} />
+                </div>
+              </>
+            ) : null}
+          </div>
+
+          {/* Chamber Shape */}
+          <h2 className="text-xl font-semibold mt-8 mb-3">Chamber Shape</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div>
+              <label className="block text-sm mb-1">Shape</label>
+              <select className="w-full border p-2 rounded" value={chamberShape} onChange={(e)=>setChamberShape(e.target.value)}>
+                <option value="">Select shape</option>
+                {['Circle','Square','Rectangle','Hexagon'].map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
+            {(chamberShape === 'Circle' || chamberShape === 'Hexagon') ? (
+              <div>
+                <label className="block text-sm mb-1">Diameter (mm)</label>
+                <input className="w-full border p-2 rounded" value={chamberDiameter} onChange={(e)=>setChamberDiameter(e.target.value)} />
+              </div>
+            ) : (chamberShape === 'Square' || chamberShape === 'Rectangle') ? (
+              <>
+                <div>
+                  <label className="block text-sm mb-1">Width (mm)</label>
+                  <input className="w-full border p-2 rounded" value={chamberWidth} onChange={(e)=>setChamberWidth(e.target.value)} />
+                </div>
+                <div>
+                  <label className="block text-sm mb-1">Length (mm)</label>
+                  <input className="w-full border p-2 rounded" value={chamberLength} onChange={(e)=>setChamberLength(e.target.value)} />
+                </div>
+              </>
+            ) : null}
+          </div>
+
+          {/* Incoming Pipes */}
             <h2 className="text-xl font-semibold mt-8 mb-3">Incoming Pipes</h2>
             <div className="space-y-4">
               {incoming.map((p, idx) => (
