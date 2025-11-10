@@ -113,11 +113,11 @@ export default function SidebarLayout({
       <div className="app-sidebar w-64 bg-gray-500 border-r border-gray-400 shadow-sm flex flex-col">
         <div className="p-4 border-b border-gray-400 flex flex-col items-center justify-center gap-2">
           {isSuperAdmin ? (
-            <a
-              href="/"
+            <button
+              type="button"
               onClick={onLogoClick}
               title={showAdminMenu ? 'Hide admin tools' : 'Show admin tools'}
-              className="inline-flex cursor-pointer"
+              className="inline-flex cursor-pointer bg-transparent border-0 p-0"
             >
               <Image
                 src="/inorail-logo.png"
@@ -128,7 +128,7 @@ export default function SidebarLayout({
                 className="h-10 w-auto max-w-full object-contain"
               />
               <span className="sr-only">Toggle admin tools</span>
-            </a>
+            </button>
           ) : (
             <Link href="/" className="inline-flex">
               <Image
