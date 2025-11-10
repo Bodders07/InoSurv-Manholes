@@ -21,13 +21,24 @@ export default function SidebarLayout({
   const pathname = usePathname()
   const router = useRouter()
   const [isSuperAdmin, setIsSuperAdmin] = useState(false)
+  const [roleReady, setRoleReady] = useState(false)
 
   // Basic auth guard: redirect to /auth if no session
   useEffect(() => {
     let unsub: (() => void) | undefined
     const init = async () => {
       const { data } = await supabase.auth.getSession()
-      if (!data.session) router.replace('/auth')
+      if (!data.session) {
+        router.replace('/auth')
+      }
+      // Derive role immediately from current session to avoid flicker
+      try {
+        const user: any = data.session?.user
+        if (user) {
+          const info = deriveRoleInfo(user)
+          setIsSuperAdmin(canManageEverything(info))
+        }
+      } catch {}
       // If the user arrived via an invite link and hit any app page,
       // send them to the password setup flow.
       try {
@@ -43,10 +54,18 @@ export default function SidebarLayout({
       } catch {}
       const sub = supabase.auth.onAuthStateChange((_e, session) => {
         if (!session) router.replace('/auth')
-        detectRole()
+        // Re-evaluate role using the new session
+        try {
+          const info = deriveRoleInfo(session?.user)
+          setIsSuperAdmin(canManageEverything(info))
+        } catch {
+          setIsSuperAdmin(false)
+        }
+        setRoleReady(true)
       })
       unsub = () => sub.data.subscription.unsubscribe()
       await detectRole()
+      setRoleReady(true)
     }
     init()
     return () => {
@@ -56,14 +75,13 @@ export default function SidebarLayout({
 
   async function detectRole() {
     try {
-      const { data } = await supabase.auth.getUser()
-      const info = deriveRoleInfo(data.user)
-      const isSA = canManageEverything(info)
-      setIsSuperAdmin(isSA)
-      // nothing else needed; visibility handled in nav items
+      // Use session (no network) to derive role quickly
+      const { data } = await supabase.auth.getSession()
+      const user = data.session?.user
+      const info = deriveRoleInfo(user)
+      setIsSuperAdmin(canManageEverything(info))
     } catch {
       setIsSuperAdmin(false)
-      // ensure hidden when not superadmin
     }
   }
 
@@ -103,7 +121,7 @@ export default function SidebarLayout({
           </Link>
         </div>
         <nav className="p-4 space-y-1">
-          {navItems.map((item) => {
+          {!roleReady ? null : navItems.map((item) => {
             const isActive = pathname === item.href
             return (
             <Link
