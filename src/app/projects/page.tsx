@@ -11,6 +11,8 @@ type Project = {
   name: string | null
   client: string | null
   project_number: string | null
+  created_at?: string | null
+  updated_at?: string | null
 }
 
 export default function ProjectsPage() {
@@ -43,7 +45,7 @@ export default function ProjectsPage() {
       setMessage('')
       const { data, error } = await supabase
         .from('projects')
-        .select('id, name, client, project_number')
+        .select('id, name, client, project_number, created_at, updated_at')
         .order('project_number', { ascending: true })
 
       if (error) {
@@ -107,7 +109,7 @@ export default function ProjectsPage() {
   async function refreshProjects() {
     const { data, error } = await supabase
       .from('projects')
-      .select('id, name, client, project_number')
+      .select('id, name, client, project_number, created_at, updated_at')
       .order('project_number', { ascending: true })
     if (error) return
     setProjects(data || [])
@@ -287,17 +289,24 @@ export default function ProjectsPage() {
                   <th className="px-4 py-2 border-b">Project #</th>
                   <th className="px-4 py-2 border-b">Client</th>
                   <th className="px-4 py-2 border-b">Project Name</th>
+                  <th className="px-4 py-2 border-b">Created</th>
+                  <th className="px-4 py-2 border-b">Last Updated</th>
                   <th className="px-4 py-2 border-b w-px">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {projects.map((p) => {
                   const isEditing = editingId === p.id
+                  const created = p.created_at ? new Date(p.created_at) : null
+                  const updated = p.updated_at ? new Date(p.updated_at) : null
+                  const dt = (d: Date | null) => (d ? d.toLocaleString() : '-')
                   return (
                     <tr key={p.id} className="hover:bg-gray-50">
                       <td className="px-4 py-2 border-b align-top">{p.project_number || '-'}</td>
                       <td className="px-4 py-2 border-b align-top">{p.client || '-'}</td>
                       <td className="px-4 py-2 border-b align-top">{p.name || '-'}</td>
+                      <td className="px-4 py-2 border-b align-top">{dt(created)}</td>
+                      <td className="px-4 py-2 border-b align-top">{dt(updated)}</td>
                       <td className="px-4 py-2 border-b align-top text-right">
                         {isEditing ? (
                           <div className="flex gap-2 justify-end">
