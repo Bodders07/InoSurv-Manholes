@@ -90,11 +90,13 @@ function AddManholeForm({ standaloneLayout = true }: { standaloneLayout?: boolea
   const [coverMaterial, setCoverMaterial] = useState('')
   const [coverMaterialOther, setCoverMaterialOther] = useState('')
 
-  // Chamber shape
+  // Chamber
   const [chamberShape, setChamberShape] = useState('')
   const [chamberDiameter, setChamberDiameter] = useState('')
   const [chamberWidth, setChamberWidth] = useState('')
   const [chamberLength, setChamberLength] = useState('')
+  const [chamberMaterial, setChamberMaterial] = useState('')
+  const [chamberMaterialOther, setChamberMaterialOther] = useState('')
 
   useEffect(() => {
     async function fetchProjects() {
@@ -154,11 +156,13 @@ function AddManholeForm({ standaloneLayout = true }: { standaloneLayout?: boolea
       cover_length_mm: coverShape && coverShape !== 'Circle' ? (coverLength || null) : null,
       cover_material: coverMaterial || null,
       cover_material_other: coverMaterial === 'Other' ? (coverMaterialOther || null) : null,
-      // chamber shape specifics
+      // chamber specifics
       chamber_shape: chamberShape || null,
       chamber_diameter_mm: (chamberShape === 'Circle' || chamberShape === 'Hexagon') ? (chamberDiameter || null) : null,
       chamber_width_mm: (chamberShape === 'Square' || chamberShape === 'Rectangle') ? (chamberWidth || null) : null,
       chamber_length_mm: (chamberShape === 'Square' || chamberShape === 'Rectangle') ? (chamberLength || null) : null,
+      chamber_material: chamberMaterial || null,
+      chamber_material_other: chamberMaterial === 'Other' ? (chamberMaterialOther || null) : null,
       service_type: serviceType || null,
       type: type || null,
       type_other: type === 'Other' ? (typeOther || null) : null,
@@ -193,6 +197,8 @@ ALTER TABLE public.manholes
   ADD COLUMN IF NOT EXISTS chamber_diameter_mm integer,
   ADD COLUMN IF NOT EXISTS chamber_width_mm integer,
   ADD COLUMN IF NOT EXISTS chamber_length_mm integer,
+  ADD COLUMN IF NOT EXISTS chamber_material text,
+  ADD COLUMN IF NOT EXISTS chamber_material_other text,
   ADD COLUMN IF NOT EXISTS type text,
   ADD COLUMN IF NOT EXISTS type_other text,
   ADD COLUMN IF NOT EXISTS cover_lifted text,
@@ -229,6 +235,8 @@ ALTER TABLE public.manholes
       setChamberDiameter('')
       setChamberWidth('')
       setChamberLength('')
+      setChamberMaterial('')
+      setChamberMaterialOther('')
       setIncoming([{ label: 'Pipe A', func: '', shape: '', material: '', invert_depth_m: '', width_mm: '', height_mm: '', diameter_mm: '', notes: '' }])
       setOutgoing([{ label: 'Pipe X', func: '', shape: '', material: '', invert_depth_m: '', width_mm: '', height_mm: '', diameter_mm: '', notes: '' }])
     }
@@ -380,8 +388,8 @@ ALTER TABLE public.manholes
           ) : null}
         </div>
 
-        {/* Chamber Shape */}
-        <h2 className="text-xl font-semibold mt-8 mb-3">Chamber Shape</h2>
+        {/* Chamber */}
+        <h2 className="text-xl font-semibold mt-8 mb-3">Chamber</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <div>
             <label className="block text-sm mb-1">Shape</label>
@@ -389,6 +397,18 @@ ALTER TABLE public.manholes
               <option value="">Select shape</option>
               {['Circle','Square','Rectangle','Hexagon'].map(s => <option key={s} value={s}>{s}</option>)}
             </select>
+          </div>
+          <div>
+            <label className="block text-sm mb-1">Chamber Material</label>
+            <select className="w-full border p-2 rounded" value={chamberMaterial} onChange={(e)=>setChamberMaterial(e.target.value)}>
+              <option value="">Select material</option>
+              {['Brick','Concrete Rings','In-Situ Concrete','Brick/Concrete','PCC','Plastic','Fibreglass','Cast Iron','Metal','Other'].map(m => (
+                <option key={m} value={m}>{m}</option>
+              ))}
+            </select>
+            {chamberMaterial === 'Other' && (
+              <input className="mt-2 w-full border p-2 rounded" placeholder="If Other, specify" value={chamberMaterialOther} onChange={(e)=>setChamberMaterialOther(e.target.value)} />
+            )}
           </div>
           {(chamberShape === 'Circle' || chamberShape === 'Hexagon') ? (
             <div>
@@ -574,3 +594,5 @@ function AddManholePageInner() {
   const embed = params?.get('embed') === '1'
   return <AddManholeForm standaloneLayout={!embed} />
 }
+
+
