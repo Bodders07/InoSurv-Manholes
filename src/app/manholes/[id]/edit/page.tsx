@@ -60,6 +60,8 @@ export default function EditManholePage() {
   const [coverDiameter, setCoverDiameter] = useState('')
   const [coverWidth, setCoverWidth] = useState('')
   const [coverLength, setCoverLength] = useState('')
+  const [coverMaterial, setCoverMaterial] = useState('')
+  const [coverMaterialOther, setCoverMaterialOther] = useState('')
 
   // Chamber shape
   const [chamberShape, setChamberShape] = useState('')
@@ -95,6 +97,8 @@ export default function EditManholePage() {
         setCoverDiameter((data.cover_diameter_mm ?? '').toString())
         setCoverWidth((data.cover_width_mm ?? '').toString())
         setCoverLength((data.cover_length_mm ?? '').toString())
+        setCoverMaterial(data.cover_material || '')
+        setCoverMaterialOther(data.cover_material_other || '')
         setChamberShape(data.chamber_shape || '')
         setChamberDiameter((data.chamber_diameter_mm ?? '').toString())
         setChamberWidth((data.chamber_width_mm ?? '').toString())
@@ -150,6 +154,8 @@ export default function EditManholePage() {
       cover_diameter_mm: coverShape === 'Circle' ? (coverDiameter || null) : null,
       cover_width_mm: coverShape && coverShape !== 'Circle' ? (coverWidth || null) : null,
       cover_length_mm: coverShape && coverShape !== 'Circle' ? (coverLength || null) : null,
+      cover_material: coverMaterial || null,
+      cover_material_other: coverMaterial === 'Other' ? (coverMaterialOther || null) : null,
       chamber_shape: chamberShape || null,
       chamber_diameter_mm: (chamberShape === 'Circle' || chamberShape === 'Hexagon') ? (chamberDiameter || null) : null,
       chamber_width_mm: (chamberShape === 'Square' || chamberShape === 'Rectangle') ? (chamberWidth || null) : null,
@@ -253,8 +259,8 @@ export default function EditManholePage() {
               </div>
           </div>
 
-          {/* Cover Shape */}
-          <h2 className="text-xl font-semibold mt-8 mb-3">Cover Shape</h2>
+          {/* Cover */}
+          <h2 className="text-xl font-semibold mt-8 mb-3">Cover</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div>
               <label className="block text-sm mb-1">Shape</label>
@@ -280,6 +286,22 @@ export default function EditManholePage() {
                 </div>
               </>
             ) : null}
+          </div>
+
+          {/* Cover Material */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
+            <div>
+              <label className="block text-sm mb-1">Cover Material</label>
+              <select className="w-full border p-2 rounded" value={coverMaterial} onChange={(e)=>setCoverMaterial(e.target.value)}>
+                <option value="">Select material</option>
+                {['Cast Iron','Light Steel','Heavy Steel','Concrete','Plastic','Metal','Other'].map(m => (
+                  <option key={m} value={m}>{m}</option>
+                ))}
+              </select>
+              {coverMaterial === 'Other' && (
+                <input className="mt-2 w-full border p-2 rounded" placeholder="If Other, specify" value={coverMaterialOther} onChange={(e)=>setCoverMaterialOther(e.target.value)} />
+              )}
+            </div>
           </div>
 
           {/* Chamber Shape */}
@@ -449,3 +471,5 @@ export default function EditManholePage() {
     </SidebarLayout>
   )
 }
+
+

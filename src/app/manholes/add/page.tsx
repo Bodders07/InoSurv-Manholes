@@ -82,11 +82,13 @@ function AddManholeForm() {
   const [message, setMessage] = useState('')
   const [copyList, setCopyList] = useState(false)
 
-  // Cover shape
+  // Cover
   const [coverShape, setCoverShape] = useState('')
   const [coverDiameter, setCoverDiameter] = useState('')
   const [coverWidth, setCoverWidth] = useState('')
   const [coverLength, setCoverLength] = useState('')
+  const [coverMaterial, setCoverMaterial] = useState('')
+  const [coverMaterialOther, setCoverMaterialOther] = useState('')
 
   // Chamber shape
   const [chamberShape, setChamberShape] = useState('')
@@ -145,11 +147,13 @@ function AddManholeForm() {
       easting: easting || null,
       northing: northing || null,
       cover_level: coverLevel || null,
-      // cover shape specifics
+      // cover specifics
       cover_shape: coverShape || null,
       cover_diameter_mm: coverShape === 'Circle' ? (coverDiameter || null) : null,
       cover_width_mm: coverShape && coverShape !== 'Circle' ? (coverWidth || null) : null,
       cover_length_mm: coverShape && coverShape !== 'Circle' ? (coverLength || null) : null,
+      cover_material: coverMaterial || null,
+      cover_material_other: coverMaterial === 'Other' ? (coverMaterialOther || null) : null,
       // chamber shape specifics
       chamber_shape: chamberShape || null,
       chamber_diameter_mm: (chamberShape === 'Circle' || chamberShape === 'Hexagon') ? (chamberDiameter || null) : null,
@@ -166,7 +170,9 @@ function AddManholeForm() {
 
     const { error } = await supabase.from('manholes').insert([payload])
     if (error) {
-      const hint = `\nTo support these fields, add columns in Supabase (run once):\n\nALTER TABLE public.manholes\n  ADD COLUMN IF NOT EXISTS survey_date date,\n  ADD COLUMN IF NOT EXISTS measuring_tool text,\n  ADD COLUMN IF NOT EXISTS measuring_offset_mm integer,\n  ADD COLUMN IF NOT EXISTS location_desc text,\n  ADD COLUMN IF NOT EXISTS latitude numeric,\n  ADD COLUMN IF NOT EXISTS longitude numeric,\n  ADD COLUMN IF NOT EXISTS easting numeric,\n  ADD COLUMN IF NOT EXISTS northing numeric,\n  ADD COLUMN IF NOT EXISTS cover_level numeric,\n  ADD COLUMN IF NOT EXISTS cover_shape text,\n  ADD COLUMN IF NOT EXISTS cover_diameter_mm integer,\n  ADD COLUMN IF NOT EXISTS cover_width_mm integer,\n  ADD COLUMN IF NOT EXISTS cover_length_mm integer,\n  ADD COLUMN IF NOT EXISTS chamber_shape text,\n  ADD COLUMN IF NOT EXISTS chamber_diameter_mm integer,\n  ADD COLUMN IF NOT EXISTS chamber_width_mm integer,\n  ADD COLUMN IF NOT EXISTS chamber_length_mm integer,\n  ADD COLUMN IF NOT EXISTS type text,\n  ADD COLUMN IF NOT EXISTS type_other text,\n  ADD COLUMN IF NOT EXISTS cover_lifted text,\n  ADD COLUMN IF NOT EXISTS cover_lifted_reason text,\n  ADD COLUMN IF NOT EXISTS incoming_pipes jsonb,\n  ADD COLUMN IF NOT EXISTS outgoing_pipes jsonb;`
+      const hint = `\nTo support these fields, add columns in Supabase (run once):\n\nALTER TABLE public.manholes\n  ADD COLUMN IF NOT EXISTS survey_date date,\n  ADD COLUMN IF NOT EXISTS measuring_tool text,\n  ADD COLUMN IF NOT EXISTS measuring_offset_mm integer,\n  ADD COLUMN IF NOT EXISTS location_desc text,\n  ADD COLUMN IF NOT EXISTS latitude numeric,\n  ADD COLUMN IF NOT EXISTS longitude numeric,\n  ADD COLUMN IF NOT EXISTS easting numeric,\n  ADD COLUMN IF NOT EXISTS northing numeric,\n  ADD COLUMN IF NOT EXISTS cover_level numeric,\n  ADD COLUMN IF NOT EXISTS cover_shape text,\n  ADD COLUMN IF NOT EXISTS cover_diameter_mm integer,\n  ADD COLUMN IF NOT EXISTS cover_width_mm integer,\n  ADD COLUMN IF NOT EXISTS cover_length_mm integer,
+  ADD COLUMN IF NOT EXISTS cover_material text,
+  ADD COLUMN IF NOT EXISTS cover_material_other text,\n  ADD COLUMN IF NOT EXISTS chamber_shape text,\n  ADD COLUMN IF NOT EXISTS chamber_diameter_mm integer,\n  ADD COLUMN IF NOT EXISTS chamber_width_mm integer,\n  ADD COLUMN IF NOT EXISTS chamber_length_mm integer,\n  ADD COLUMN IF NOT EXISTS type text,\n  ADD COLUMN IF NOT EXISTS type_other text,\n  ADD COLUMN IF NOT EXISTS cover_lifted text,\n  ADD COLUMN IF NOT EXISTS cover_lifted_reason text,\n  ADD COLUMN IF NOT EXISTS incoming_pipes jsonb,\n  ADD COLUMN IF NOT EXISTS outgoing_pipes jsonb;`
       setMessage('Error: ' + error.message + hint)
     } else {
       setMessage('Success: Manhole created.')
@@ -308,8 +314,8 @@ function AddManholeForm() {
           </div>
         </div>
 
-        {/* Cover Shape */}
-        <h2 className="text-xl font-semibold mt-8 mb-3">Cover Shape</h2>
+        {/* Cover */}
+        <h2 className="text-xl font-semibold mt-8 mb-3">Cover</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <div>
             <label className="block text-sm mb-1">Shape</label>
@@ -317,6 +323,18 @@ function AddManholeForm() {
               <option value="">Select shape</option>
               {['Circle','Square','Rectangle','Triangle'].map(s => <option key={s} value={s}>{s}</option>)}
             </select>
+          </div>
+          <div>
+            <label className="block text-sm mb-1">Cover Material</label>
+            <select className="w-full border p-2 rounded" value={coverMaterial} onChange={(e)=>setCoverMaterial(e.target.value)}>
+              <option value="">Select material</option>
+              {['Cast Iron','Light Steel','Heavy Steel','Concrete','Plastic','Metal','Other'].map(m => (
+                <option key={m} value={m}>{m}</option>
+              ))}
+            </select>
+            {coverMaterial === 'Other' && (
+              <input className="mt-2 w-full border p-2 rounded" placeholder="If Other, specify" value={coverMaterialOther} onChange={(e)=>setCoverMaterialOther(e.target.value)} />
+            )}
           </div>
           {coverShape === 'Circle' ? (
             <div>
@@ -524,3 +542,6 @@ export default function AddManholePage() {
     </Suspense>
   )
 }
+
+
+
