@@ -62,17 +62,16 @@ html, body {
 .theme-dark input[type="date"]::-webkit-calendar-picker-indicator {
   filter: invert(1) brightness(1.8);
 }
-/* Ensure date inputs are readable in dark mode */
-.theme-dark input[type="date"] {
-  background-color: #ffffff !important;
-  color: #000000 !important;
-}
-
-/* Select dropdowns: keep white background with black text in dark mode */
+/* Keep inputs/selects as dark boxes with light text */
+.theme-dark input[type="date"],
+.theme-dark input[type="text"],
+.theme-dark input[type="number"],
+.theme-dark textarea,
 .theme-dark select {
-  background-color: #ffffff !important;
-  color: #000000 !important;
+  background-color: #121212 !important;
+  color: #ffffff !important;
 }
+/* But when the native dropdown opens, use white menu with black items */
 .theme-dark select option {
   background-color: #ffffff !important;
   color: #000000 !important;
