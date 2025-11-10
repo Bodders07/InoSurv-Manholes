@@ -129,7 +129,7 @@ export default function SidebarLayout({
           </Link>
         </div>
         <nav className="p-4 space-y-1">
-          {!roleReady ? null : navItems.map((item) => {
+          {navItems.map((item) => {
             const isActive = pathname === item.href
             return (
             <Link
