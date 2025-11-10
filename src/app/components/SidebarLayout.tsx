@@ -66,9 +66,9 @@ export default function SidebarLayout({
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
+    <div className="flex min-h-screen">
       {/* Sidebar */}
-      <div className="w-64 bg-gray-500 border-r border-gray-400 shadow-sm flex flex-col">
+      <div className="app-sidebar w-64 bg-gray-500 border-r border-gray-400 shadow-sm flex flex-col">
         <div className="p-4 border-b border-gray-400 flex items-center justify-center">
           <Link href="/" className="inline-flex">
             <Image

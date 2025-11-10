@@ -41,3 +41,18 @@ body {
 html, body {
   transition: background-color 0.2s ease, color 0.2s ease;
 }
+/* Dark theme overrides for common utility classes and components */
+.theme-dark .bg-white { background-color: #121212 !important; }
+.theme-dark .bg-gray-50 { background-color: #1f2937 !important; }
+.theme-dark .border-gray-200 { border-color: #374151 !important; }
+.theme-dark .text-gray-600 { color: #d1d5db !important; }
+.theme-dark .text-gray-700 { color: #e5e7eb !important; }
+.theme-dark .hover\:bg-gray-50:hover { background-color: #1f2937 !important; }
+.theme-dark table { color: #e5e7eb; }
+.theme-dark th, .theme-dark td { border-color: #374151 !important; }
+
+/* Sidebar theming */
+.theme-dark .app-sidebar { background-color: #0b0b0b !important; border-color: #222 !important; color: #fff !important; }
+.theme-dark .app-sidebar h2 { color: #fff !important; border-color: #222 !important; }
+.theme-dark .app-sidebar a { color: #e5e7eb; }
+.theme-dark .app-sidebar a:hover { background-color: #1f2937 !important; color: #fff !important; }
