@@ -562,12 +562,15 @@ ALTER TABLE public.manholes
 export const dynamic = 'force-dynamic'
 
 export default function AddManholePage() {
+  const params = useSearchParams()
+  const embed = params?.get('embed') === '1'
   return (
-    <Suspense fallback={<div className="p-8">Loading…</div>}>
-      <AddManholeForm />
+    <Suspense fallback={<div className="p-8">Loading...</div>}>
+      <AddManholeForm standaloneLayout={!embed} />
     </Suspense>
   )
 }
+
 
 
 
