@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import SidebarLayout from '@/app/components/SidebarLayout'
 import { supabase } from '@/lib/supabaseClient'
+import { deriveRoleInfo, canManageEverything } from '@/lib/roles'
 
 type Manhole = {
   id: string
@@ -19,10 +20,13 @@ export default function ProjectDetailPage() {
   const router = useRouter()
   const params = useParams() as { id: string }
   const projectId = params.id
+
   const [manholes, setManholes] = useState<Manhole[]>([])
   const [projectName, setProjectName] = useState<string>('')
   const [loading, setLoading] = useState(true)
   const [message, setMessage] = useState('')
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   useEffect(() => {
     async function load() {
@@ -40,10 +44,31 @@ export default function ProjectDetailPage() {
       else setProjectName(proj?.name || '')
       if (mhErr) setMessage((prev) => prev || 'Error loading manholes: ' + mhErr.message)
       else setManholes(mhs || [])
+
+      // detect super admin
+      try {
+        const { data } = await supabase.auth.getUser()
+        const info = deriveRoleInfo(data.user)
+        setIsSuperAdmin(canManageEverything(info))
+      } catch {
+        setIsSuperAdmin(false)
+      }
       setLoading(false)
     }
     load()
   }, [projectId])
+
+  async function deleteManhole(id: string) {
+    if (!isSuperAdmin) return
+    const proceed = typeof window !== 'undefined' ? window.confirm('Delete this manhole? This cannot be undone.') : true
+    if (!proceed) return
+    setMessage('')
+    setDeletingId(id)
+    const { error } = await supabase.from('manholes').delete().eq('id', id)
+    setDeletingId(null)
+    if (error) setMessage('Error: ' + error.message)
+    else setManholes((list) => list.filter((m) => m.id !== id))
+  }
 
   return (
     <SidebarLayout>
@@ -91,6 +116,17 @@ export default function ProjectDetailPage() {
                     >
                       Edit
                     </button>
+                    {isSuperAdmin && (
+                      <button
+                        onClick={() => deleteManhole(m.id)}
+                        disabled={deletingId === m.id}
+                        className={`ml-2 px-3 py-1 rounded text-white ${
+                          deletingId === m.id ? 'bg-gray-400 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'
+                        }`}
+                      >
+                        {deletingId === m.id ? 'Deleting…' : 'Delete'}
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -101,3 +137,4 @@ export default function ProjectDetailPage() {
     </SidebarLayout>
   )
 }
+
