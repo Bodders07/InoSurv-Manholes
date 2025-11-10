@@ -172,8 +172,8 @@ function AddManholeForm({ standaloneLayout = true }: { standaloneLayout?: boolea
       outgoing_pipes: outgoing,
     }
 
-    const { error } = await supabase.from('manholes').insert([payload])
-    if (error) {
+    const insertRes = await supabase.from('manholes').insert([payload]).select('id').single()
+    if (insertRes.error) {
       const hint = `
 To support these fields, add columns in Supabase (run once):
 
@@ -205,9 +205,33 @@ ALTER TABLE public.manholes
   ADD COLUMN IF NOT EXISTS cover_lifted_reason text,
   ADD COLUMN IF NOT EXISTS incoming_pipes jsonb,
   ADD COLUMN IF NOT EXISTS outgoing_pipes jsonb;`
-      setMessage('Error: ' + error.message + hint)
+      setMessage('Error: ' + insertRes.error.message + hint)
     } else {
-      setMessage('Success: Manhole created.')
+      const newId = insertRes.data?.id
+      let uploadMsg = ''
+      if (newId && (internalPhoto || externalPhoto)) {
+        const bucket = supabase.storage.from('manhole-photos')
+        async function uploadOne(file: File | null, kind: 'internal' | 'external') {
+          if (!file) return null
+          const ext = (file.name.split('.').pop() || 'jpg').toLowerCase()
+          const path = `${newId}/${kind}-${Date.now()}.${ext}`
+          const up = await bucket.upload(path, file, { upsert: true })
+          if (up.error) {
+            uploadMsg += `\nNote: Failed to upload ${kind} photo (${up.error.message}). Ensure a public storage bucket named 'manhole-photos' exists and Authenticated users can upload.`
+            return null
+          }
+          const pub = bucket.getPublicUrl(path)
+          const url = pub.data.publicUrl
+          await supabase
+            .from('manholes')
+            .update(kind === 'internal' ? { internal_photo_url: url } : { external_photo_url: url })
+            .eq('id', newId)
+          return url
+        }
+        await uploadOne(internalPhoto, 'internal')
+        await uploadOne(externalPhoto, 'external')
+      }
+      setMessage('Success: Manhole created.' + uploadMsg)
       // Reset fields; optionally keep project/date/tool when copyList is enabled
       setIdentifier('')
       if (!copyList) {
@@ -235,6 +259,12 @@ ALTER TABLE public.manholes
       setChamberDiameter('')
       setChamberWidth('')
       setChamberLength('')
+      setChamberMaterial('')
+      setChamberMaterialOther('')
+      setInternalPhoto(null)
+      setInternalPreview('')
+      setExternalPhoto(null)
+      setExternalPreview('')
       setChamberMaterial('')
       setChamberMaterialOther('')
       setIncoming([{ label: 'Pipe A', func: '', shape: '', material: '', invert_depth_m: '', width_mm: '', height_mm: '', diameter_mm: '', notes: '' }])
