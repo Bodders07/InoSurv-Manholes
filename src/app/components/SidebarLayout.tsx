@@ -68,15 +68,15 @@ export default function SidebarLayout({
   }
 
   const publicNav = [
-    { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={18} />, href: '/' },
-    { id: 'projects', label: 'Projects', icon: <FolderKanban size={18} />, href: '/projects' },
-    { id: 'manholes', label: 'Manholes', icon: <ClipboardList size={18} />, href: '/manholes' },
-    { id: 'inspections', label: 'Inspections', icon: <ClipboardList size={18} />, href: '/inspections' },
-    { id: 'settings', label: 'Settings', icon: <Settings size={18} />, href: '/settings' },
+    { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={16} />, href: '/' },
+    { id: 'projects', label: 'Projects', icon: <FolderKanban size={16} />, href: '/projects' },
+    { id: 'manholes', label: 'Manholes', icon: <ClipboardList size={16} />, href: '/manholes' },
+    { id: 'inspections', label: 'Inspections', icon: <ClipboardList size={16} />, href: '/inspections' },
+    { id: 'settings', label: 'Settings', icon: <Settings size={16} />, href: '/settings' },
   ]
   const adminNav = isSuperAdmin ? [
-    { id: 'users', label: 'User Management', icon: <Settings size={18} />, href: '/admin/users' },
-    { id: 'privileges', label: 'User Privileges', icon: <Settings size={18} />, href: '/privileges' },
+    { id: 'users', label: 'User Management', icon: <Settings size={16} />, href: '/admin/users' },
+    { id: 'privileges', label: 'User Privileges', icon: <Settings size={16} />, href: '/privileges' },
   ] : []
   const navItems = [...publicNav, ...adminNav]
 
@@ -102,21 +102,21 @@ export default function SidebarLayout({
             <span className="sr-only">Manhole Inspection</span>
           </Link>
         </div>
-        <nav className="p-4 space-y-2">
+        <nav className="p-4 space-y-1">
           {navItems.map((item) => {
             const isActive = pathname === item.href
             return (
             <Link
               key={item.id}
               href={item.href}
-              className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-md transition-colors text-sm leading-6 ${
                 isActive
-                  ? 'bg-blue-400 text-white'
+                  ? 'bg-blue-500 text-white font-semibold'
                   : 'text-gray-100 hover:bg-gray-600 hover:text-white'
               }`}
             >
               {item.icon}
-              <span>{item.label}</span>
+              <span className="whitespace-nowrap">{item.label}</span>
             </Link>
             )
           })}
