@@ -130,6 +130,9 @@ export default function ChamberSketch({
 
   const coverPath = useMemo(() => {
     switch (state.coverShape) {
+      case 'Circle':
+        // Smaller dashed circle inside the chamber
+        return <circle cx={250} cy={250} r={70} strokeDasharray="6 6" stroke="var(--sketch-cover, #333)" fill="none" strokeWidth={2} />
       case 'Square':
         // Smaller, inside the chamber
         return <rect x={190} y={190} width={120} height={120} strokeDasharray="6 6" stroke="var(--sketch-cover, #333)" fill="none" strokeWidth={2} />
