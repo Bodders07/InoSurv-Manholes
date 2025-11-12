@@ -4,7 +4,9 @@ import { Suspense, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import SidebarLayout from '@/app/components/SidebarLayout'
 import { supabase } from '@/lib/supabaseClient'
-import ChamberSketch, { type SketchState } from '@/app/components/sketch/ChamberSketch'
+import dynamic from 'next/dynamic'
+import { type SketchState } from '@/app/components/sketch/ChamberSketch'
+const ChamberSketch = dynamic(() => import('@/app/components/sketch/ChamberSketch'), { ssr: false })
 
 interface Project {
   id: string

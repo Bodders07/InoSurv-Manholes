@@ -264,6 +264,7 @@ export default function ManholesContent() {
               <iframe
                 title="Edit Manhole"
                 src={`/manholes/${editId}/edit?embed=1`}
+                loading="lazy"
                 className="w-full"
                 style={{ height: '80vh', border: 'none', background: 'transparent' }}
               />
