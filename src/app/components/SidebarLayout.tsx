@@ -129,7 +129,8 @@ export default function SidebarLayout({
     { id: 'privileges', label: 'User Privileges', icon: <Settings size={16} /> },
     { id: 'storage', label: 'Storage Usage', icon: <Settings size={16} /> },
   ] : []
-  const navItems = [...publicNav, ...adminNav]
+  const navItems = [...publicNav]
+  const [adminOpen, setAdminOpen] = useState(false)
 
   async function handleSignOut() {
     await supabase.auth.signOut()
@@ -174,21 +175,56 @@ export default function SidebarLayout({
           {navItems.map((item) => {
             const isActive = view === item.id
             return (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => { setView(item.id); try { if (window.innerWidth < 768) setCollapsed(true) } catch {} }}
-              className={`flex items-center gap-2 ${collapsed ? 'px-2 justify-center' : 'px-3'} py-1.5 rounded-md transition-colors text-sm leading-6 ${
-                isActive
-                  ? 'bg-blue-500 text-white font-semibold'
-                  : 'text-gray-100 hover:bg-gray-600 hover:text-white'
-              }`}
-            >
-              {item.icon}
-              <span className={`${collapsed ? 'hidden' : 'inline'} whitespace-nowrap`}>{item.label}</span>
-            </button>
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => { setView(item.id); try { if (window.innerWidth < 768) setCollapsed(true) } catch {} }}
+                className={`flex items-center gap-2 ${collapsed ? 'px-2 justify-center' : 'px-3'} py-1.5 rounded-md transition-colors text-sm leading-6 ${
+                  isActive
+                    ? 'bg-blue-500 text-white font-semibold'
+                    : 'text-gray-100 hover:bg-gray-600 hover:text-white'
+                }`}
+              >
+                {item.icon}
+                <span className={`${collapsed ? 'hidden' : 'inline'} whitespace-nowrap`}>{item.label}</span>
+              </button>
             )
           })}
+
+          {isSuperAdmin && (
+            <div className="mt-2">
+              <button
+                type="button"
+                onClick={() => setAdminOpen((o) => !o)}
+                className={`w-full flex items-center ${collapsed ? 'px-2 justify-center' : 'px-3 justify-between'} py-1.5 rounded-md transition-colors text-sm leading-6 text-gray-100 hover:bg-gray-600 hover:text-white`}
+                aria-expanded={adminOpen}
+              >
+                <span className={`flex items-center gap-2 ${collapsed ? 'hidden' : 'inline'}`}>
+                  <Settings size={16} />
+                  <span>Admin Tools</span>
+                </span>
+                {!collapsed && <span className="ml-auto text-xs">{adminOpen ? '▾' : '▸'}</span>}
+                {collapsed && <Settings size={16} />}
+              </button>
+              {adminOpen && !collapsed && (
+                <div className="mt-1 space-y-1 pl-5">
+                  {adminNav.map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => { setView(item.id); try { if (window.innerWidth < 768) setCollapsed(true) } catch {} }}
+                      className={`flex items-center gap-2 px-3 py-1.5 rounded-md transition-colors text-sm leading-6 ${
+                        view === item.id ? 'bg-blue-500 text-white font-semibold' : 'text-gray-100 hover:bg-gray-600 hover:text-white'
+                      }`}
+                    >
+                      {item.icon}
+                      <span className="whitespace-nowrap">{item.label}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </nav>
         <div className={`mt-auto ${collapsed ? 'p-2' : 'p-4'} border-t`}>
           <button
