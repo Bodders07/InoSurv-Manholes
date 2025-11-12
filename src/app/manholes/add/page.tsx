@@ -104,6 +104,8 @@ function AddManholeForm({ standaloneLayout = true }: { standaloneLayout?: boolea
   const [coverLength, setCoverLength] = useState('')
   const [coverMaterial, setCoverMaterial] = useState('')
   const [coverMaterialOther, setCoverMaterialOther] = useState('')
+  const [coverDuty, setCoverDuty] = useState('')
+  const [coverCondition, setCoverCondition] = useState('')
 
   // Chamber
   const [chamberShape, setChamberShape] = useState('')
@@ -176,6 +178,8 @@ function AddManholeForm({ standaloneLayout = true }: { standaloneLayout?: boolea
       cover_length_mm: coverShape && coverShape !== 'Circle' ? (coverLength || null) : null,
       cover_material: coverMaterial || null,
       cover_material_other: coverMaterial === 'Other' ? (coverMaterialOther || null) : null,
+      cover_duty: coverDuty || null,
+      cover_condition: coverCondition || null,
       // chamber specifics
       chamber_shape: chamberShape || null,
       chamber_diameter_mm: (chamberShape === 'Circle' || chamberShape === 'Hexagon') ? (chamberDiameter || null) : null,
@@ -214,6 +218,8 @@ ALTER TABLE public.manholes
   ADD COLUMN IF NOT EXISTS cover_length_mm integer,
   ADD COLUMN IF NOT EXISTS cover_material text,
   ADD COLUMN IF NOT EXISTS cover_material_other text,
+  ADD COLUMN IF NOT EXISTS cover_duty text,
+  ADD COLUMN IF NOT EXISTS cover_condition text,
   ADD COLUMN IF NOT EXISTS chamber_shape text,
   ADD COLUMN IF NOT EXISTS chamber_diameter_mm integer,
   ADD COLUMN IF NOT EXISTS chamber_width_mm integer,
@@ -413,6 +419,20 @@ ALTER TABLE public.manholes
             <select className="w-full border p-2 rounded" value={coverShape} onChange={(e)=>setCoverShape(e.target.value)}>
               <option value="">Select shape</option>
               {['Circle','Square','Rectangle','Triangle'].map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm mb-1">Cover Duty</label>
+            <select className="w-full border p-2 rounded" value={coverDuty} onChange={(e)=>setCoverDuty(e.target.value)}>
+              <option value="">Select duty</option>
+              {['Heavy','Medium','Light'].map(d => <option key={d} value={d}>{d}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm mb-1">Cover Condition</label>
+            <select className="w-full border p-2 rounded" value={coverCondition} onChange={(e)=>setCoverCondition(e.target.value)}>
+              <option value="">Select condition</option>
+              {['Good','OK','Cracked','Rocking','Re-Set','Replace','Needs Attention','Urgent Attention'].map(c => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
           <div>
