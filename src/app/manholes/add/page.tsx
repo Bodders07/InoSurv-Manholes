@@ -245,10 +245,13 @@ ALTER TABLE public.manholes
           }
           const pub = bucket.getPublicUrl(path)
           const url = pub.data.publicUrl
-          await supabase
+          const upRow = await supabase
             .from('manholes')
             .update(kind === 'internal' ? { internal_photo_url: url } : { external_photo_url: url })
             .eq('id', newId)
+          if (upRow.error) {
+            uploadMsg += `\nNote: Saved file but failed to write URL to DB (${upRow.error.message}). Check manholes RLS allows your role to update.`
+          }
           return url
         }
         await uploadOne(internalPhoto, 'internal')
@@ -735,4 +738,3 @@ function AddManholePageInner() {
   const embed = params?.get('embed') === '1'
   return <AddManholeForm standaloneLayout={!embed} />
 }
-

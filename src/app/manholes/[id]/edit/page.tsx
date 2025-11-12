@@ -215,10 +215,13 @@ export default function EditManholePage() {
       }
       const pub = bucket.getPublicUrl(path)
       const url = pub.data.publicUrl
-      await supabase
+      const upRow = await supabase
         .from('manholes')
         .update(kind === 'internal' ? { internal_photo_url: url } : { external_photo_url: url })
         .eq('id', manholeId)
+      if (upRow.error) {
+        uploadMsg += `\nNote: Saved file but failed to write URL to DB (${upRow.error.message}). Check manholes RLS allows your role to update.`
+      }
       if (kind === 'internal') setInternalPhotoUrl(url)
       else setExternalPhotoUrl(url)
       return url
@@ -669,4 +672,3 @@ export default function EditManholePage() {
     </SidebarLayout>
   )
 }
-
