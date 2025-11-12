@@ -483,7 +483,7 @@ export default function ProjectsContent() {
             <table className="min-w-full">
               <thead>
                 <tr className="bg-gray-50 text-left">
-                  <th className="px-4 py-2 border-b">Project #</th>
+                  <th className="px-4 py-2 border-b">Project No.</th>
                   <th className="px-4 py-2 border-b">Client</th>
                   <th className="px-4 py-2 border-b">Project Name</th>
                   <th className="px-4 py-2 border-b">Created</th>
