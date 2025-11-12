@@ -13,7 +13,7 @@ type SketchItem = {
 }
 
 export type SketchState = {
-  coverShape: 'Circle' | 'Square' | 'Rectangle' | 'Rectangle2' | 'Triangle'
+  coverShape: 'Circle' | 'Square' | 'Rectangle' | 'Triangle'
   chamberShape: 'Circle' | 'Square' | 'Rectangle' | 'Hexagon'
   items: SketchItem[]
 }
@@ -156,14 +156,14 @@ export default function ChamberSketch({
       <div className="flex flex-wrap items-center gap-2 mb-2 sketch-toolbar">
         <div className="flex items-center gap-2 border rounded px-2 py-1 sketch-group">
           <span className="text-sm font-semibold sketch-group__label">Cover</span>
-          {(['Circle', 'Square', 'Rectangle', 'Rectangle2', 'Triangle'] as const).map((s) => (
+          {(['Circle', 'Square', 'Rectangle', 'Triangle'] as const).map((s) => (
             <button
               key={s}
               type="button"
               onClick={() => setCover(s)}
               className={`sketch-btn px-2 py-1 rounded border ${state.coverShape === s ? 'sketch-btn--active' : ''}`}
             >
-              {s === 'Rectangle2' ? 'Rectangle 2' : s}
+              {s}
             </button>
           ))}
         </div>
