@@ -10,6 +10,7 @@ export type AppView =
   | 'settings'
   | 'users'
   | 'privileges'
+  | 'storage'
   | 'manholes_add'
 
 type ViewCtx = {

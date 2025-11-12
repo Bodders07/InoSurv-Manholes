@@ -8,6 +8,7 @@ import AddManholePanel from './components/panels/AddManholePanel'
 import UsersPanel from './components/panels/UsersPanel'
 import PrivilegesPanel from './components/panels/PrivilegesPanel'
 import SettingsPanel from './components/panels/SettingsPanel'
+import StoragePanel from './components/panels/StoragePanel'
 
 export default function HomePage() {
   const { view } = useView()
@@ -27,6 +28,7 @@ export default function HomePage() {
       {view === 'users' && <UsersPanel />}
       {view === 'privileges' && <PrivilegesPanel />}
       {view === 'settings' && <SettingsPanel />}
+      {view === 'storage' && <StoragePanel />}
 
       {view === 'inspections' && (
         <div className="p-4 text-gray-600">Inspections coming soon…</div>

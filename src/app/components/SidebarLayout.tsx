@@ -127,6 +127,7 @@ export default function SidebarLayout({
   const adminNav: { id: AppView; label: string; icon: React.ReactNode }[] = isSuperAdmin ? [
     { id: 'users', label: 'User Management', icon: <Settings size={16} /> },
     { id: 'privileges', label: 'User Privileges', icon: <Settings size={16} /> },
+    { id: 'storage', label: 'Storage Usage', icon: <Settings size={16} /> },
   ] : []
   const navItems = [...publicNav, ...adminNav]
 
