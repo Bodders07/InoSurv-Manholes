@@ -7,8 +7,14 @@ type ItemType = 'in' | 'out' | 'label'
 type SketchItem = {
   id: string
   type: ItemType
-  x: number
-  y: number
+  // For labels
+  x?: number
+  y?: number
+  // For arrows (in/out) allow two draggable ends
+  sx?: number
+  sy?: number
+  ex?: number
+  ey?: number
   label?: string
 }
 
@@ -33,7 +39,7 @@ export default function ChamberSketch({
     value || { coverShape: 'Circle', chamberShape: 'Circle', items: [] }
   )
   const svgRef = useRef<SVGSVGElement | null>(null)
-  const draggingId = useRef<string | null>(null)
+  const dragging = useRef<{ id: string; handle: 'start' | 'end' | 'label' } | null>(null)
   const [labelNext, setLabelNext] = useState<'A'|'B'|'C'|'D'|'E'|'F'|'G'|'H'|'I'|'J'|'K'|'L'|'M'|'N'|'O'|'P'|'Q'|'R'|'S'|'T'|'U'|'V'|'W'|'X'|'Y'|'Z'>('A')
   const [inletNext, setInletNext] = useState<'A'|'B'|'C'|'D'|'E'|'F'|'G'|'H'|'I'|'J'|'K'|'L'|'M'|'N'|'O'|'P'|'Q'|'R'|'S'|'T'|'U'|'V'|'W'|'X'|'Y'|'Z'>('A')
   const [outletNext, setOutletNext] = useState<'X'|'Y'|'Z'>('X')
@@ -51,7 +57,15 @@ export default function ChamberSketch({
   }
 
   function addItem(type: ItemType) {
-    const base: SketchItem = { id: uuid(), type, x: 250, y: 60 }
+    const base: SketchItem = { id: uuid(), type }
+    // Defaults
+    if (type === 'label') {
+      base.x = 250; base.y = 60
+    } else {
+      // Arrow defaults: from center to above center
+      base.sx = 250; base.sy = 250
+      base.ex = 250; base.ey = 160
+    }
     if (type === 'label') {
       base.label = labelNext
       // advance A->B->...->Z->A
@@ -79,12 +93,12 @@ export default function ChamberSketch({
     setState((s) => ({ ...s, chamberShape: shape }))
   }
 
-  function onPointerDown(e: React.PointerEvent, id: string) {
-    draggingId.current = id
+  function onPointerDown(e: React.PointerEvent, id: string, handle: 'start' | 'end' | 'label') {
+    dragging.current = { id, handle }
     ;(e.target as Element).setPointerCapture?.(e.pointerId)
   }
   function onPointerMove(e: React.PointerEvent) {
-    if (!draggingId.current || !svgRef.current) return
+    if (!dragging.current || !svgRef.current) return
     const pt = svgRef.current.createSVGPoint()
     pt.x = e.clientX
     pt.y = e.clientY
@@ -95,11 +109,22 @@ export default function ChamberSketch({
     const y = Math.max(20, Math.min(480, p.y))
     setState((s) => ({
       ...s,
-      items: s.items.map((it) => (it.id === draggingId.current ? { ...it, x, y } : it)),
+      items: s.items.map((it) => {
+        if (it.id !== dragging.current!.id) return it
+        const copy = { ...it }
+        if (dragging.current!.handle === 'label') {
+          copy.x = x; copy.y = y
+        } else if (dragging.current!.handle === 'start') {
+          copy.sx = x; copy.sy = y
+        } else {
+          copy.ex = x; copy.ey = y
+        }
+        return copy
+      }),
     }))
   }
   function onPointerUp() {
-    draggingId.current = null
+    dragging.current = null
   }
 
   const center = { x: 250, y: 250 }
@@ -221,42 +246,53 @@ export default function ChamberSketch({
           {/* Items */}
           {state.items.map((it) => {
             const color = it.type === 'in' ? '#1d4ed8' : it.type === 'out' ? '#dc2626' : '#111827'
-            const arrowPath = it.type === 'out'
-              ? `M ${center.x},${center.y} L ${it.x},${it.y}`
-              : `M ${it.x},${it.y} L ${center.x},${center.y}`
+            const sx = it.sx ?? center.x
+            const sy = it.sy ?? center.y
+            const ex = it.ey === undefined || it.ex === undefined ? (it.x ?? center.x) : it.ex
+            const ey = it.ey === undefined ? (it.y ?? center.y) : it.ey
+            const arrowPath = `M ${sx},${sy} L ${ex},${ey}`
             return (
               <g key={it.id}>
                 {it.type !== 'label' && (
                   <>
                     <path d={arrowPath} stroke={color} strokeWidth={2.5} fill="none" markerEnd="url(#arrow)" />
                     <rect
-                      x={it.x - 6}
-                      y={it.y - 6}
+                      x={sx - 6}
+                      y={sy - 6}
                       width={12}
                       height={12}
                       fill={color}
-                      onPointerDown={(e) => onPointerDown(e, it.id)}
+                      onPointerDown={(e) => onPointerDown(e, it.id, 'start')}
+                      style={{ cursor: 'grab' }}
+                    />
+                    <rect
+                      x={ex - 6}
+                      y={ey - 6}
+                      width={12}
+                      height={12}
+                      fill={color}
+                      onPointerDown={(e) => onPointerDown(e, it.id, 'end')}
                       style={{ cursor: 'grab' }}
                     />
                     {it.type === 'out' && it.label && (
-                      <text x={it.x + 8} y={it.y - 8} fontSize="12" fill={color} fontWeight={600}>{it.label}</text>
+                      <text x={ex + 8} y={ey - 8} fontSize="12" fill={color} fontWeight={600}>{it.label}</text>
                     )}
                     {it.type === 'in' && it.label && (
-                      <text x={it.x + 8} y={it.y - 8} fontSize="12" fill={color} fontWeight={600}>{it.label}</text>
+                      <text x={ex + 8} y={ey - 8} fontSize="12" fill={color} fontWeight={600}>{it.label}</text>
                     )}
                   </>
                 )}
                 {it.type === 'label' && (
                   <>
-                    <text x={it.x} y={it.y} fontSize="14" fill={color}>{it.label || 'ABC'}</text>
+                    <text x={it.x!} y={it.y!} fontSize="14" fill={color}>{it.label || 'ABC'}</text>
                     <rect
-                      x={it.x - 6}
-                      y={it.y - 6}
+                      x={it.x! - 6}
+                      y={it.y! - 6}
                       width={12}
                       height={12}
                       fill="#10b981"
                       opacity={0.6}
-                      onPointerDown={(e) => onPointerDown(e, it.id)}
+                      onPointerDown={(e) => onPointerDown(e, it.id, 'label')}
                       style={{ cursor: 'grab' }}
                     />
                   </>
