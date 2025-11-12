@@ -83,6 +83,17 @@ function AddManholeForm({ standaloneLayout = true }: { standaloneLayout?: boolea
   const [message, setMessage] = useState('')
   const [copyList, setCopyList] = useState(false)
   const [sketch, setSketch] = useState<SketchState | null>(null)
+  const [sketchOpen, setSketchOpen] = useState(false)
+  const [sketchDraft, setSketchDraft] = useState<SketchState | null>(null)
+
+  useEffect(() => {
+    // Lock body scroll while sketch is open (mobile-friendly)
+    if (sketchOpen) {
+      const prev = document.body.style.overflow
+      document.body.style.overflow = 'hidden'
+      return () => { document.body.style.overflow = prev }
+    }
+  }, [sketchOpen])
 
   // Cover
   const [coverShape, setCoverShape] = useState('')
@@ -659,7 +670,42 @@ ALTER TABLE public.manholes
 
         {/* Sketch */}
         <h2 className="text-xl font-semibold mt-10 mb-3">Chamber Sketch (beta)</h2>
-        <ChamberSketch onChange={(s)=>setSketch(s)} />
+        <button
+          type="button"
+          onClick={() => { setSketchDraft(sketch ? { ...sketch } : null); setSketchOpen(true) }}
+          className="px-4 py-2 rounded text-white bg-blue-600 hover:bg-blue-700"
+        >
+          Open Sketch Editor
+        </button>
+
+        {sketchOpen && (
+          <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-2">
+            <div className="bg-white theme-dark:bg-[#0b0b0b] border border-gray-200 theme-dark:border-gray-700 rounded-lg shadow-xl w-full max-w-4xl max-h-[92vh] flex flex-col">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 theme-dark:border-gray-700">
+                <h3 className="text-lg font-semibold">Chamber Sketch</h3>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setSketchOpen(false)}
+                    className="px-3 py-1.5 rounded border border-gray-300 hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { if (sketchDraft) setSketch(sketchDraft); setSketchOpen(false) }}
+                    className="px-3 py-1.5 rounded text-white bg-blue-600 hover:bg-blue-700"
+                  >
+                    Done
+                  </button>
+                </div>
+              </div>
+              <div className="p-3 overflow-auto">
+                <ChamberSketch value={sketchDraft ?? undefined} onChange={(s)=>setSketchDraft(s)} />
+              </div>
+            </div>
+          </div>
+        )}
 
         <button onClick={addManhole} className="mt-8 w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700">Save Manhole</button>
 
