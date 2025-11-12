@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { supabase } from '@/lib/supabaseClient'
 
 type ThemeChoice = 'system' | 'light' | 'dark'
 
@@ -21,6 +22,12 @@ function applyTheme(choice: ThemeChoice) {
 export default function SettingsContent() {
   const [choice, setChoice] = useState<ThemeChoice>('dark')
   const [saved, setSaved] = useState<ThemeChoice>('dark')
+  // Password change state
+  const [curPwd, setCurPwd] = useState('')
+  const [newPwd, setNewPwd] = useState('')
+  const [confirmPwd, setConfirmPwd] = useState('')
+  const [pwdPending, setPwdPending] = useState(false)
+  const [pwdMsg, setPwdMsg] = useState('')
 
   useEffect(() => {
     const savedLS = (localStorage.getItem('theme') as ThemeChoice) || 'dark'
@@ -41,6 +48,51 @@ export default function SettingsContent() {
   function onSave() {
     localStorage.setItem('theme', choice)
     setSaved(choice)
+  }
+
+  async function changePassword() {
+    setPwdMsg('')
+    if (!curPwd || !newPwd || !confirmPwd) {
+      setPwdMsg('Please complete all password fields.')
+      return
+    }
+    if (newPwd !== confirmPwd) {
+      setPwdMsg('New passwords do not match.')
+      return
+    }
+    if (newPwd.length < 8) {
+      setPwdMsg('New password must be at least 8 characters.')
+      return
+    }
+    setPwdPending(true)
+    try {
+      const { data: userData } = await supabase.auth.getUser()
+      const email = userData.user?.email || ''
+      if (!email) {
+        setPwdMsg('Unable to determine current user email. Please sign in again.')
+        setPwdPending(false)
+        return
+      }
+      const reauth = await supabase.auth.signInWithPassword({ email, password: curPwd })
+      if (reauth.error) {
+        setPwdMsg('Current password is incorrect.')
+        setPwdPending(false)
+        return
+      }
+      const upd = await supabase.auth.updateUser({ password: newPwd })
+      if (upd.error) {
+        setPwdMsg('Error: ' + upd.error.message)
+      } else {
+        setPwdMsg('Success: Password updated. You may need to sign in again on other devices.')
+        setCurPwd('')
+        setNewPwd('')
+        setConfirmPwd('')
+      }
+    } catch (e: any) {
+      setPwdMsg('Error: ' + (e?.message || 'Failed to update password'))
+    } finally {
+      setPwdPending(false)
+    }
   }
 
   return (
@@ -100,7 +152,54 @@ export default function SettingsContent() {
           )}
         </div>
       </div>
+
+      <div className="bg-white border border-gray-200 rounded shadow-sm p-6 max-w-xl mt-6">
+        <h2 className="text-lg font-semibold mb-3">Change Password</h2>
+        <div className="space-y-3">
+          <div>
+            <label className="block text-sm font-medium mb-1">Current Password</label>
+            <input
+              type="password"
+              className="w-full border rounded p-2"
+              value={curPwd}
+              onChange={(e) => setCurPwd(e.target.value)}
+              autoComplete="current-password"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">New Password</label>
+            <input
+              type="password"
+              className="w-full border rounded p-2"
+              value={newPwd}
+              onChange={(e) => setNewPwd(e.target.value)}
+              autoComplete="new-password"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Confirm New Password</label>
+            <input
+              type="password"
+              className="w-full border rounded p-2"
+              value={confirmPwd}
+              onChange={(e) => setConfirmPwd(e.target.value)}
+              autoComplete="new-password"
+            />
+          </div>
+          <div className="flex items-center justify-between pt-1">
+            {pwdMsg && (
+              <p className={`text-sm ${pwdMsg.startsWith('Success') ? 'text-green-700' : 'text-red-600'}`}>{pwdMsg}</p>
+            )}
+            <button
+              onClick={changePassword}
+              disabled={pwdPending}
+              className={`px-4 py-2 rounded text-white ${pwdPending ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
+            >
+              {pwdPending ? 'Saving…' : 'Update Password'}
+            </button>
+          </div>
+        </div>
+      </div>
     </>
   )
 }
-
