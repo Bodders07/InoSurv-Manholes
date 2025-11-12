@@ -101,12 +101,6 @@ export default function ExportManholeSheet() {
       } catch (e: any) {
         setMsg('Unexpected error loading export: ' + (e?.message || String(e)))
       }
-      if (error) {
-        setMsg("Error: " + error.message)
-        setLoading(false)
-        return
-      }
-      setRow(data as any)
       setLoading(false)
     }
     load()
@@ -175,7 +169,7 @@ export default function ExportManholeSheet() {
                 <tr><td>Service Type:</td><td>{row.service_type || "-"}</td></tr>
                 <tr><td>Cover Material:</td><td>{row.cover_material === 'Other' ? (row.cover_material_other || 'Other') : (row.cover_material || '-')}</td></tr>
                 <tr><td>Cover Shape:</td><td>{row.cover_shape || "-"}</td></tr>
-                <tr><td>Cover Size:</td><td>{row.cover_shape === 'Circle' ? (row.cover_diameter_mm ? `${row.cover_diameter_mm} mm Ã˜` : '-') : (row.cover_width_mm || row.cover_length_mm ? `${row.cover_width_mm || '-'} x ${row.cover_length_mm || '-'} mm` : '-')}</td></tr>
+                <tr><td>Cover Size:</td><td>{row.cover_shape === 'Circle' ? (row.cover_diameter_mm ? `${row.cover_diameter_mm} mm Ø` : '-') : (row.cover_width_mm || row.cover_length_mm ? `${row.cover_width_mm || '-'} x ${row.cover_length_mm || '-'} mm` : '-')}</td></tr>
                 <tr><td>Cover Cond:</td><td>{row.cover_condition || '-'}</td></tr>
                 <tr><td>Cover Duty:</td><td>{row.cover_duty || '-'}</td></tr>
               </tbody>
@@ -201,7 +195,7 @@ export default function ExportManholeSheet() {
           <h2 className="mb-2">Chamber Details</h2>
           <div className="grid grid-cols-2 gap-4">
             <table className="kv w-full"><tbody>
-              <tr><td>Dimensions:</td><td>{row.chamber_shape === 'Circle' || row.chamber_shape === 'Hexagon' ? (row.chamber_diameter_mm ? `${row.chamber_diameter_mm} mm Ã˜` : '-') : (row.chamber_width_mm || row.chamber_length_mm ? `${row.chamber_width_mm || '-'} x ${row.chamber_length_mm || '-'} mm` : '-')}</td></tr>
+              <tr><td>Dimensions:</td><td>{row.chamber_shape === 'Circle' || row.chamber_shape === 'Hexagon' ? (row.chamber_diameter_mm ? `${row.chamber_diameter_mm} mm Ø` : '-') : (row.chamber_width_mm || row.chamber_length_mm ? `${row.chamber_width_mm || '-'} x ${row.chamber_length_mm || '-'} mm` : '-')}</td></tr>
               <tr><td>Shape:</td><td>{row.chamber_shape || '-'}</td></tr>
             </tbody></table>
             <table className="kv w-full"><tbody>
