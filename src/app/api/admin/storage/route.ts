@@ -14,8 +14,9 @@ export async function GET(req: NextRequest) {
   const bucket = 'manhole-photos'
 
   // Total usage
-  const total = await supa
-    .from('storage.objects')
+  const storageDb: any = (supa as any).schema ? (supa as any).schema('storage') : supa
+  const total = await storageDb
+    .from('objects')
     .select('metadata, id', { count: 'exact' })
     .eq('bucket_id', bucket)
     .eq('is_uploaded', true)
@@ -26,8 +27,8 @@ export async function GET(req: NextRequest) {
   const objectCount = total.count ?? (total.data?.length ?? 0)
 
   // Top 20 largest
-  const top = await supa
-    .from('storage.objects')
+  const top = await storageDb
+    .from('objects')
     .select('name, metadata, updated_at')
     .eq('bucket_id', bucket)
     .eq('is_uploaded', true)
@@ -60,4 +61,3 @@ export async function GET(req: NextRequest) {
     top: topSorted.map(t => ({ ...t, size_pretty: pretty(t.bytes) })),
   })
 }
-
