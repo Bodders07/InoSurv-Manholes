@@ -27,6 +27,7 @@ export default function ProjectDetailPage() {
   const [message, setMessage] = useState('')
   const [isSuperAdmin, setIsSuperAdmin] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [embed, setEmbed] = useState(false)
 
   useEffect(() => {
     async function load() {
@@ -58,6 +59,13 @@ export default function ProjectDetailPage() {
     load()
   }, [projectId])
 
+  useEffect(() => {
+    try {
+      const sp = new URLSearchParams(window.location.search)
+      setEmbed(sp.get('embed') === '1')
+    } catch {}
+  }, [])
+
   async function deleteManhole(id: string) {
     if (!isSuperAdmin) return
     const proceed = typeof window !== 'undefined' ? window.confirm('Delete this manhole? This cannot be undone.') : true
@@ -68,6 +76,84 @@ export default function ProjectDetailPage() {
     setDeletingId(null)
     if (error) setMessage('Error: ' + error.message)
     else setManholes((list) => list.filter((m) => m.id !== id))
+  }
+
+  // When embedded, render without the sidebar layout and include a Close button
+  if (embed) {
+    return (
+      <>
+        <div className="flex justify-end mb-2">
+          <button
+            className="px-3 py-1 rounded bg-neutral-800 text-white hover:bg-neutral-700"
+            onClick={() => window.parent?.postMessage({ type: 'close-project-view' }, '*')}
+          >
+            Close
+          </button>
+        </div>
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-bold">Project Manholes {projectName ? `�?" ${projectName}` : ''}</h1>
+          <button
+            onClick={() => router.push(`/manholes/add?project=${projectId}`)}
+            className="bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700"
+          >
+            Add Manhole
+          </button>
+        </div>
+
+        {message && <p className="mb-4 text-red-600">{message}</p>}
+
+        {loading ? (
+          <p>Loading�?�</p>
+        ) : manholes.length === 0 ? (
+          <p className="text-gray-600">No manholes yet for this project.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full bg-white border border-gray-200 rounded-lg">
+              <thead>
+                <tr className="bg-gray-50 text-left">
+                  <th className="px-4 py-2 border-b">Identifier</th>
+                  <th className="px-4 py-2 border-b">Service</th>
+                  <th className="px-4 py-2 border-b">Location</th>
+                  <th className="px-4 py-2 border-b">Lid</th>
+                  <th className="px-4 py-2 border-b">Chamber</th>
+                  <th className="px-4 py-2 border-b w-px">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {manholes.map((m) => (
+                  <tr key={m.id} className="hover:bg-gray-50">
+                    <td className="px-4 py-2 border-b font-medium">{m.identifier || '-'}</td>
+                    <td className="px-4 py-2 border-b">{m.service_type || '-'}</td>
+                    <td className="px-4 py-2 border-b">{m.location_type || '-'}</td>
+                    <td className="px-4 py-2 border-b">{m.lid_material || '-'}</td>
+                    <td className="px-4 py-2 border-b">{m.chamber_construction || '-'}</td>
+                    <td className="px-4 py-2 border-b text-right">
+                      <button
+                        onClick={() => router.push(`/manholes/${m.id}/edit`)}
+                        className="px-3 py-1 rounded border border-gray-300 hover:bg-gray-50"
+                      >
+                        Edit
+                      </button>
+                      {isSuperAdmin && (
+                        <button
+                          onClick={() => deleteManhole(m.id)}
+                          disabled={deletingId === m.id}
+                          className={`ml-2 px-3 py-1 rounded text-white ${
+                            deletingId === m.id ? 'bg-gray-400 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'
+                          }`}
+                        >
+                          {deletingId === m.id ? 'Deleting�?�' : 'Delete'}
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </>
+    )
   }
 
   return (
@@ -137,4 +223,3 @@ export default function ProjectDetailPage() {
     </SidebarLayout>
   )
 }
-

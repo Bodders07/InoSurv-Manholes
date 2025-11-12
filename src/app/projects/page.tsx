@@ -38,6 +38,9 @@ export default function ProjectsPage() {
   const [editProjectName, setEditProjectName] = useState('')
   const [editSaving, setEditSaving] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  // View modal and action menu
+  const [viewId, setViewId] = useState<string | null>(null)
+  const [menuFor, setMenuFor] = useState<string | null>(null)
 
   useEffect(() => {
     async function loadProjects() {
@@ -66,6 +69,20 @@ export default function ProjectsPage() {
       await detectRoles()
     })
     return () => listener.subscription.unsubscribe()
+  }, [])
+
+  // Close embedded project view messages
+  useEffect(() => {
+    function onMsg(e: MessageEvent) {
+      if (e.data?.type === 'close-project-view') {
+        setViewId(null)
+        refreshProjects()
+      }
+    }
+    if (typeof window !== 'undefined') {
+      window.addEventListener('message', onMsg)
+      return () => window.removeEventListener('message', onMsg)
+    }
   }, [])
 
   async function detectRoles() {
@@ -115,6 +132,70 @@ export default function ProjectsPage() {
     if (error) return
     setProjects(data || [])
   }
+
+  async function duplicateProject(id: string) {
+    setMessage('')
+    const { data, error } = await supabase
+      .from('projects')
+      .select('name, client, project_number')
+      .eq('id', id)
+      .maybeSingle()
+    if (error) {
+      setMessage('Error duplicating: ' + error.message)
+      return
+    }
+    const src: any = data
+    const insert = {
+      name: (src?.name ? src.name + ' (Copy)' : 'Copy'),
+      client: src?.client ?? null,
+      project_number: src?.project_number ?? null,
+    }
+    const { error: insErr } = await supabase.from('projects').insert([insert])
+    if (insErr) setMessage('Error duplicating: ' + insErr.message)
+    else {
+      setMessage('Success: Project duplicated.')
+      await refreshProjects()
+    }
+  }
+
+  async function archiveProject(p: Project) {
+    setMessage('')
+    const { error } = await supabase.from('projects').update({ archived: true } as any).eq('id', p.id)
+    if (!error) {
+      setMessage('Success: Project archived.')
+      await refreshProjects()
+      return
+    }
+    if (error.message?.toLowerCase().includes('archived') && error.message?.toLowerCase().includes('column')) {
+      const { error: nameErr } = await supabase
+        .from('projects')
+        .update({ name: `Archived - ${p.name ?? ''}` })
+        .eq('id', p.id)
+      if (nameErr) setMessage('Error archiving: ' + nameErr.message)
+      else {
+        setMessage('Success: Project archived (name prefixed).')
+        await refreshProjects()
+      }
+    } else {
+      setMessage('Error archiving: ' + error.message)
+    }
+  }
+
+  // Small inline icons
+  const IconBtn = ({ title, onClick, children }: { title: string; onClick: () => void; children: React.ReactNode }) => (
+    <button title={title} onClick={onClick} className="p-1.5 rounded hover:bg-gray-200 text-gray-700" aria-label={title}>
+      {children}
+    </button>
+  )
+  const Pencil = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5"><path d="M16.862 3.487a1.75 1.75 0 0 1 2.476 2.476l-10 10a1.75 1.75 0 0 1-.72.438l-4 1.25a.75.75 0 0 1-.938-.938l1.25-4a1.75 1.75 0 0 1 .438-.72l10-10Z"/><path d="M15 5 19 9" stroke="currentColor" strokeWidth="1.5"/></svg>
+  )
+  const Trash = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5"><path d="M9 3.75A1.75 1.75 0 0 1 10.75 2h2.5A1.75 1.75 0 0 1 15 3.75V5h4.25a.75.75 0 0 1 0 1.5H4.75a.75.75 0 0 1 0-1.5H9V3.75Z"/><path d="M6.5 7h11l-.7 11.2a2 2 0 0 1-2 1.8H9.2a2 2 0 0 1-2-1.8L6.5 7Z"/></svg>
+  )
+  const Dots = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5"><circle cx="5" cy="12" r="1.75"/><circle cx="12" cy="12" r="1.75"/><circle cx="19" cy="12" r="1.75"/></svg>
+  )
 
   function startEdit(p: Project) {
     setEditingId(p.id)
@@ -305,12 +386,14 @@ export default function ProjectsPage() {
                     <tr key={p.id} className="hover:bg-gray-50">
                       <td className="px-4 py-2 border-b align-top">{p.project_number || '-'}</td>
                       <td className="px-4 py-2 border-b align-top">{p.client || '-'}</td>
-                      <td className="px-4 py-2 border-b align-top">{p.name || '-'}</td>
+                      <td className="px-4 py-2 border-b align-top">{p.name ? (
+                        <button className="text-orange-600 hover:underline" onClick={() => setViewId(p.id)}>{p.name}</button>
+                      ) : '-'}</td>
                       <td className="px-4 py-2 border-b align-top">{dt(created)}</td>
                       <td className="px-4 py-2 border-b align-top">{dt(updated)}</td>
                       <td className="px-4 py-2 border-b align-top text-right">
                         {isEditing ? (
-                          <div className="flex gap-2 justify-end">
+                          <div className="flex gap-2 justify-end relative">
                             <button
                               onClick={saveEdit}
                               disabled={disableEditSave}
@@ -330,7 +413,7 @@ export default function ProjectsPage() {
                         ) : (
                           <div className="flex gap-2 justify-end">
                             <button
-                              onClick={() => router.push(`/projects/${p.id}`)}
+                              onClick={() => setViewId(p.id)}
                               className="px-3 py-1 rounded border border-gray-300 hover:bg-gray-50"
                             >
                               View
@@ -352,6 +435,20 @@ export default function ProjectsPage() {
                                 {deletingId === p.id ? 'Deleting…' : 'Delete'}
                               </button>
                             )}
+                            <button
+                              onClick={() => setMenuFor(menuFor === p.id ? null : p.id)}
+                              className="px-3 py-1 rounded border border-gray-300 hover:bg-gray-50"
+                              aria-haspopup="menu"
+                              aria-expanded={menuFor === p.id}
+                            >
+                              ⋮
+                            </button>
+                            {menuFor === p.id && (
+                              <div className="absolute right-0 top-full mt-1 w-40 rounded-md shadow-lg bg-white ring-1 ring-black/5 z-10">
+                                <button className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100" onClick={() => { setMenuFor(null); duplicateProject(p.id) }}>Duplicate</button>
+                                <button className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100" onClick={() => { setMenuFor(null); archiveProject(p) }}>Archive</button>
+                              </div>
+                            )}
                           </div>
                         )}
                       </td>
@@ -363,6 +460,23 @@ export default function ProjectsPage() {
           )}
         </div>
       </div>
+      {viewId && (
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-0 sm:p-6">
+          <div className="relative bg-white dark:bg-neutral-900 w-screen h-screen sm:w-[90vw] sm:h-[85vh] rounded-none sm:rounded-lg shadow-lg">
+            <button
+              aria-label="Close"
+              className="absolute top-2 right-2 px-2 py-1 rounded bg-neutral-800 text-white hover:bg-neutral-700"
+              onClick={() => setViewId(null)}
+            >
+              ✕
+            </button>
+            <iframe
+              src={`/projects/${viewId}?embed=1`}
+              className="w-full h-full border-0 bg-white dark:bg-neutral-900"
+            />
+          </div>
+        </div>
+      )}
     </SidebarLayout>
   )
 }
