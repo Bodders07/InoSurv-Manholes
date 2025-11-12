@@ -111,9 +111,9 @@ function AddManholeForm({ standaloneLayout = true }: { standaloneLayout?: boolea
   const [chamberMaterial, setChamberMaterial] = useState('')
   const [chamberMaterialOther, setChamberMaterialOther] = useState('')
   // Photos
-  const [internalPhoto, setInternalPhoto] = useState<File | null>(null)
+  const [internalPhoto, setInternalPhoto] = useState<any | null>(null)
   const [internalPreview, setInternalPreview] = useState('')
-  const [externalPhoto, setExternalPhoto] = useState<File | null>(null)
+  const [externalPhoto, setExternalPhoto] = useState<any | null>(null)
   const [externalPreview, setExternalPreview] = useState('')
 
   useEffect(() => {
@@ -230,7 +230,7 @@ ALTER TABLE public.manholes
       let uploadMsg = ''
       if (newId && (internalPhoto || externalPhoto)) {
         const bucket = supabase.storage.from('manhole-photos')
-        async function uploadOne(file: File | null, kind: 'internal' | 'external') {
+        async function uploadOne(file: any | null, kind: 'internal' | 'external') {
           if (!file) return null
           const ext = (file.name.split('.').pop() || 'jpg').toLowerCase()
           const path = `${newId}/${kind}-${Date.now()}.${ext}`

@@ -75,8 +75,8 @@ export default function EditManholePage() {
   // photos
   const [internalPhotoUrl, setInternalPhotoUrl] = useState('')
   const [externalPhotoUrl, setExternalPhotoUrl] = useState('')
-  const [internalPhotoFile, setInternalPhotoFile] = useState<File | null>(null)
-  const [externalPhotoFile, setExternalPhotoFile] = useState<File | null>(null)
+  const [internalPhotoFile, setInternalPhotoFile] = useState<any | null>(null)
+  const [externalPhotoFile, setExternalPhotoFile] = useState<any | null>(null)
 
   // sketch
   const [sketch, setSketch] = useState<SketchState | null>(null)
@@ -200,7 +200,7 @@ export default function EditManholePage() {
     // Upload any new photos
     let uploadMsg = ''
     const bucket = supabase.storage.from('manhole-photos')
-    async function uploadOne(file: File | null, kind: 'internal' | 'external') {
+    async function uploadOne(file: any | null, kind: 'internal' | 'external') {
       if (!file) return null
       const ext = (file.name.split('.').pop() || 'jpg').toLowerCase()
       const path = `${manholeId}/${kind}-${Date.now()}.${ext}`
