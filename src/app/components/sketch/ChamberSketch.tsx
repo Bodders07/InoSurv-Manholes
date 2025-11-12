@@ -127,15 +127,19 @@ export default function ChamberSketch({
   const coverPath = useMemo(() => {
     switch (state.coverShape) {
       case 'Square':
-        return <rect x={120} y={120} width={260} height={260} strokeDasharray="6 6" stroke="#333" fill="none" strokeWidth={2} />
+        // Smaller, inside the chamber
+        return <rect x={190} y={190} width={120} height={120} strokeDasharray="6 6" stroke="#333" fill="none" strokeWidth={2} />
       case 'Rectangle':
-        return <rect x={100} y={150} width={300} height={200} strokeDasharray="6 6" stroke="#333" fill="none" strokeWidth={2} />
+        // Smaller, inside the chamber
+        return <rect x={190} y={210} width={120} height={80} strokeDasharray="6 6" stroke="#333" fill="none" strokeWidth={2} />
       case 'Triangle':
+        // Smaller, centered triangle
         return (
-          <polygon points="250,110 380,370 120,370" strokeDasharray="6 6" stroke="#333" fill="none" strokeWidth={2} />
+          <polygon points="250,190 310,310 190,310" strokeDasharray="6 6" stroke="#333" fill="none" strokeWidth={2} />
         )
       default:
-        return <rect x={120} y={120} width={260} height={260} strokeDasharray="6 6" stroke="#333" fill="none" strokeWidth={2} />
+        // Default to a smaller dashed square inside
+        return <rect x={190} y={190} width={120} height={120} strokeDasharray="6 6" stroke="#333" fill="none" strokeWidth={2} />
     }
   }, [state.coverShape])
 
