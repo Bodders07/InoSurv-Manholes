@@ -238,7 +238,7 @@ export default function ExportManholeSheet() {
             <h2 className="mb-2">Sketch</h2>
             <div className="border border-dashed p-2" style={{ minHeight: 170 }}>
               {row.sketch_json ? (
-                <ChamberSketch compact readOnly value={row.sketch_json} />
+                <ChamberSketch compact value={row.sketch_json as any} />
               ) : (
                 <div className="text-gray-500 text-sm">No sketch</div>
               )}
