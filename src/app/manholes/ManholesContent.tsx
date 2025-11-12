@@ -20,7 +20,10 @@ export default function ManholesContent() {
   const [loading, setLoading] = useState(true)
   const [sortKey, setSortKey] = useState<SortKey>('project_number')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
-  const [filterProject, setFilterProject] = useState<string>('')
+  // Filters (in panel)
+  const [filterProjectNo, setFilterProjectNo] = useState<string>('')
+  const [filterClient, setFilterClient] = useState<string>('')
+  const [filterProjectName, setFilterProjectName] = useState<string>('')
   const [query, setQuery] = useState('')
   const [isAdmin, setIsAdmin] = useState(false)
   const [isSuperAdmin, setIsSuperAdmin] = useState(false)
@@ -33,7 +36,7 @@ export default function ManholesContent() {
       setLoading(true)
       setMessage('')
       const [projRes, mhRes] = await Promise.all([
-        supabase.from('projects').select('id, name, project_number'),
+        supabase.from('projects').select('id, name, project_number, client'),
         supabase.from('manholes').select('id, identifier, project_id'),
       ])
       if (projRes.error) setMessage('Error loading projects: ' + projRes.error.message)
@@ -62,7 +65,7 @@ export default function ManholesContent() {
   async function reloadLists() {
     setLoading(true)
     const [projRes, mhRes] = await Promise.all([
-      supabase.from('projects').select('id, name, project_number'),
+      supabase.from('projects').select('id, name, project_number, client'),
       supabase.from('manholes').select('id, identifier, project_id'),
     ])
     if (!projRes.error && projRes.data) setProjects(projRes.data)
@@ -93,31 +96,33 @@ export default function ManholesContent() {
   }, [editOpen])
 
   const projectById = useMemo(() => {
-    const map = new Map<string, { name: string; project_number: string }>()
-    projects.forEach((p) => map.set(p.id, { name: p.name || '', project_number: p.project_number || '' }))
+    const map = new Map<string, { name: string; project_number: string; client?: string | null }>()
+    projects.forEach((p) => map.set(p.id, { name: p.name || '', project_number: p.project_number || '', client: (p as any).client || '' }))
     return map
   }, [projects])
 
   const rows = useMemo(() => {
     let data = manholes.map((m) => {
-      const p = projectById.get(m.project_id) || { name: '', project_number: '' }
+      const p = projectById.get(m.project_id) || { name: '', project_number: '', client: '' }
       return {
         id: m.id,
         identifier: m.identifier || '',
         project_name: p.name,
         project_number: p.project_number,
+        project_client: (p as any).client || '',
       }
     })
-    if (filterProject) {
-      data = data.filter((r) => r.project_number === filterProject || r.project_name === filterProject)
-    }
+    if (filterProjectNo) data = data.filter((r) => r.project_number === filterProjectNo)
+    if (filterClient) data = data.filter((r) => r.project_client === filterClient)
+    if (filterProjectName) data = data.filter((r) => r.project_name === filterProjectName)
     if (query.trim()) {
       const q = query.toLowerCase()
       data = data.filter(
         (r) =>
           (r.identifier || '').toLowerCase().includes(q) ||
           (r.project_name || '').toLowerCase().includes(q) ||
-          (r.project_number || '').toLowerCase().includes(q)
+          (r.project_number || '').toLowerCase().includes(q) ||
+          (r.project_client || '').toLowerCase().includes(q)
       )
     }
     const dir = sortDir === 'asc' ? 1 : -1
@@ -128,7 +133,7 @@ export default function ManholesContent() {
       if (av > bv) return 1 * dir
       return 0
     })
-  }, [manholes, projectById, sortKey, sortDir, filterProject, query])
+  }, [manholes, projectById, sortKey, sortDir, filterProjectNo, filterClient, filterProjectName, query])
 
   function toggleSort(key: SortKey) {
     if (sortKey === key) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
@@ -194,47 +199,65 @@ export default function ManholesContent() {
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3 mb-6">
-        <div>
-          <label className="block text-xs text-gray-600 mb-1">Filter by Project</label>
-          <select
-            className="border rounded p-2 min-w-[220px]"
-            value={filterProject}
-            onChange={(e) => setFilterProject(e.target.value)}
-          >
-            <option value="">All projects</option>
-            {projects
-              .slice()
-              .sort((a, b) => (a.project_number || '').localeCompare(b.project_number || ''))
-              .map((p) => (
-                <option key={p.id} value={p.project_number || p.name || ''}>
-                  {p.project_number || '-'} {p.name ? ' - ' + p.name : ''}
-                </option>
-              ))}
-          </select>
+      {showFilter && (
+        <div className="mb-4 p-3 border rounded-lg bg-white dark:bg-neutral-900 text-sm text-gray-600 dark:text-gray-200">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div>
+              <label className="block text-xs font-semibold mb-1">Project No.</label>
+              <select
+                className="w-full border rounded px-2 py-1 bg-white dark:bg-neutral-800"
+                value={filterProjectNo}
+                onChange={(e) => setFilterProjectNo(e.target.value)}
+              >
+                <option value="">All numbers</option>
+                {[...new Set(projects.map(p => p.project_number || '').filter(Boolean))]
+                  .sort((a,b)=>a.localeCompare(b))
+                  .map(n => (<option key={n} value={n}>{n}</option>))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold mb-1">Client</label>
+              <select
+                className="w-full border rounded px-2 py-1 bg-white dark:bg-neutral-800"
+                value={filterClient}
+                onChange={(e) => setFilterClient(e.target.value)}
+              >
+                <option value="">All clients</option>
+                {[...new Set(projects.map(p => (p as any).client || '').filter(Boolean))]
+                  .sort((a,b)=>a.localeCompare(b))
+                  .map(c => (<option key={c} value={c}>{c}</option>))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold mb-1">Project Name</label>
+              <select
+                className="w-full border rounded px-2 py-1 bg-white dark:bg-neutral-800"
+                value={filterProjectName}
+                onChange={(e) => setFilterProjectName(e.target.value)}
+              >
+                <option value="">All names</option>
+                {[...new Set(projects.map(p => p.name || '').filter(Boolean))]
+                  .sort((a,b)=>a.localeCompare(b))
+                  .map(n => (<option key={n} value={n}>{n}</option>))}
+              </select>
+            </div>
+          </div>
+          <div className="mt-3 flex items-center gap-2">
+            <button
+              onClick={() => { setFilterProjectNo(''); setFilterClient(''); setFilterProjectName(''); setQuery('') }}
+              className="px-3 py-1 rounded border border-gray-300 hover:bg-gray-50"
+            >
+              Reset
+            </button>
+            <button
+              onClick={() => setShowFilter(false)}
+              className="px-3 py-1 rounded bg-blue-600 text-white hover:bg-blue-700"
+            >
+              Close
+            </button>
+          </div>
         </div>
-        <div className="flex-1 min-w-[220px]">
-          <label className="block text-xs text-gray-600 mb-1">Search</label>
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search by project or manhole number"
-            className="w-full border rounded p-2"
-          />
-        </div>
-        {(filterProject || query) && (
-          <button
-            onClick={() => {
-              setFilterProject('')
-              setQuery('')
-            }}
-            className="mt-5 h-9 px-3 rounded border border-gray-300 hover:bg-gray-50"
-          >
-            Clear filters
-          </button>
-        )}
-      </div>
+      )}
 
       {message && <p className="mb-4 text-red-600">{message}</p>}
 
