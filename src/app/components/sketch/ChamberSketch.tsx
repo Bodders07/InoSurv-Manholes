@@ -35,6 +35,7 @@ export default function ChamberSketch({
   const svgRef = useRef<SVGSVGElement | null>(null)
   const draggingId = useRef<string | null>(null)
   const [labelNext, setLabelNext] = useState<'A'|'B'|'C'|'D'|'E'|'F'|'G'|'H'|'I'|'J'|'K'|'L'|'M'|'N'|'O'|'P'|'Q'|'R'|'S'|'T'|'U'|'V'|'W'|'X'|'Y'|'Z'>('A')
+  const [inletNext, setInletNext] = useState<'A'|'B'|'C'|'D'|'E'|'F'|'G'|'H'|'I'|'J'|'K'|'L'|'M'|'N'|'O'|'P'|'Q'|'R'|'S'|'T'|'U'|'V'|'W'|'X'|'Y'|'Z'>('A')
   const [outletNext, setOutletNext] = useState<'X'|'Y'|'Z'>('X')
 
   useEffect(() => {
@@ -56,6 +57,11 @@ export default function ChamberSketch({
       // advance A->B->...->Z->A
       const n = bumpLetter(labelNext, 'A', 'Z')
       setLabelNext(String.fromCharCode(n) as any)
+    }
+    if (type === 'in') {
+      base.label = inletNext
+      const n = bumpLetter(inletNext, 'A', 'Z')
+      setInletNext(String.fromCharCode(n) as any)
     }
     if (type === 'out') {
       base.label = outletNext
@@ -211,6 +217,9 @@ export default function ChamberSketch({
                       style={{ cursor: 'grab' }}
                     />
                     {it.type === 'out' && it.label && (
+                      <text x={it.x + 8} y={it.y - 8} fontSize="12" fill={color} fontWeight={600}>{it.label}</text>
+                    )}
+                    {it.type === 'in' && it.label && (
                       <text x={it.x + 8} y={it.y - 8} fontSize="12" fill={color} fontWeight={600}>{it.label}</text>
                     )}
                   </>
