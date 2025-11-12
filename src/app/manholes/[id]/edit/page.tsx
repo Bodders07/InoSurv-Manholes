@@ -399,15 +399,13 @@ export default function EditManholePage() {
             </div>
           </div>
 
-          {/* Sketch editor */}
-          <h2 className="text-xl font-semibold mt-8 mb-3">Chamber Sketch</h2>
+          {/* Sketch editor (moved to bottom) */}
+          <h2 className="hidden">Chamber Sketch</h2>
           <button
             type="button"
             onClick={() => { setSketchDraft(sketch ? { ...sketch } as SketchState : null); setSketchOpen(true) }}
-            className="px-4 py-2 rounded text-white bg-blue-600 hover:bg-blue-700"
-          >
-            Open Sketch Editor
-          </button>
+            className="hidden"
+          >Open Sketch Editor</button>
           {sketchOpen && (
             <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-2">
               <div className="bg-white theme-dark:bg-[#0b0b0b] border border-gray-200 theme-dark:border-gray-700 rounded-lg shadow-xl w-full max-w-4xl max-h-[92vh] flex flex-col">
@@ -611,6 +609,16 @@ export default function EditManholePage() {
                 )}
               </div>
             </div>
+
+            {/* Sketch editor at bottom */}
+            <h2 className="text-xl font-semibold mt-8 mb-3">Chamber Sketch</h2>
+            <button
+              type="button"
+              onClick={() => { setSketchDraft(sketch ? { ...sketch } as SketchState : null); setSketchOpen(true) }}
+              className="px-4 py-2 rounded text-white bg-blue-600 hover:bg-blue-700 mb-4"
+            >
+              Open Sketch Editor
+            </button>
 
             <div className="mt-6 flex gap-3">
               <button onClick={save} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Save</button>
