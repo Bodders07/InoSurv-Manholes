@@ -14,6 +14,7 @@ export default function ManholesContent() {
   const { setView } = useView()
   const [editId, setEditId] = useState<string | null>(null)
   const [editOpen, setEditOpen] = useState(false)
+  const [message, setMessage] = useState('')
   const [projects, setProjects] = useState<Project[]>([])
   const [manholes, setManholes] = useState<Manhole[]>([])
   const [message, setMessage] = useState('')
@@ -56,6 +57,39 @@ export default function ManholesContent() {
     const { data: sub } = supabase.auth.onAuthStateChange(() => detect())
     return () => sub.subscription.unsubscribe()
   }, [])
+
+  async function reloadLists() {
+    setLoading(true)
+    const [projRes, mhRes] = await Promise.all([
+      supabase.from('projects').select('id, name, project_number'),
+      supabase.from('manholes').select('id, identifier, project_id'),
+    ])
+    if (!projRes.error && projRes.data) setProjects(projRes.data)
+    if (!mhRes.error && mhRes.data) setManholes(mhRes.data)
+    setLoading(false)
+  }
+
+  useEffect(() => {
+    function onMsg(ev: MessageEvent) {
+      if (!ev || typeof ev.data !== 'object') return
+      const { type, refresh } = ev.data as any
+      if (type === 'close-edit-modal') {
+        setEditOpen(false)
+        if (refresh) reloadLists()
+      }
+    }
+    window.addEventListener('message', onMsg)
+    return () => window.removeEventListener('message', onMsg)
+  }, [])
+
+  // Close modal on ESC for accessibility/mobile convenience
+  useEffect(() => {
+    function onKey(ev: KeyboardEvent) {
+      if (ev.key === 'Escape') setEditOpen(false)
+    }
+    if (editOpen) window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [editOpen])
 
   const projectById = useMemo(() => {
     const map = new Map<string, { name: string; project_number: string }>()
@@ -221,8 +255,8 @@ export default function ManholesContent() {
       )}
 
       {editOpen && editId && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-2">
-          <div className="bg-white theme-dark:bg-[#0b0b0b] border border-gray-200 theme-dark:border-gray-700 rounded-lg shadow-xl w-full max-w-4xl max-h-[92vh] flex flex-col">
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-2" onClick={() => setEditOpen(false)}>
+          <div className="bg-white theme-dark:bg-[#0b0b0b] border border-gray-200 theme-dark:border-gray-700 rounded-lg shadow-xl w-full max-w-4xl max-h-[92vh] flex flex-col" onClick={(e)=>e.stopPropagation()}>
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 theme-dark:border-gray-700">
               <h3 className="text-lg font-semibold">Edit Manhole</h3>
               <button type="button" onClick={() => setEditOpen(false)} className="px-3 py-1.5 rounded border border-gray-300 hover:bg-gray-50">Close</button>
