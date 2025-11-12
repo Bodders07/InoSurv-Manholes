@@ -107,20 +107,24 @@ export default function ChamberSketch({
   const chamberPath = useMemo(() => {
     switch (state.chamberShape) {
       case 'Square':
-        return <rect x={170} y={170} width={160} height={160} rx={2} ry={2} stroke="#777" fill="none" strokeWidth={3} />
+        // Bigger square chamber
+        return <rect x={140} y={140} width={220} height={220} rx={3} ry={3} stroke="#777" fill="none" strokeWidth={3} />
       case 'Rectangle':
-        return <rect x={140} y={190} width={220} height={120} rx={2} ry={2} stroke="#777" fill="none" strokeWidth={3} />
+        // Bigger rectangle chamber
+        return <rect x={100} y={170} width={300} height={160} rx={3} ry={3} stroke="#777" fill="none" strokeWidth={3} />
       case 'Hexagon':
+        // Bigger hexagon chamber
         return (
           <polygon
-            points="250,150 330,200 330,300 250,350 170,300 170,200"
+            points="250,120 360,190 360,310 250,380 140,310 140,190"
             stroke="#777"
             fill="none"
             strokeWidth={3}
           />
         )
       default:
-        return <circle cx={250} cy={250} r={80} stroke="#777" fill="none" strokeWidth={3} />
+        // Bigger circular chamber
+        return <circle cx={250} cy={250} r={120} stroke="#777" fill="none" strokeWidth={3} />
     }
   }, [state.chamberShape])
 
