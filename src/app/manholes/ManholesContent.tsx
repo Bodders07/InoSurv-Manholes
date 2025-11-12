@@ -17,7 +17,6 @@ export default function ManholesContent() {
   const [message, setMessage] = useState('')
   const [projects, setProjects] = useState<Project[]>([])
   const [manholes, setManholes] = useState<Manhole[]>([])
-  const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(true)
   const [sortKey, setSortKey] = useState<SortKey>('project_number')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
