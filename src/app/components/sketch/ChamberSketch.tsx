@@ -98,6 +98,7 @@ export default function ChamberSketch({
   function onPointerDown(e: React.PointerEvent, id: string, handle: 'start' | 'end' | 'label') {
     dragging.current = { id, handle }
     ;(e.target as Element).setPointerCapture?.(e.pointerId)
+    try { e.preventDefault() } catch {}
   }
   function onPointerMove(e: React.PointerEvent) {
     if (!dragging.current || !svgRef.current) return
@@ -127,6 +128,36 @@ export default function ChamberSketch({
   }
   function onPointerUp() {
     dragging.current = null
+  }
+
+  // Fallback: allow starting drag by tapping near a handle (mobile-friendly)
+  function startNearestHandleDrag(e: React.PointerEvent<SVGSVGElement>) {
+    if (!svgRef.current) return
+    const pt = svgRef.current.createSVGPoint()
+    pt.x = e.clientX
+    pt.y = e.clientY
+    const ctm = svgRef.current.getScreenCTM()
+    if (!ctm) return
+    const p = pt.matrixTransform(ctm.inverse())
+    let best: { id: string; handle: 'start' | 'end' } | null = null
+    let bestD = Infinity
+    for (const it of state.items) {
+      if (it.type === 'label') continue
+      const sx = it.sx ?? center.x
+      const sy = it.sy ?? center.y
+      const ex = it.ex ?? it.x ?? center.x
+      const ey = it.ey ?? it.y ?? center.y
+      const ds = Math.hypot(p.x - sx, p.y - sy)
+      const de = Math.hypot(p.x - ex, p.y - ey)
+      if (ds < bestD) { bestD = ds; best = { id: it.id, handle: 'start' } }
+      if (de < bestD) { bestD = de; best = { id: it.id, handle: 'end' } }
+    }
+    // If within 28px, start dragging that handle
+    if (best && bestD <= 28) {
+      dragging.current = best
+      ;(e.target as Element).setPointerCapture?.(e.pointerId)
+      try { e.preventDefault() } catch {}
+    }
   }
 
   const center = { x: 250, y: 250 }
@@ -222,8 +253,10 @@ export default function ChamberSketch({
           width="100%"
           height={compact ? 260 : 360}
           viewBox="0 0 500 500"
+          style={{ touchAction: 'none' }}
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
+          onPointerDown={startNearestHandleDrag}
         >
           {/* Key / Legend (top-left) */}
           <g transform={compact ? 'translate(8,8)' : 'translate(12,12)'}>
@@ -258,25 +291,27 @@ export default function ChamberSketch({
             const arrowPath = it.type === 'in'
               ? `M ${ex},${ey} L ${sx},${sy}`
               : `M ${sx},${sy} L ${ex},${ey}`
+            const handleSize = compact ? 20 : 24
+            const hh = handleSize / 2
             return (
               <g key={it.id}>
                 {it.type !== 'label' && (
                   <>
                     <path d={arrowPath} stroke={color} strokeWidth={2.5} fill="none" markerEnd="url(#arrow)" />
                     <rect
-                      x={sx - 6}
-                      y={sy - 6}
-                      width={12}
-                      height={12}
+                      x={sx - hh}
+                      y={sy - hh}
+                      width={handleSize}
+                      height={handleSize}
                       fill={color}
                       onPointerDown={(e) => onPointerDown(e, it.id, 'start')}
                       style={{ cursor: 'grab' }}
                     />
                     <rect
-                      x={ex - 6}
-                      y={ey - 6}
-                      width={12}
-                      height={12}
+                      x={ex - hh}
+                      y={ey - hh}
+                      width={handleSize}
+                      height={handleSize}
                       fill={color}
                       onPointerDown={(e) => onPointerDown(e, it.id, 'end')}
                       style={{ cursor: 'grab' }}
