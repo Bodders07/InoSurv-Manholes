@@ -34,14 +34,35 @@ export default function ChamberSketch({
   )
   const svgRef = useRef<SVGSVGElement | null>(null)
   const draggingId = useRef<string | null>(null)
+  const [labelNext, setLabelNext] = useState<'A'|'B'|'C'|'D'|'E'|'F'|'G'|'H'|'I'|'J'|'K'|'L'|'M'|'N'|'O'|'P'|'Q'|'R'|'S'|'T'|'U'|'V'|'W'|'X'|'Y'|'Z'>('A')
+  const [outletNext, setOutletNext] = useState<'X'|'Y'|'Z'>('X')
 
   useEffect(() => {
     onChange?.(state)
   }, [state, onChange])
 
+  function bumpLetter(l: string, start: string, end: string) {
+    const code = l.charCodeAt(0)
+    const next = code + 1
+    const endCode = end.charCodeAt(0)
+    const startCode = start.charCodeAt(0)
+    return (next > endCode ? startCode : next) as number
+  }
+
   function addItem(type: ItemType) {
     const base: SketchItem = { id: uuid(), type, x: 250, y: 60 }
-    if (type === 'label') base.label = 'ABC'
+    if (type === 'label') {
+      base.label = labelNext
+      // advance A->B->...->Z->A
+      const n = bumpLetter(labelNext, 'A', 'Z')
+      setLabelNext(String.fromCharCode(n) as any)
+    }
+    if (type === 'out') {
+      base.label = outletNext
+      // advance X->Y->Z->X
+      const n = outletNext === 'X' ? 'Y' : outletNext === 'Y' ? 'Z' : 'X'
+      setOutletNext(n as any)
+    }
     setState((s) => ({ ...s, items: [...s.items, base] }))
   }
 
@@ -172,7 +193,9 @@ export default function ChamberSketch({
           {/* Items */}
           {state.items.map((it) => {
             const color = it.type === 'in' ? '#1d4ed8' : it.type === 'out' ? '#dc2626' : '#111827'
-            const arrowPath = `M ${it.x},${it.y} L ${center.x},${center.y}`
+            const arrowPath = it.type === 'out'
+              ? `M ${center.x},${center.y} L ${it.x},${it.y}`
+              : `M ${it.x},${it.y} L ${center.x},${center.y}`
             return (
               <g key={it.id}>
                 {it.type !== 'label' && (
@@ -187,6 +210,9 @@ export default function ChamberSketch({
                       onPointerDown={(e) => onPointerDown(e, it.id)}
                       style={{ cursor: 'grab' }}
                     />
+                    {it.type === 'out' && it.label && (
+                      <text x={it.x + 8} y={it.y - 8} fontSize="12" fill={color} fontWeight={600}>{it.label}</text>
+                    )}
                   </>
                 )}
                 {it.type === 'label' && (
@@ -221,4 +247,3 @@ export default function ChamberSketch({
     </div>
   )
 }
-
