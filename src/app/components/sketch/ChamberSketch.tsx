@@ -195,6 +195,17 @@ export default function ChamberSketch({
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
         >
+          {/* Key / Legend (top-left) */}
+          <g transform="translate(12,12)">
+            <rect x="0" y="0" width="170" height="46" rx="6" ry="6" fill="#ffffff" stroke="#e5e7eb" />
+            {/* Cover sample (dashed) */}
+            <rect x="10" y="10" width="20" height="10" strokeDasharray="4 3" stroke="#333" fill="none" strokeWidth="2" />
+            <text x="38" y="18" fontSize="12" fill="#374151">Cover (dashed)</text>
+            {/* Chamber sample (solid) */}
+            <line x1="10" y1="32" x2="30" y2="32" stroke="#777" strokeWidth="3" />
+            <text x="38" y="35" fontSize="12" fill="#374151">Chamber (solid)</text>
+          </g>
+
           {/* north arrow */}
           <g transform="translate(40,420)">
             <polygon points="10,0 20,30 0,30" fill="#e11" />
