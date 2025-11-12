@@ -248,9 +248,14 @@ export default function ChamberSketch({
             const color = it.type === 'in' ? '#1d4ed8' : it.type === 'out' ? '#dc2626' : '#111827'
             const sx = it.sx ?? center.x
             const sy = it.sy ?? center.y
-            const ex = it.ey === undefined || it.ex === undefined ? (it.x ?? center.x) : it.ex
-            const ey = it.ey === undefined ? (it.y ?? center.y) : it.ey
-            const arrowPath = `M ${sx},${sy} L ${ex},${ey}`
+            const ex = it.ex ?? it.x ?? center.x
+            const ey = it.ey ?? it.y ?? center.y
+            // Keep previous direction semantics:
+            // - inlet: arrow head at the 'center' end (sx,sy), so path starts at (ex,ey)
+            // - outlet: arrow head at the handle (ex,ey), so path starts at (sx,sy)
+            const arrowPath = it.type === 'in'
+              ? `M ${ex},${ey} L ${sx},${sy}`
+              : `M ${sx},${sy} L ${ex},${ey}`
             return (
               <g key={it.id}>
                 {it.type !== 'label' && (
@@ -274,10 +279,8 @@ export default function ChamberSketch({
                       onPointerDown={(e) => onPointerDown(e, it.id, 'end')}
                       style={{ cursor: 'grab' }}
                     />
-                    {it.type === 'out' && it.label && (
-                      <text x={ex + 8} y={ey - 8} fontSize="12" fill={color} fontWeight={600}>{it.label}</text>
-                    )}
-                    {it.type === 'in' && it.label && (
+                    {/* Labels sit at the handle end (ex,ey) for both types */}
+                    {it.label && (
                       <text x={ex + 8} y={ey - 8} fontSize="12" fill={color} fontWeight={600}>{it.label}</text>
                     )}
                   </>
