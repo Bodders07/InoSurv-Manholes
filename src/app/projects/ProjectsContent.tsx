@@ -41,6 +41,8 @@ export default function ProjectsContent() {
   const [search, setSearch] = useState('')
   const [showCreate, setShowCreate] = useState(false)
   const [showFilter, setShowFilter] = useState(false)
+  const [filterNumber, setFilterNumber] = useState('')
+  const [filterClient, setFilterClient] = useState('')
   const [viewId, setViewId] = useState<string | null>(null)
   const [menuFor, setMenuFor] = useState<string | null>(null)
 
@@ -102,13 +104,20 @@ export default function ProjectsContent() {
   const disableCreateSave = useMemo(() => saving || !projectName, [projectName, saving])
   const filteredProjects = useMemo(() => {
     const q = search.trim().toLowerCase()
-    if (!q) return projects
-    return projects.filter((p) =>
-      (p.project_number || '').toLowerCase().includes(q) ||
-      (p.name || '').toLowerCase().includes(q) ||
-      (p.client || '').toLowerCase().includes(q)
-    )
-  }, [projects, search])
+    let list = projects
+    if (q) {
+      list = list.filter((p) =>
+        (p.project_number || '').toLowerCase().includes(q) ||
+        (p.name || '').toLowerCase().includes(q) ||
+        (p.client || '').toLowerCase().includes(q)
+      )
+    }
+    const num = filterNumber.trim().toLowerCase()
+    if (num) list = list.filter((p) => (p.project_number || '').toLowerCase().includes(num))
+    const cli = filterClient.trim().toLowerCase()
+    if (cli) list = list.filter((p) => (p.client || '').toLowerCase().includes(cli))
+    return list
+  }, [projects, search, filterNumber, filterClient])
 
   async function addProject() {
     setMessage('')
@@ -407,8 +416,43 @@ export default function ProjectsContent() {
       )}
 
       {showFilter && (
-        <div className="mb-4 p-3 border rounded-lg bg-white text-sm text-gray-600">
-          Filters coming soon.
+        <div className="mb-4 p-3 border rounded-lg bg-white dark:bg-neutral-900 text-sm text-gray-600 dark:text-gray-200">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div>
+              <label className="block text-xs font-semibold mb-1">Project Number</label>
+              <input
+                type="text"
+                value={filterNumber}
+                onChange={(e) => setFilterNumber(e.target.value)}
+                placeholder="e.g., 24-001"
+                className="w-full border rounded px-2 py-1 bg-white dark:bg-neutral-800"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold mb-1">Client</label>
+              <input
+                type="text"
+                value={filterClient}
+                onChange={(e) => setFilterClient(e.target.value)}
+                placeholder="e.g., Network Rail"
+                className="w-full border rounded px-2 py-1 bg-white dark:bg-neutral-800"
+              />
+            </div>
+          </div>
+          <div className="mt-3 flex items-center gap-2">
+            <button
+              onClick={() => { setFilterNumber(''); setFilterClient(''); }}
+              className="px-3 py-1 rounded border border-gray-300 hover:bg-gray-50"
+            >
+              Reset
+            </button>
+            <button
+              onClick={() => setShowFilter(false)}
+              className="px-3 py-1 rounded bg-blue-600 text-white hover:bg-blue-700"
+            >
+              Close
+            </button>
+          </div>
         </div>
       )}
 
