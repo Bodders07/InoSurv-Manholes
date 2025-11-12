@@ -43,6 +43,16 @@ export default function ProjectsContent() {
   const [showFilter, setShowFilter] = useState(false)
   const [filterNumber, setFilterNumber] = useState('')
   const [filterClient, setFilterClient] = useState('')
+
+  // Distinct lists for dropdown filters
+  const numberOptions = useMemo(() => {
+    const vals = Array.from(new Set((projects.map(p => p.project_number || '').filter(Boolean)))) as string[]
+    return vals.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
+  }, [projects])
+  const clientOptions = useMemo(() => {
+    const vals = Array.from(new Set((projects.map(p => p.client || '').filter(Boolean)))) as string[]
+    return vals.sort((a, b) => a.localeCompare(b))
+  }, [projects])
   const [viewId, setViewId] = useState<string | null>(null)
   const [menuFor, setMenuFor] = useState<string | null>(null)
 
@@ -112,10 +122,8 @@ export default function ProjectsContent() {
         (p.client || '').toLowerCase().includes(q)
       )
     }
-    const num = filterNumber.trim().toLowerCase()
-    if (num) list = list.filter((p) => (p.project_number || '').toLowerCase().includes(num))
-    const cli = filterClient.trim().toLowerCase()
-    if (cli) list = list.filter((p) => (p.client || '').toLowerCase().includes(cli))
+    if (filterNumber) list = list.filter((p) => (p.project_number || '') === filterNumber)
+    if (filterClient) list = list.filter((p) => (p.client || '') === filterClient)
     return list
   }, [projects, search, filterNumber, filterClient])
 
@@ -420,23 +428,29 @@ export default function ProjectsContent() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div>
               <label className="block text-xs font-semibold mb-1">Project Number</label>
-              <input
-                type="text"
+              <select
                 value={filterNumber}
                 onChange={(e) => setFilterNumber(e.target.value)}
-                placeholder="e.g., 24-001"
                 className="w-full border rounded px-2 py-1 bg-white dark:bg-neutral-800"
-              />
+              >
+                <option value="">All numbers</option>
+                {numberOptions.map((n) => (
+                  <option key={n} value={n}>{n}</option>
+                ))}
+              </select>
             </div>
             <div>
               <label className="block text-xs font-semibold mb-1">Client</label>
-              <input
-                type="text"
+              <select
                 value={filterClient}
                 onChange={(e) => setFilterClient(e.target.value)}
-                placeholder="e.g., Network Rail"
                 className="w-full border rounded px-2 py-1 bg-white dark:bg-neutral-800"
-              />
+              >
+                <option value="">All clients</option>
+                {clientOptions.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
             </div>
           </div>
           <div className="mt-3 flex items-center gap-2">
