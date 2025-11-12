@@ -224,8 +224,7 @@ export default function EditManholePage() {
     setMessage('Success: Manhole updated.' + uploadMsg)
   }
 
-  return (
-    <SidebarLayout>
+  const content = (
       <div className="p-8 max-w-4xl mx-auto">
         <h1 className="text-2xl font-bold mb-4">Edit Manhole</h1>
         {message && <p className={`mb-4 ${message.startsWith('Error') ? 'text-red-600' : 'text-green-700'}`}>{message}</p>}
@@ -620,6 +619,14 @@ export default function EditManholePage() {
           </>
         )}
       </div>
+  )
+
+  // Support embed mode to render without the app sidebar (for SPA/modal usage)
+  const embed = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('embed') === '1'
+  if (embed) return content
+  return (
+    <SidebarLayout>
+      {content}
     </SidebarLayout>
   )
 }
