@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
 
 type ThemeChoice = 'system' | 'light' | 'dark'
@@ -20,6 +21,7 @@ function applyTheme(choice: ThemeChoice) {
 }
 
 export default function SettingsContent() {
+  const router = useRouter()
   const [choice, setChoice] = useState<ThemeChoice>('dark')
   const [saved, setSaved] = useState<ThemeChoice>('dark')
   // Password change state
@@ -83,10 +85,14 @@ export default function SettingsContent() {
       if (upd.error) {
         setPwdMsg('Error: ' + upd.error.message)
       } else {
-        setPwdMsg('Success: Password updated. You may need to sign in again on other devices.')
+        // Force sign-out and redirect to login
+        try { await supabase.auth.signOut() } catch {}
+        setPwdMsg('Success: Password updated. Redirecting to sign in…')
         setCurPwd('')
         setNewPwd('')
         setConfirmPwd('')
+        // Small delay to show message, then redirect
+        setTimeout(() => router.replace('/auth'), 300)
       }
     } catch (e: any) {
       setPwdMsg('Error: ' + (e?.message || 'Failed to update password'))
