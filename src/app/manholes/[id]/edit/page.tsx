@@ -1,9 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import dynamic from 'next/dynamic'
+import NextDynamic from 'next/dynamic'
 import { type SketchState } from '@/app/components/sketch/ChamberSketch'
-const ChamberSketch = dynamic(() => import('@/app/components/sketch/ChamberSketch'), { ssr: false })
+const ChamberSketch = NextDynamic(() => import('@/app/components/sketch/ChamberSketch'), { ssr: false })
 import { useParams, useRouter } from 'next/navigation'
 import SidebarLayout from '@/app/components/SidebarLayout'
 import { supabase } from '@/lib/supabaseClient'
