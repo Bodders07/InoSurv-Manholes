@@ -37,6 +37,10 @@ export default function ProjectsContent() {
   const [editProjectName, setEditProjectName] = useState('')
   const [editSaving, setEditSaving] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  // New top-bar UX state
+  const [search, setSearch] = useState('')
+  const [showCreate, setShowCreate] = useState(false)
+  const [showFilter, setShowFilter] = useState(false)
   const [viewId, setViewId] = useState<string | null>(null)
   const [menuFor, setMenuFor] = useState<string | null>(null)
 
@@ -96,6 +100,15 @@ export default function ProjectsContent() {
 
   // Allow saving as long as a name is provided; optional fields are included if present
   const disableCreateSave = useMemo(() => saving || !projectName, [projectName, saving])
+  const filteredProjects = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    if (!q) return projects
+    return projects.filter((p) =>
+      (p.project_number || '').toLowerCase().includes(q) ||
+      (p.name || '').toLowerCase().includes(q) ||
+      (p.client || '').toLowerCase().includes(q)
+    )
+  }, [projects, search])
 
   async function addProject() {
     setMessage('')
@@ -118,6 +131,7 @@ export default function ProjectsContent() {
       }
       setProjectName('')
       await refreshProjects()
+      setShowCreate(false)
     }
   }
 
@@ -290,67 +304,113 @@ export default function ProjectsContent() {
 
   return (
     <>
-      <h1 className="text-2xl font-bold mb-6">Projects</h1>
-
-      <div className="bg-white rounded-lg border border-gray-200 shadow-sm mb-8">
-        <div className="px-4 py-3 border-b border-gray-200">
-          <h2 className="font-semibold">Add Project</h2>
-        </div>
-
-        <div className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">Project Number</label>
-              <input
-                type="text"
-                value={projectNumber}
-                onChange={(e) => setProjectNumber(e.target.value)}
-                placeholder="e.g., 24-001"
-                className="w-full border rounded p-2"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Client</label>
-              <input
-                type="text"
-                value={client}
-                onChange={(e) => setClient(e.target.value)}
-                placeholder="e.g., City of Springfield"
-                className="w-full border rounded p-2"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Project Name</label>
-              <input
-                type="text"
-                value={projectName}
-                onChange={(e) => setProjectName(e.target.value)}
-                placeholder="e.g., Downtown Manhole Survey"
-                className="w-full border rounded p-2"
-              />
-            </div>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold">Projects</h1>
+        <div className="flex items-center gap-2">
+          <div className="relative">
+            <span className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-gray-400">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M10 3.75a6.25 6.25 0 1 1 0 12.5 6.25 6.25 0 0 1 0-12.5Zm8.53 13.72-2.91-2.91a7.75 7.75 0 1 0-1.06 1.06l2.91 2.91a.75.75 0 1 0 1.06-1.06Z"/></svg>
+            </span>
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search projects..."
+              className="pl-7 pr-3 py-2 rounded-lg border border-gray-300 bg-transparent placeholder-gray-400 min-w-[220px]"
+            />
           </div>
-
-          <div className="mt-4 flex items-center justify-between">
-            {message && (
-              <p className={`text-sm ${message.startsWith('Error') ? 'text-red-600' : 'text-green-700'}`}>
-                {message}
-              </p>
-            )}
-            <button
-              onClick={addProject}
-              disabled={disableCreateSave}
-              className={`px-4 py-2 rounded text-white ${
-                disableCreateSave
-                  ? 'bg-gray-400 cursor-not-allowed'
-                  : 'bg-blue-600 hover:bg-blue-700'
-              }`}
-            >
-              {saving ? 'Saving…' : 'Save Project'}
-            </button>
-          </div>
+          <button
+            onClick={() => setShowFilter((v) => !v)}
+            className="px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-50"
+          >
+            <span className="inline-flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M3.75 5.5a.75.75 0 0 1 .75-.75h15a.75.75 0 0 1 .55 1.25l-5.3 5.96v4.29a.75.75 0 0 1-1.06.69l-3-1.2a.75.75 0 0 1-.47-.69v-3.09L3.2 6a.75.75 0 0 1 .55-1.25Z"/></svg>
+              Filter
+            </span>
+          </button>
+          <button
+            onClick={() => setShowCreate(true)}
+            className="px-3 py-2 rounded-lg bg-orange-600 text-white hover:bg-orange-700"
+          >
+            <span className="inline-flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M12 4.75a.75.75 0 0 1 .75.75v5.75H18.5a.75.75 0 0 1 0 1.5h-5.75V18.5a.75.75 0 0 1-1.5 0v-5.75H5.5a.75.75 0 0 1 0-1.5h5.75V5.5a.75.75 0 0 1 .75-.75Z"/></svg>
+              New Project
+            </span>
+          </button>
         </div>
       </div>
+
+      {showCreate && (
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
+          <div className="w-full max-w-3xl bg-white dark:bg-neutral-900 rounded-lg border border-gray-200 dark:border-neutral-800 shadow-lg">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-neutral-800">
+              <h2 className="font-semibold">New Project</h2>
+              <button
+                className="px-2 py-1 rounded bg-neutral-800 text-white hover:bg-neutral-700"
+                onClick={() => setShowCreate(false)}
+              >
+                ✕
+              </button>
+            </div>
+            <div className="p-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Project Number</label>
+                  <input
+                    type="text"
+                    value={projectNumber}
+                    onChange={(e) => setProjectNumber(e.target.value)}
+                    placeholder="e.g., 24-001"
+                    className="w-full border rounded p-2 bg-white dark:bg-neutral-800"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Client</label>
+                  <input
+                    type="text"
+                    value={client}
+                    onChange={(e) => setClient(e.target.value)}
+                    placeholder="e.g., City of Springfield"
+                    className="w-full border rounded p-2 bg-white dark:bg-neutral-800"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Project Name</label>
+                  <input
+                    type="text"
+                    value={projectName}
+                    onChange={(e) => setProjectName(e.target.value)}
+                    placeholder="e.g., Downtown Manhole Survey"
+                    className="w-full border rounded p-2 bg-white dark:bg-neutral-800"
+                  />
+                </div>
+              </div>
+
+              <div className="mt-4 flex items-center justify-between">
+                {message && (
+                  <p className={`text-sm ${message.startsWith('Error') ? 'text-red-600' : 'text-green-700'}`}>
+                    {message}
+                  </p>
+                )}
+                <button
+                  onClick={addProject}
+                  disabled={disableCreateSave}
+                  className={`px-4 py-2 rounded text-white ${
+                    disableCreateSave ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
+                  }`}
+                >
+                  {saving ? 'Saving…' : 'Save Project'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showFilter && (
+        <div className="mb-4 p-3 border rounded-lg bg-white text-sm text-gray-600">
+          Filters coming soon.
+        </div>
+      )}
 
       <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
         <div className="px-4 py-3 border-b border-gray-200">
@@ -359,7 +419,7 @@ export default function ProjectsContent() {
         <div className="p-0 overflow-x-auto">
           {loading ? (
             <p className="p-4">Loading…</p>
-          ) : projects.length === 0 ? (
+          ) : filteredProjects.length === 0 ? (
             <p className="p-4 text-gray-600">No projects yet. Create your first one above.</p>
           ) : (
             <table className="min-w-full">
@@ -374,7 +434,7 @@ export default function ProjectsContent() {
                 </tr>
               </thead>
               <tbody>
-                {projects.map((p) => {
+                {filteredProjects.map((p) => {
                   const isEditing = editingId === p.id
                   const created = p.created_at ? new Date(p.created_at) : null
                   const updated = p.updated_at ? new Date(p.updated_at) : null
