@@ -4,6 +4,7 @@ import { Suspense, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import SidebarLayout from '@/app/components/SidebarLayout'
 import { supabase } from '@/lib/supabaseClient'
+import ChamberSketch, { type SketchState } from '@/app/components/sketch/ChamberSketch'
 
 interface Project {
   id: string
@@ -81,6 +82,7 @@ function AddManholeForm({ standaloneLayout = true }: { standaloneLayout?: boolea
 
   const [message, setMessage] = useState('')
   const [copyList, setCopyList] = useState(false)
+  const [sketch, setSketch] = useState<SketchState | null>(null)
 
   // Cover
   const [coverShape, setCoverShape] = useState('')
@@ -175,6 +177,7 @@ function AddManholeForm({ standaloneLayout = true }: { standaloneLayout?: boolea
       cover_lifted_reason: coverLifted === 'No' ? (coverNotReason || null) : null,
       incoming_pipes: incoming,
       outgoing_pipes: outgoing,
+      sketch_json: sketch ? sketch : null,
     }
 
     const insertRes = await supabase.from('manholes').insert([payload]).select('id').single()
@@ -653,6 +656,10 @@ ALTER TABLE public.manholes
             </div>
           )}
         </div>
+
+        {/* Sketch */}
+        <h2 className="text-xl font-semibold mt-10 mb-3">Chamber Sketch (beta)</h2>
+        <ChamberSketch onChange={(s)=>setSketch(s)} />
 
         <button onClick={addManhole} className="mt-8 w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700">Save Manhole</button>
 
