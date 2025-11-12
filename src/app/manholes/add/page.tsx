@@ -701,7 +701,7 @@ ALTER TABLE public.manholes
                 </div>
               </div>
               <div className="p-3 overflow-auto">
-                <ChamberSketch value={sketchDraft ?? undefined} onChange={(s)=>setSketchDraft(s)} />
+                <ChamberSketch compact value={sketchDraft ?? undefined} onChange={(s)=>setSketchDraft(s)} />
               </div>
             </div>
           </div>

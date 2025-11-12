@@ -31,9 +31,11 @@ function uuid() {
 export default function ChamberSketch({
   value,
   onChange,
+  compact = false,
 }: {
   value?: SketchState
   onChange?: (s: SketchState) => void
+  compact?: boolean
 }) {
   const [state, setState] = useState<SketchState>(
     value || { coverShape: 'Circle', chamberShape: 'Circle', items: [] }
@@ -178,38 +180,38 @@ export default function ChamberSketch({
   return (
     <div className="w-full">
       {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-2 mb-2 sketch-toolbar">
-        <div className="flex items-center gap-2 border rounded px-2 py-1 sketch-group">
-          <span className="text-sm font-semibold sketch-group__label">Cover</span>
+      <div className={`flex flex-wrap items-center ${compact ? 'gap-1 mb-1' : 'gap-2 mb-2'} sketch-toolbar`}>
+        <div className={`flex items-center ${compact ? 'gap-1 px-2 py-1' : 'gap-2 px-2 py-1'} border rounded sketch-group`}>
+          <span className={`${compact ? 'text-xs' : 'text-sm'} font-semibold sketch-group__label`}>Cover</span>
           {(['Circle', 'Square', 'Rectangle', 'Triangle'] as const).map((s) => (
             <button
               key={s}
               type="button"
               onClick={() => setCover(s)}
-              className={`sketch-btn px-2 py-1 rounded border ${state.coverShape === s ? 'sketch-btn--active' : ''}`}
+              className={`sketch-btn ${compact ? 'text-xs px-2 py-1' : 'px-2 py-1'} rounded border ${state.coverShape === s ? 'sketch-btn--active' : ''}`}
             >
               {s}
             </button>
           ))}
         </div>
-        <div className="flex items-center gap-2 border rounded px-2 py-1 sketch-group">
-          <span className="text-sm font-semibold sketch-group__label">Chamber</span>
+        <div className={`flex items-center ${compact ? 'gap-1 px-2 py-1' : 'gap-2 px-2 py-1'} border rounded sketch-group`}>
+          <span className={`${compact ? 'text-xs' : 'text-sm'} font-semibold sketch-group__label`}>Chamber</span>
           {(['Circle', 'Square', 'Rectangle', 'Hexagon'] as const).map((s) => (
             <button
               key={s}
               type="button"
               onClick={() => setChamber(s)}
-              className={`sketch-btn px-2 py-1 rounded border ${state.chamberShape === s ? 'sketch-btn--active' : ''}`}
+              className={`sketch-btn ${compact ? 'text-xs px-2 py-1' : 'px-2 py-1'} rounded border ${state.chamberShape === s ? 'sketch-btn--active' : ''}`}
             >
               {s}
             </button>
           ))}
         </div>
-        <div className="flex items-center gap-2 border rounded px-2 py-1 sketch-group">
-          <button type="button" className="sketch-btn px-2 py-1 rounded border" onClick={() => addItem('in')}>Add Inlet</button>
-          <button type="button" className="sketch-btn px-2 py-1 rounded border" onClick={() => addItem('out')}>Add Outlet</button>
-          <button type="button" className="sketch-btn px-2 py-1 rounded border" onClick={() => addItem('label')}>Add Label</button>
-          <button type="button" className="sketch-btn px-2 py-1 rounded border" onClick={() => setState({ ...state, items: [] })}>Clear</button>
+        <div className={`flex items-center ${compact ? 'gap-1 px-2 py-1' : 'gap-2 px-2 py-1'} border rounded sketch-group`}>
+          <button type="button" className={`sketch-btn rounded border ${compact ? 'text-xs px-2 py-1' : 'px-2 py-1'}`} onClick={() => addItem('in')}>Add Inlet</button>
+          <button type="button" className={`sketch-btn rounded border ${compact ? 'text-xs px-2 py-1' : 'px-2 py-1'}`} onClick={() => addItem('out')}>Add Outlet</button>
+          <button type="button" className={`sketch-btn rounded border ${compact ? 'text-xs px-2 py-1' : 'px-2 py-1'}`} onClick={() => addItem('label')}>Add Label</button>
+          <button type="button" className={`sketch-btn rounded border ${compact ? 'text-xs px-2 py-1' : 'px-2 py-1'}`} onClick={() => setState({ ...state, items: [] })}>Clear</button>
         </div>
       </div>
 
@@ -218,20 +220,20 @@ export default function ChamberSketch({
         <svg
           ref={svgRef}
           width="100%"
-          height="360"
+          height={compact ? 260 : 360}
           viewBox="0 0 500 500"
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
         >
           {/* Key / Legend (top-left) */}
-          <g transform="translate(12,12)">
-            <rect x="0" y="0" width="170" height="46" rx="6" ry="6" fill="var(--sketch-legend-bg, #ffffff)" stroke="var(--sketch-legend-border, #e5e7eb)" />
+          <g transform={compact ? 'translate(8,8)' : 'translate(12,12)'}>
+            <rect x="0" y="0" width={compact ? 140 : 170} height={compact ? 38 : 46} rx="6" ry="6" fill="var(--sketch-legend-bg, #ffffff)" stroke="var(--sketch-legend-border, #e5e7eb)" />
             {/* Cover sample (dashed) */}
-            <rect x="10" y="10" width="20" height="10" strokeDasharray="4 3" stroke="var(--sketch-cover, #333)" fill="none" strokeWidth="2" />
-            <text x="38" y="18" fontSize="12" fill="var(--sketch-text, #374151)">Cover (dashed)</text>
+            <rect x={compact ? 8 : 10} y={compact ? 8 : 10} width={compact ? 16 : 20} height={compact ? 8 : 10} strokeDasharray="4 3" stroke="var(--sketch-cover, #333)" fill="none" strokeWidth="2" />
+            <text x={compact ? 30 : 38} y={compact ? 16 : 18} fontSize={compact ? 10 : 12} fill="var(--sketch-text, #374151)">Cover (dashed)</text>
             {/* Chamber sample (solid) */}
-            <line x1="10" y1="32" x2="30" y2="32" stroke="var(--sketch-chamber, #777)" strokeWidth="3" />
-            <text x="38" y="35" fontSize="12" fill="var(--sketch-text, #374151)">Chamber (solid)</text>
+            <line x1={compact ? 8 : 10} y1={compact ? 26 : 32} x2={compact ? 24 : 30} y2={compact ? 26 : 32} stroke="var(--sketch-chamber, #777)" strokeWidth="3" />
+            <text x={compact ? 30 : 38} y={compact ? 29 : 35} fontSize={compact ? 10 : 12} fill="var(--sketch-text, #374151)">Chamber (solid)</text>
           </g>
 
           {/* north arrow */}
