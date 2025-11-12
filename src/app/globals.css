@@ -101,3 +101,15 @@ html, body {
 .theme-dark .sketch-toolbar span {
   color: #ffffff !important;
 }
+
+/* Dark mode buttons: black background for readability */
+.theme-dark .sketch-toolbar .sketch-btn {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+  border-color: #444444 !important;
+}
+.theme-dark .sketch-toolbar .sketch-btn--active {
+  background-color: #2563eb !important; /* blue-600 */
+  border-color: #2563eb !important;
+  color: #ffffff !important;
+}

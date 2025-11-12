@@ -158,7 +158,7 @@ export default function ChamberSketch({
               key={s}
               type="button"
               onClick={() => setCover(s)}
-              className={`px-2 py-1 rounded border ${state.coverShape === s ? 'bg-blue-100 border-blue-300' : 'bg-white'}`}
+              className={`sketch-btn px-2 py-1 rounded border ${state.coverShape === s ? 'sketch-btn--active' : ''}`}
             >
               {s}
             </button>
@@ -171,17 +171,17 @@ export default function ChamberSketch({
               key={s}
               type="button"
               onClick={() => setChamber(s)}
-              className={`px-2 py-1 rounded border ${state.chamberShape === s ? 'bg-blue-100 border-blue-300' : 'bg-white'}`}
+              className={`sketch-btn px-2 py-1 rounded border ${state.chamberShape === s ? 'sketch-btn--active' : ''}`}
             >
               {s}
             </button>
           ))}
         </div>
         <div className="flex items-center gap-2 bg-green-50 border rounded px-2 py-1">
-          <button type="button" className="px-2 py-1 rounded border" onClick={() => addItem('in')}>Add Inlet</button>
-          <button type="button" className="px-2 py-1 rounded border" onClick={() => addItem('out')}>Add Outlet</button>
-          <button type="button" className="px-2 py-1 rounded border" onClick={() => addItem('label')}>Add Label</button>
-          <button type="button" className="px-2 py-1 rounded border" onClick={() => setState({ ...state, items: [] })}>Clear</button>
+          <button type="button" className="sketch-btn px-2 py-1 rounded border" onClick={() => addItem('in')}>Add Inlet</button>
+          <button type="button" className="sketch-btn px-2 py-1 rounded border" onClick={() => addItem('out')}>Add Outlet</button>
+          <button type="button" className="sketch-btn px-2 py-1 rounded border" onClick={() => addItem('label')}>Add Label</button>
+          <button type="button" className="sketch-btn px-2 py-1 rounded border" onClick={() => setState({ ...state, items: [] })}>Clear</button>
         </div>
       </div>
 
