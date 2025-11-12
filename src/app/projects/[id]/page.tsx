@@ -90,8 +90,8 @@ export default function ProjectDetailPage() {
             Close
           </button>
         </div>
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold">Project Manholes {projectName ? `�?" ${projectName}` : ''}</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold">Project Manholes{projectName ? ` - ${projectName}` : ''}</h1>
           <button
             onClick={() => router.push(`/manholes/add?project=${projectId}`)}
             className="bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700"
@@ -102,8 +102,8 @@ export default function ProjectDetailPage() {
 
         {message && <p className="mb-4 text-red-600">{message}</p>}
 
-        {loading ? (
-          <p>Loading�?�</p>
+      {loading ? (
+        <p>Loading...</p>
         ) : manholes.length === 0 ? (
           <p className="text-gray-600">No manholes yet for this project.</p>
         ) : (
