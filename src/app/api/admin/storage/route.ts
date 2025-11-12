@@ -58,6 +58,6 @@ export async function GET(req: NextRequest) {
     used_bytes: usedBytes,
     used_pretty: pretty(usedBytes),
     object_count: objectCount,
-    top: topSorted.map(t => ({ ...t, size_pretty: pretty(t.bytes) })),
+    top: topSorted.map((t: any) => ({ ...t, size_pretty: pretty(t.bytes) })),
   })
 }
