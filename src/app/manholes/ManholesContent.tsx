@@ -25,6 +25,8 @@ export default function ManholesContent() {
   const [isAdmin, setIsAdmin] = useState(false)
   const [isSuperAdmin, setIsSuperAdmin] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [showFilter, setShowFilter] = useState(false)
+  const [createOpen, setCreateOpen] = useState(false)
 
   useEffect(() => {
     async function loadData() {
@@ -157,9 +159,39 @@ export default function ManholesContent() {
 
   return (
     <>
-      <div className="flex items-center justify-between mb-2">
+      <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Manholes</h1>
-        <button onClick={() => setView('manholes_add')} className="bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700">Add Manhole</button>
+        <div className="flex items-center gap-2">
+          <div className="relative">
+            <span className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-gray-400">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M10 3.75a6.25 6.25 0 1 1 0 12.5 6.25 6.25 0 0 1 0-12.5Zm8.53 13.72-2.91-2.91a7.75 7.75 0 1 0-1.06 1.06l2.91 2.91a.75.75 0 1 0 1.06-1.06Z"/></svg>
+            </span>
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search manholes..."
+              className="pl-7 pr-3 py-2 rounded-lg border border-gray-300 bg-transparent placeholder-gray-400 min-w-[220px]"
+            />
+          </div>
+          <button
+            onClick={() => setShowFilter((v) => !v)}
+            className="px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-50"
+          >
+            <span className="inline-flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M3.75 5.5a.75.75 0 0 1 .75-.75h15a.75.75 0 0 1 .55 1.25l-5.3 5.96v4.29a.75.75 0 0 1-1.06.69l-3-1.2a.75.75 0 0 1-.47-.69v-3.09L3.2 6a.75.75 0 0 1 .55-1.25Z"/></svg>
+              Filter
+            </span>
+          </button>
+          <button
+            onClick={() => setCreateOpen(true)}
+            className="px-3 py-2 rounded-lg bg-orange-600 text-white hover:bg-orange-700"
+          >
+            <span className="inline-flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M12 4.75a.75.75 0 0 1 .75.75v5.75H18.5a.75.75 0 0 1 0 1.5h-5.75V18.5a.75.75 0 0 1-1.5 0v-5.75H5.5a.75.75 0 0 1 0-1.5h5.75V5.5a.75.75 0 0 1 .75-.75Z"/></svg>
+              New Manhole
+            </span>
+          </button>
+        </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-3 mb-6">
@@ -176,7 +208,7 @@ export default function ManholesContent() {
               .sort((a, b) => (a.project_number || '').localeCompare(b.project_number || ''))
               .map((p) => (
                 <option key={p.id} value={p.project_number || p.name || ''}>
-                  {p.project_number || '-'} {p.name ? '— ' + p.name : ''}
+                  {p.project_number || '-'} {p.name ? ' - ' + p.name : ''}
                 </option>
               ))}
           </select>
@@ -268,6 +300,19 @@ export default function ManholesContent() {
                 className="w-full"
                 style={{ height: '80vh', border: 'none', background: 'transparent' }}
               />
+            </div>
+          </div>
+        </div>
+      )}
+      {createOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-2" onClick={() => setCreateOpen(false)}>
+          <div className="bg-white theme-dark:bg-[#0b0b0b] border border-gray-200 theme-dark:border-gray-700 rounded-lg shadow-xl w-full max-w-5xl max-h-[92vh] flex flex-col" onClick={(e)=>e.stopPropagation()}>
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 theme-dark:border-gray-700">
+              <h3 className="text-lg font-semibold">New Manhole</h3>
+              <button type="button" onClick={() => setCreateOpen(false)} className="px-3 py-1.5 rounded border border-gray-300 hover:bg-gray-50">Close</button>
+            </div>
+            <div className="p-0 overflow-hidden">
+              <iframe title="Add Manhole" src={`/manholes/add?embed=1`} loading="lazy" className="w-full" style={{ height: '80vh', border: 'none', background: 'transparent' }} />
             </div>
           </div>
         </div>
