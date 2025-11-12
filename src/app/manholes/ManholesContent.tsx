@@ -289,6 +289,14 @@ export default function ManholesContent() {
                     >
                       Edit
                     </button>
+                    <a
+                      href={`/manholes/${r.id}/export`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="ml-2 px-3 py-1 rounded border border-gray-300 hover:bg-gray-50"
+                    >
+                      Export
+                    </a>
                     {(isAdmin || isSuperAdmin) && (
                       <button
                         onClick={() => deleteManhole(r.id)}
