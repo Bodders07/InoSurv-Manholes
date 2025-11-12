@@ -87,6 +87,7 @@ html, body {
   --sketch-chamber: #777777;
   --sketch-legend-bg: #ffffff;
   --sketch-legend-border: #e5e7eb; /* gray-200 */
+  --sketch-arrow: #111111;
 }
 
 .theme-dark {
@@ -95,6 +96,7 @@ html, body {
   --sketch-chamber: #ffffff;
   --sketch-legend-bg: #111827; /* gray-900 */
   --sketch-legend-border: #374151; /* slate-700 */
+  --sketch-arrow: #ffffff;
 }
 
 .theme-dark .sketch-toolbar button,

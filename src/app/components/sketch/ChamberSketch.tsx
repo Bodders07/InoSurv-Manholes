@@ -265,7 +265,7 @@ export default function ChamberSketch({
           {/* arrow marker */}
           <defs>
             <marker id="arrow" markerWidth="10" markerHeight="10" refX="6" refY="3" orient="auto">
-              <path d="M 0 0 L 6 3 L 0 6 z" fill="#111" />
+              <path d="M 0 0 L 6 3 L 0 6 z" fill="var(--sketch-arrow, #111)" stroke="var(--sketch-arrow, #111)" />
             </marker>
           </defs>
         </svg>
