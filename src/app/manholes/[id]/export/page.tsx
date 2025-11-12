@@ -39,6 +39,8 @@ type ManholeRow = {
   cover_material_other: string | null
   cover_duty: string | null
   cover_condition: string | null
+  cover_lifted: string | null
+  cover_lifted_reason: string | null
   chamber_shape: string | null
   chamber_diameter_mm: number | null
   chamber_width_mm: number | null
@@ -261,4 +263,3 @@ export default function ExportManholeSheet() {
     </div>
   )
 }
-
