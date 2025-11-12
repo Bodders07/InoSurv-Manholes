@@ -13,32 +13,49 @@ export async function GET(req: NextRequest) {
   const supa = createClient(url, serviceKey, { auth: { persistSession: false } })
   const bucket = 'manhole-photos'
 
-  // Total usage
-  const storageDb: any = (supa as any).schema ? (supa as any).schema('storage') : supa
-  const total = await storageDb
-    .from('objects')
-    .select('metadata, id', { count: 'exact' })
-    .eq('bucket_id', bucket)
-    .eq('is_uploaded', true)
+  // Recursively list all files in the bucket using the Storage API
+  async function listAll(prefix: string): Promise<any[]> {
+    const out: any[] = []
+    const limit = 1000
+    let offset = 0
+    while (true) {
+      const res = await supa.storage.from(bucket).list(prefix, {
+        limit,
+        offset,
+        sortBy: { column: 'updated_at', order: 'desc' },
+      })
+      if (res.error) throw res.error
+      const items = res.data || []
+      for (const it of items) {
+        // Folders typically have null metadata; files include size in metadata
+        const isFile = !!(it as any)?.metadata?.size
+        const fullName = prefix ? `${prefix}/${it.name}` : it.name
+        if (isFile) out.push({ ...it, fullName })
+        else {
+          // Recurse into subfolder
+          const sub = await listAll(fullName)
+          out.push(...sub)
+        }
+      }
+      if (items.length < limit) break
+      offset += limit
+    }
+    return out
+  }
 
-  if (total.error) return NextResponse.json({ error: total.error.message }, { status: 500 })
+  let files: any[] = []
+  try {
+    files = await listAll('')
+  } catch (e: any) {
+    return NextResponse.json({ error: e?.message || 'Failed to list storage' }, { status: 500 })
+  }
 
-  const usedBytes = (total.data || []).reduce((sum: number, o: any) => sum + (parseInt(o?.metadata?.size ?? '0', 10) || 0), 0)
-  const objectCount = total.count ?? (total.data?.length ?? 0)
+  const usedBytes = files.reduce((sum, f) => sum + (parseInt(f?.metadata?.size ?? '0', 10) || 0), 0)
+  const objectCount = files.length
 
-  // Top 20 largest
-  const top = await storageDb
-    .from('objects')
-    .select('name, metadata, updated_at')
-    .eq('bucket_id', bucket)
-    .eq('is_uploaded', true)
-    .limit(1000) // fetch many, sort client side; service role ignores RLS
-
-  if (top.error) return NextResponse.json({ error: top.error.message }, { status: 500 })
-
-  const topSorted = (top.data || [])
+  const topSorted = files
     .map((o: any) => ({
-      name: o.name,
+      name: o.fullName || o.name,
       bytes: parseInt(o?.metadata?.size ?? '0', 10) || 0,
       updated_at: o.updated_at,
     }))
