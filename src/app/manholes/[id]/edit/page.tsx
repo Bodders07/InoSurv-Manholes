@@ -222,6 +222,13 @@ export default function EditManholePage() {
     await uploadOne(internalPhotoFile, 'internal')
     await uploadOne(externalPhotoFile, 'external')
     setMessage('Success: Manhole updated.' + uploadMsg)
+    try {
+      const params = new URLSearchParams(window.location.search)
+      const embed = params.get('embed') === '1'
+      if (embed) {
+        window.parent?.postMessage({ type: 'close-edit-modal', refresh: true }, '*')
+      }
+    } catch {}
   }
 
   const content = (
@@ -622,7 +629,27 @@ export default function EditManholePage() {
 
             <div className="mt-6 flex gap-3">
               <button onClick={save} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Save</button>
-              <button onClick={()=> router.back()} className="px-4 py-2 rounded border border-gray-300 hover:bg-gray-50">Back</button>
+              {/* Close/back respects embed mode to avoid navigating the main URL */}
+              {(() => {
+                try {
+                  const params = new URLSearchParams(window.location.search)
+                  const embed = params.get('embed') === '1'
+                  if (embed) {
+                    return (
+                      <button
+                        type="button"
+                        onClick={() => window.parent?.postMessage({ type: 'close-edit-modal' }, '*')}
+                        className="px-4 py-2 rounded border border-gray-300 hover:bg-gray-50"
+                      >
+                        Close
+                      </button>
+                    )
+                  }
+                } catch {}
+                return (
+                  <button onClick={()=> router.back()} className="px-4 py-2 rounded border border-gray-300 hover:bg-gray-50">Back</button>
+                )
+              })()}
             </div>
           </>
         )}
