@@ -151,8 +151,8 @@ export default function ChamberSketch({
     <div className="w-full">
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-2 mb-2 sketch-toolbar">
-        <div className="flex items-center gap-2 bg-pink-50 border rounded px-2 py-1">
-          <span className="text-sm font-semibold">Cover</span>
+        <div className="flex items-center gap-2 border rounded px-2 py-1 sketch-group">
+          <span className="text-sm font-semibold sketch-group__label">Cover</span>
           {(['Circle', 'Square', 'Rectangle', 'Triangle'] as const).map((s) => (
             <button
               key={s}
@@ -164,8 +164,8 @@ export default function ChamberSketch({
             </button>
           ))}
         </div>
-        <div className="flex items-center gap-2 bg-pink-50 border rounded px-2 py-1">
-          <span className="text-sm font-semibold">Chamber</span>
+        <div className="flex items-center gap-2 border rounded px-2 py-1 sketch-group">
+          <span className="text-sm font-semibold sketch-group__label">Chamber</span>
           {(['Circle', 'Square', 'Rectangle', 'Hexagon'] as const).map((s) => (
             <button
               key={s}
@@ -177,7 +177,7 @@ export default function ChamberSketch({
             </button>
           ))}
         </div>
-        <div className="flex items-center gap-2 bg-green-50 border rounded px-2 py-1">
+        <div className="flex items-center gap-2 border rounded px-2 py-1 sketch-group">
           <button type="button" className="sketch-btn px-2 py-1 rounded border" onClick={() => addItem('in')}>Add Inlet</button>
           <button type="button" className="sketch-btn px-2 py-1 rounded border" onClick={() => addItem('out')}>Add Outlet</button>
           <button type="button" className="sketch-btn px-2 py-1 rounded border" onClick={() => addItem('label')}>Add Label</button>

@@ -115,3 +115,20 @@ html, body {
   border-color: #2563eb !important;
   color: #ffffff !important;
 }
+
+/* Sketch toolbar group containers and labels */
+.sketch-toolbar .sketch-group {
+  background-color: #ffffff !important;
+  border-color: #e5e7eb !important; /* gray-200 */
+}
+.sketch-toolbar .sketch-group__label {
+  color: #000000 !important;
+}
+
+.theme-dark .sketch-toolbar .sketch-group {
+  background-color: #ffffff !important;
+  border-color: #e5e7eb !important;
+}
+.theme-dark .sketch-toolbar .sketch-group__label {
+  color: #000000 !important;
+}
