@@ -65,17 +65,48 @@ export default function ExportManholeSheet() {
     async function load() {
       setLoading(true)
       setMsg("")
-      const { data, error } = await supabase.from("manholes").select("*").eq("id", params.id).maybeSingle()
+      try {
+        const { data: sess } = await supabase.auth.getSession()
+        if (!sess?.session) {
+          setMsg('Not signed in. Please sign in and try again.')
+          setLoading(false)
+          return
+        }
+        // Select only needed columns
+        const { data, error } = await supabase
+          .from("manholes")
+          .select(`
+            id, project_id, identifier, service_type, survey_date, measuring_tool, measuring_offset_mm, location_desc,
+            easting, northing, cover_level, cover_shape, cover_diameter_mm, cover_width_mm, cover_length_mm,
+            cover_material, cover_material_other, cover_duty, cover_condition, cover_lifted, cover_lifted_reason,
+            chamber_shape, chamber_diameter_mm, chamber_width_mm, chamber_length_mm, chamber_material, chamber_material_other,
+            incoming_pipes, outgoing_pipes, internal_photo_url, external_photo_url, sketch_json
+          `)
+          .eq("id", params.id)
+          .maybeSingle()
+        if (error) {
+          setMsg("Error: " + error.message)
+          setLoading(false)
+          return
+        }
+        setRow(data as any)
+        if (data?.project_id) {
+          const p = await supabase
+            .from("projects")
+            .select("name, project_number, client")
+            .eq("id", data.project_id)
+            .maybeSingle()
+          if (!p.error) setProject(p.data as any)
+        }
+      } catch (e: any) {
+        setMsg('Unexpected error loading export: ' + (e?.message || String(e)))
+      }
       if (error) {
         setMsg("Error: " + error.message)
         setLoading(false)
         return
       }
       setRow(data as any)
-      if (data?.project_id) {
-        const p = await supabase.from("projects").select("name, project_number, client").eq("id", data.project_id).maybeSingle()
-        if (!p.error) setProject(p.data as any)
-      }
       setLoading(false)
     }
     load()

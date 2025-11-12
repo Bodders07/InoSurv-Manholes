@@ -291,8 +291,6 @@ export default function ManholesContent() {
                     </button>
                     <a
                       href={`/manholes/${r.id}/export`}
-                      target="_blank"
-                      rel="noopener noreferrer"
                       className="ml-2 px-3 py-1 rounded border border-gray-300 hover:bg-gray-50"
                     >
                       Export
