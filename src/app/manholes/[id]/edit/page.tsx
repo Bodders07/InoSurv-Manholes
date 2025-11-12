@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import ChamberSketch, { type SketchState } from '@/app/components/sketch/ChamberSketch'
 import { useParams, useRouter } from 'next/navigation'
 import SidebarLayout from '@/app/components/SidebarLayout'
 import { supabase } from '@/lib/supabaseClient'
@@ -68,12 +69,19 @@ export default function EditManholePage() {
   const [chamberDiameter, setChamberDiameter] = useState('')
   const [chamberWidth, setChamberWidth] = useState('')
   const [chamberLength, setChamberLength] = useState('')
+  const [chamberMaterial, setChamberMaterial] = useState('')
+  const [chamberMaterialOther, setChamberMaterialOther] = useState('')
 
   // photos
   const [internalPhotoUrl, setInternalPhotoUrl] = useState('')
   const [externalPhotoUrl, setExternalPhotoUrl] = useState('')
   const [internalPhotoFile, setInternalPhotoFile] = useState<File | null>(null)
   const [externalPhotoFile, setExternalPhotoFile] = useState<File | null>(null)
+
+  // sketch
+  const [sketch, setSketch] = useState<SketchState | null>(null)
+  const [sketchOpen, setSketchOpen] = useState(false)
+  const [sketchDraft, setSketchDraft] = useState<SketchState | null>(null)
 
   // pipes
   const [incoming, setIncoming] = useState<Pipe[]>([])
@@ -109,6 +117,8 @@ export default function EditManholePage() {
         setChamberDiameter((data.chamber_diameter_mm ?? '').toString())
         setChamberWidth((data.chamber_width_mm ?? '').toString())
         setChamberLength((data.chamber_length_mm ?? '').toString())
+        setChamberMaterial(data.chamber_material || '')
+        setChamberMaterialOther(data.chamber_material_other || '')
         setServiceType(data.service_type || '')
         setType(data.type || '')
         setTypeOther(data.type_other || '')
@@ -116,6 +126,7 @@ export default function EditManholePage() {
         setCoverNotReason(data.cover_lifted_reason || '')
         setInternalPhotoUrl(data.internal_photo_url || '')
         setExternalPhotoUrl(data.external_photo_url || '')
+        setSketch(data.sketch_json || null)
         setIncoming(Array.isArray(data.incoming_pipes) && data.incoming_pipes.length
           ? data.incoming_pipes
           : [{ label: 'Pipe A', func: '', shape: '', material: '', invert_depth_m: '', width_mm: '', height_mm: '', diameter_mm: '', notes: '' }])
@@ -176,6 +187,11 @@ export default function EditManholePage() {
       incoming_pipes: incoming,
       outgoing_pipes: outgoing,
     }
+    // Chamber material + sketch
+    update.chamber_material = chamberMaterial || null
+    update.chamber_material_other = chamberMaterial === 'Other' ? (chamberMaterialOther || null) : null
+    update.sketch_json = sketch || null
+
     const { error } = await supabase.from('manholes').update(update).eq('id', manholeId)
     if (error) {
       setMessage('Error: ' + error.message)
@@ -340,7 +356,7 @@ export default function EditManholePage() {
           </div>
 
           {/* Chamber Shape */}
-          <h2 className="text-xl font-semibold mt-8 mb-3">Chamber Shape</h2>
+          <h2 className="text-xl font-semibold mt-8 mb-3">Chamber</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div>
               <label className="block text-sm mb-1">Shape</label>
@@ -367,6 +383,48 @@ export default function EditManholePage() {
               </>
             ) : null}
           </div>
+
+          {/* Chamber Material */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
+            <div>
+              <label className="block text-sm mb-1">Chamber Material</label>
+              <select className="w-full border p-2 rounded" value={chamberMaterial} onChange={(e)=>setChamberMaterial(e.target.value)}>
+                <option value="">Select material</option>
+                {['Brick','Concrete Rings','In-Situ Concrete','Brick/Concrete','PCC','Plastic','Fibreglass','Cast Iron','Metal','Other'].map(m => (
+                  <option key={m} value={m}>{m}</option>
+                ))}
+              </select>
+              {chamberMaterial === 'Other' && (
+                <input className="mt-2 w-full border p-2 rounded" placeholder="If Other, specify" value={chamberMaterialOther} onChange={(e)=>setChamberMaterialOther(e.target.value)} />
+              )}
+            </div>
+          </div>
+
+          {/* Sketch editor */}
+          <h2 className="text-xl font-semibold mt-8 mb-3">Chamber Sketch</h2>
+          <button
+            type="button"
+            onClick={() => { setSketchDraft(sketch ? { ...sketch } as SketchState : null); setSketchOpen(true) }}
+            className="px-4 py-2 rounded text-white bg-blue-600 hover:bg-blue-700"
+          >
+            Open Sketch Editor
+          </button>
+          {sketchOpen && (
+            <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-2">
+              <div className="bg-white theme-dark:bg-[#0b0b0b] border border-gray-200 theme-dark:border-gray-700 rounded-lg shadow-xl w-full max-w-4xl max-h-[92vh] flex flex-col">
+                <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 theme-dark:border-gray-700">
+                  <h3 className="text-lg font-semibold">Chamber Sketch</h3>
+                  <div className="flex gap-2">
+                    <button type="button" onClick={() => setSketchOpen(false)} className="px-3 py-1.5 rounded border border-gray-300 hover:bg-gray-50">Cancel</button>
+                    <button type="button" onClick={() => { if (sketchDraft) setSketch(sketchDraft); setSketchOpen(false) }} className="px-3 py-1.5 rounded text-white bg-blue-600 hover:bg-blue-700">Done</button>
+                  </div>
+                </div>
+                <div className="p-3 overflow-auto">
+                  <ChamberSketch compact value={sketchDraft ?? undefined} onChange={(s)=>setSketchDraft(s)} />
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Incoming Pipes */}
             <h2 className="text-xl font-semibold mt-8 mb-3">Incoming Pipes</h2>
