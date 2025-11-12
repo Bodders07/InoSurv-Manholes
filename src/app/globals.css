@@ -10,7 +10,7 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   /* Use Amasis MT Pro Light when available, with serif fallbacks */
-  --font-sans: 'Amasis MT Pro Light', 'Amasis MT Pro', Georgia, 'Times New Roman', serif;
+  --font-sans: 'Angsana New', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   --font-mono: var(--font-geist-mono);
 }
 
@@ -25,7 +25,7 @@ body {
   background: var(--background);
   color: var(--foreground);
   /* Site-wide font family */
-  font-family: 'Amasis MT Pro Light', 'Amasis MT Pro', Georgia, 'Times New Roman', serif;
+  font-family: 'Angsana New', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 /* Reduce the root font size slightly to make all text one step smaller */
