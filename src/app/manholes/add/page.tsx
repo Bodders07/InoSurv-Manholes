@@ -234,7 +234,11 @@ ALTER TABLE public.manholes
           if (!file) return null
           const ext = (file.name.split('.').pop() || 'jpg').toLowerCase()
           const path = `${newId}/${kind}-${Date.now()}.${ext}`
-          const up = await bucket.upload(path, file, { upsert: true })
+          const up = await bucket.upload(path, file, {
+            upsert: true,
+            contentType: (file as any)?.type || 'image/jpeg',
+            cacheControl: '3600',
+          })
           if (up.error) {
             uploadMsg += `\nNote: Failed to upload ${kind} photo (${up.error.message}). Ensure a public storage bucket named 'manhole-photos' exists and Authenticated users can upload.`
             return null
@@ -731,5 +735,4 @@ function AddManholePageInner() {
   const embed = params?.get('embed') === '1'
   return <AddManholeForm standaloneLayout={!embed} />
 }
-
 

@@ -204,7 +204,11 @@ export default function EditManholePage() {
       if (!file) return null
       const ext = (file.name.split('.').pop() || 'jpg').toLowerCase()
       const path = `${manholeId}/${kind}-${Date.now()}.${ext}`
-      const up = await bucket.upload(path, file, { upsert: true })
+      const up = await bucket.upload(path, file, {
+        upsert: true,
+        contentType: (file as any)?.type || 'image/jpeg',
+        cacheControl: '3600',
+      })
       if (up.error) {
         uploadMsg += `\nNote: Failed to upload ${kind} photo (${up.error.message}).`
         return null
@@ -665,5 +669,4 @@ export default function EditManholePage() {
     </SidebarLayout>
   )
 }
-
 
