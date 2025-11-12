@@ -79,3 +79,25 @@ html, body {
 
 /* Privileges page: force white text in dark mode */
 .theme-dark .privileges-text { color: #ffffff !important; }
+
+/* Sketch theming variables */
+:root {
+  --sketch-text: #374151; /* slate-700 */
+  --sketch-cover: #333333;
+  --sketch-chamber: #777777;
+  --sketch-legend-bg: #ffffff;
+  --sketch-legend-border: #e5e7eb; /* gray-200 */
+}
+
+.theme-dark {
+  --sketch-text: #ffffff;
+  --sketch-cover: #ffffff;
+  --sketch-chamber: #ffffff;
+  --sketch-legend-bg: #111827; /* gray-900 */
+  --sketch-legend-border: #374151; /* slate-700 */
+}
+
+.theme-dark .sketch-toolbar button,
+.theme-dark .sketch-toolbar span {
+  color: #ffffff !important;
+}

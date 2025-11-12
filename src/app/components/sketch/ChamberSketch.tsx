@@ -108,23 +108,23 @@ export default function ChamberSketch({
     switch (state.chamberShape) {
       case 'Square':
         // Bigger square chamber
-        return <rect x={140} y={140} width={220} height={220} rx={3} ry={3} stroke="#777" fill="none" strokeWidth={3} />
+        return <rect x={140} y={140} width={220} height={220} rx={3} ry={3} stroke="var(--sketch-chamber, #777)" fill="none" strokeWidth={3} />
       case 'Rectangle':
         // Bigger rectangle chamber
-        return <rect x={100} y={170} width={300} height={160} rx={3} ry={3} stroke="#777" fill="none" strokeWidth={3} />
+        return <rect x={100} y={170} width={300} height={160} rx={3} ry={3} stroke="var(--sketch-chamber, #777)" fill="none" strokeWidth={3} />
       case 'Hexagon':
         // Bigger hexagon chamber
         return (
           <polygon
             points="250,120 360,190 360,310 250,380 140,310 140,190"
-            stroke="#777"
+            stroke="var(--sketch-chamber, #777)"
             fill="none"
             strokeWidth={3}
           />
         )
       default:
         // Bigger circular chamber
-        return <circle cx={250} cy={250} r={120} stroke="#777" fill="none" strokeWidth={3} />
+        return <circle cx={250} cy={250} r={120} stroke="var(--sketch-chamber, #777)" fill="none" strokeWidth={3} />
     }
   }, [state.chamberShape])
 
@@ -132,25 +132,25 @@ export default function ChamberSketch({
     switch (state.coverShape) {
       case 'Square':
         // Smaller, inside the chamber
-        return <rect x={190} y={190} width={120} height={120} strokeDasharray="6 6" stroke="#333" fill="none" strokeWidth={2} />
+        return <rect x={190} y={190} width={120} height={120} strokeDasharray="6 6" stroke="var(--sketch-cover, #333)" fill="none" strokeWidth={2} />
       case 'Rectangle':
         // Smaller, inside the chamber
-        return <rect x={190} y={210} width={120} height={80} strokeDasharray="6 6" stroke="#333" fill="none" strokeWidth={2} />
+        return <rect x={190} y={210} width={120} height={80} strokeDasharray="6 6" stroke="var(--sketch-cover, #333)" fill="none" strokeWidth={2} />
       case 'Triangle':
         // Smaller, centered triangle
         return (
-          <polygon points="250,190 310,310 190,310" strokeDasharray="6 6" stroke="#333" fill="none" strokeWidth={2} />
+          <polygon points="250,190 310,310 190,310" strokeDasharray="6 6" stroke="var(--sketch-cover, #333)" fill="none" strokeWidth={2} />
         )
       default:
         // Default to a smaller dashed square inside
-        return <rect x={190} y={190} width={120} height={120} strokeDasharray="6 6" stroke="#333" fill="none" strokeWidth={2} />
+        return <rect x={190} y={190} width={120} height={120} strokeDasharray="6 6" stroke="var(--sketch-cover, #333)" fill="none" strokeWidth={2} />
     }
   }, [state.coverShape])
 
   return (
     <div className="w-full">
       {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-2 mb-2">
+      <div className="flex flex-wrap items-center gap-2 mb-2 sketch-toolbar">
         <div className="flex items-center gap-2 bg-pink-50 border rounded px-2 py-1">
           <span className="text-sm font-semibold">Cover</span>
           {(['Circle', 'Square', 'Rectangle', 'Triangle'] as const).map((s) => (
@@ -197,19 +197,19 @@ export default function ChamberSketch({
         >
           {/* Key / Legend (top-left) */}
           <g transform="translate(12,12)">
-            <rect x="0" y="0" width="170" height="46" rx="6" ry="6" fill="#ffffff" stroke="#e5e7eb" />
+            <rect x="0" y="0" width="170" height="46" rx="6" ry="6" fill="var(--sketch-legend-bg, #ffffff)" stroke="var(--sketch-legend-border, #e5e7eb)" />
             {/* Cover sample (dashed) */}
-            <rect x="10" y="10" width="20" height="10" strokeDasharray="4 3" stroke="#333" fill="none" strokeWidth="2" />
-            <text x="38" y="18" fontSize="12" fill="#374151">Cover (dashed)</text>
+            <rect x="10" y="10" width="20" height="10" strokeDasharray="4 3" stroke="var(--sketch-cover, #333)" fill="none" strokeWidth="2" />
+            <text x="38" y="18" fontSize="12" fill="var(--sketch-text, #374151)">Cover (dashed)</text>
             {/* Chamber sample (solid) */}
-            <line x1="10" y1="32" x2="30" y2="32" stroke="#777" strokeWidth="3" />
-            <text x="38" y="35" fontSize="12" fill="#374151">Chamber (solid)</text>
+            <line x1="10" y1="32" x2="30" y2="32" stroke="var(--sketch-chamber, #777)" strokeWidth="3" />
+            <text x="38" y="35" fontSize="12" fill="var(--sketch-text, #374151)">Chamber (solid)</text>
           </g>
 
           {/* north arrow */}
           <g transform="translate(40,420)">
             <polygon points="10,0 20,30 0,30" fill="#e11" />
-            <text x="8" y="44" fontSize="12" fill="#333">N</text>
+            <text x="8" y="44" fontSize="12" fill="var(--sketch-text, #333)">N</text>
           </g>
 
           {coverPath}
