@@ -811,16 +811,40 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
     }
   }
 
+  useEffect(() => {
+    return () => {
+      if (previewPdf?.startsWith('blob:')) {
+        try { URL.revokeObjectURL(previewPdf) } catch {}
+      }
+    }
+  }, [previewPdf])
+
+  function closePreview() {
+    setPreviewPdf((prev) => {
+      if (prev?.startsWith('blob:')) {
+        try { URL.revokeObjectURL(prev) } catch {}
+      }
+      return null
+    })
+    setPreviewTitle('')
+  }
+
   async function previewManhole(id: string) {
     setPreviewLoadingId(id)
-    setPreviewPdf(null)
+    setPreviewPdf((prev) => {
+      if (prev?.startsWith('blob:')) {
+        try { URL.revokeObjectURL(prev) } catch {}
+      }
+      return null
+    })
     try {
       const records = await fetchDetailedManholes([id])
       if (!records.length) throw new Error('Unable to load manhole for preview.')
       const logo = await getLogoAsset()
       const doc = await createPdfDoc(records[0], logo || null)
-      const dataUri = doc.output('datauristring')
-      setPreviewPdf(dataUri)
+      const blob = doc.output('blob') as Blob
+      const url = URL.createObjectURL(blob)
+      setPreviewPdf(url)
       setPreviewTitle(records[0].identifier || 'Manhole Preview')
     } catch (err) {
       const messageText = err instanceof Error ? err.message : String(err)
@@ -965,7 +989,7 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
             <button
               aria-label="Close preview"
               className="absolute top-2 right-2 px-2 py-1 rounded bg-neutral-800 text-white hover:bg-neutral-700"
-              onClick={() => { setPreviewPdf(null); setPreviewTitle('') }}
+              onClick={closePreview}
             >
               ✕
             </button>
