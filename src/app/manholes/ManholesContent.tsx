@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState, useDeferredValue } from 'react'
+import { useCallback, useEffect, useMemo, useState, useDeferredValue, type ReactNode } from 'react'
 import { jsPDF } from 'jspdf'
 import { supabase } from '@/lib/supabaseClient'
 import { deriveRoleInfo, canAdminister, canManageEverything } from '@/lib/roles'
@@ -59,6 +59,48 @@ type PipeRecord = {
   diameter_mm?: string | number | null
   invert_depth_m?: string | number | null
   notes?: string | null
+}
+type PipeRow = {
+  label: string
+  size: string
+  shape: string
+  material: string
+  func: string
+  depth: string
+  invert: string
+}
+
+
+const EyeIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+    <path d="M12 5c5 0 9 5 9 7s-4 7-9 7-9-5-9-7 4-7 9-7Zm0 3.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z" />
+  </svg>
+)
+const PencilIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+    <path d="M16.862 3.487a1.75 1.75 0 0 1 2.476 2.476l-10 10a1.75 1.75 0 0 1-.72.438l-4 1.25a.75.75 0 0 1-.938-.938l1.25-4a1.75.75 0 0 1 .438-.72l10-10Z" />
+    <path d="M15 5 19 9" stroke="currentColor" strokeWidth="1.5" />
+  </svg>
+)
+const TrashIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+    <path d="M9 3.75A1.75 1.75 0 0 1 10.75 2h2.5A1.75 1.75 0 0 1 15 3.75V5h4.25a.75.75 0 0 1 0 1.5H4.75a.75.75 0 0 1 0-1.5H9V3.75Z" />
+    <path d="M6.5 7h11l-.7 11.2a2 2 0 0 1-2 1.8H9.2a2 2 0 0 1-2-1.8L6.5 7Z" />
+  </svg>
+)
+
+function IconBtn({ title, onClick, children }: { title: string; onClick: () => void; children: ReactNode }) {
+  return (
+    <button
+      type="button"
+      title={title}
+      aria-label={title}
+      onClick={onClick}
+      className="p-1.5 rounded hover:bg-gray-200 text-gray-700 transition-colors"
+    >
+      {children}
+    </button>
+  )
 }
 
 type EditModalMessage = {
@@ -283,6 +325,9 @@ export default function ManholesContent() {
   const [showFilter, setShowFilter] = useState(false)
   const [createOpen, setCreateOpen] = useState(false)
   const [exportOpen, setExportOpen] = useState(false)
+  const [previewPdf, setPreviewPdf] = useState<string | null>(null)
+  const [previewTitle, setPreviewTitle] = useState<string>('')
+  const [previewLoadingId, setPreviewLoadingId] = useState<string | null>(null)
   const [exportProject, setExportProject] = useState('')
   const [exportSelectAll, setExportSelectAll] = useState(true)
   const [exportSelected, setExportSelected] = useState<string[]>([])
@@ -537,27 +582,26 @@ export default function ManholesContent() {
     })
   }
 
-  async function downloadPdfFiles(records: DetailedManholeRecord[]) {
-    const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null, limit = 6) => {
-      if (!pipes || !pipes.length) return []
-      return pipes.slice(0, limit).map((pipe) => ({
-        label: pipe.label || '',
-        size: formatPipeSize(pipe),
-        shape: pipe.shape || '-',
-        material: pipe.material || '-',
-        func: pipe.func || '-',
-        depth: valueOrDash(pipe.invert_depth_m),
-        invert: (() => {
-          if (coverLevel === null || coverLevel === undefined) return '-'
-          const depth = parseFloat(String(pipe.invert_depth_m ?? '').replace(/[^\d.-]/g, ''))
-          if (Number.isNaN(depth)) return '-'
-          return (coverLevel - depth).toFixed(3)
-        })(),
-      }))
-    }
-    const logo = await getLogoAsset()
-    for (const record of records) {
-      const doc = new jsPDF({ unit: 'mm', format: 'a4' })
+  const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null, limit = 6) => {
+    if (!pipes || !pipes.length) return []
+    return pipes.slice(0, limit).map((pipe) => ({
+      label: pipe.label || '',
+      size: formatPipeSize(pipe),
+      shape: pipe.shape || '-',
+      material: pipe.material || '-',
+      func: pipe.func || '-',
+      depth: valueOrDash(pipe.invert_depth_m),
+      invert: (() => {
+        if (coverLevel === null || coverLevel === undefined) return '-'
+        const depth = parseFloat(String(pipe.invert_depth_m ?? '').replace(/[^\d.-]/g, ''))
+        if (Number.isNaN(depth)) return '-'
+        return (coverLevel - depth).toFixed(3)
+      })(),
+    }))
+  }
+
+  async function createPdfDoc(record: DetailedManholeRecord, logo: ImageAsset | null) {
+    const doc = new jsPDF({ unit: 'mm', format: 'a4' })
       const pageWidth = doc.internal.pageSize.getWidth()
       const pageHeight = doc.internal.pageSize.getHeight()
       const margin = 10
@@ -635,15 +679,6 @@ export default function ManholesContent() {
       })
       currentY += chamberRows.length * 6 + 12
 
-      type PipeRow = {
-        label: string
-        size: string
-        shape: string
-        material: string
-        func: string
-        depth: string
-        invert: string
-      }
       const drawPipeTable = (title: string, entries: PipeRow[], y: number, rows = 6) => {
         const cols = [
           { label: 'Label', width: 12 },
@@ -737,6 +772,13 @@ export default function ManholesContent() {
         }
       }
 
+    return doc
+  }
+
+  async function downloadPdfFiles(records: DetailedManholeRecord[]) {
+    const logo = await getLogoAsset()
+    for (const record of records) {
+      const doc = await createPdfDoc(record, logo || null)
       const safeName = safeFileSegment(String(record.identifier || record.id || 'manhole'))
       doc.save(`${safeName}.pdf`)
     }
@@ -761,6 +803,25 @@ export default function ManholesContent() {
       setMessage('Export failed: ' + messageText)
     } finally {
       setExportBusy(false)
+    }
+  }
+
+  async function previewManhole(id: string) {
+    setPreviewLoadingId(id)
+    setPreviewPdf(null)
+    try {
+      const records = await fetchDetailedManholes([id])
+      if (!records.length) throw new Error('Unable to load manhole for preview.')
+      const logo = await getLogoAsset()
+      const doc = await createPdfDoc(records[0], logo || null)
+      const dataUri = doc.output('datauristring')
+      setPreviewPdf(dataUri)
+      setPreviewTitle(records[0].identifier || 'Manhole Preview')
+    } catch (err) {
+      const messageText = err instanceof Error ? err.message : String(err)
+      setMessage('Preview failed: ' + messageText)
+    } finally {
+      setPreviewLoadingId(null)
     }
   }
 
@@ -882,6 +943,21 @@ export default function ManholesContent() {
             >
               Close
             </button>
+          </div>
+        </div>
+      )}
+      {previewPdf && (
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-0 sm:p-6">
+          <div className="relative bg-white dark:bg-neutral-900 w-screen h-screen sm:w-[90vw] sm:h-[85vh] rounded-none sm:rounded-lg shadow-lg">
+            <button
+              aria-label="Close preview"
+              className="absolute top-2 right-2 px-2 py-1 rounded bg-neutral-800 text-white hover:bg-neutral-700"
+              onClick={() => { setPreviewPdf(null); setPreviewTitle('') }}
+            >
+              ✕
+            </button>
+            <div className="absolute top-2 left-4 text-sm font-semibold text-gray-200">{previewTitle}</div>
+            <iframe src={previewPdf} className="w-full h-full border-0 bg-white" />
           </div>
         </div>
       )}
@@ -1018,23 +1094,29 @@ export default function ManholesContent() {
                   <td className="px-4 py-2 border-b">{r.project_name || '-'}</td>
                   <td className="px-4 py-2 border-b font-medium">{r.identifier || '-'}</td>
                   <td className="px-4 py-2 border-b text-right">
-                    <button
-                      onClick={() => { setEditId(r.id); setEditOpen(true) }}
-                      className="px-3 py-1 rounded border border-gray-300 hover:bg-gray-50"
-                    >
-                      Edit
-                    </button>
-                    {(isAdmin || isSuperAdmin) && (
-                      <button
-                        onClick={() => deleteManhole(r.id)}
-                        disabled={deletingId === r.id}
-                        className={`ml-2 px-3 py-1 rounded text-white ${
-                          deletingId === r.id ? 'bg-gray-400 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'
-                        }`}
-                      >
-                        {deletingId === r.id ? 'Deleting...' : 'Delete'}
-                      </button>
-                    )}
+                    <div className="flex items-center justify-end gap-1">
+                      <IconBtn title="Preview manhole report" onClick={() => previewManhole(r.id)}>
+                        {previewLoadingId === r.id ? (
+                          <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10" stroke="#999" strokeWidth="4" fill="none" strokeDasharray="60" strokeDashoffset="20" />
+                          </svg>
+                        ) : (
+                          <EyeIcon />
+                        )}
+                      </IconBtn>
+                      <IconBtn title="Edit manhole" onClick={() => { setEditId(r.id); setEditOpen(true) }}><PencilIcon /></IconBtn>
+                      {(isAdmin || isSuperAdmin) && (
+                        <IconBtn title="Delete manhole" onClick={() => deleteManhole(r.id)}>
+                          {deletingId === r.id ? (
+                            <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24">
+                              <circle cx="12" cy="12" r="10" stroke="#999" strokeWidth="4" fill="none" strokeDasharray="60" strokeDashoffset="20" />
+                            </svg>
+                          ) : (
+                            <TrashIcon />
+                          )}
+                        </IconBtn>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
