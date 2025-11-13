@@ -121,16 +121,17 @@ const clientOptions = useMemo(() => {
       setHasExtendedFields(false)
       const fallback = await supabase
         .from('projects')
-        .select('id, name, client, project_number, archived')
+        .select('id, name, client, project_number, created_at, updated_at')
         .order('id')
       if (!fallback.error) {
-        setProjects((fallback.data as Project[]) || [])
+        const records = (fallback.data as Project[]).map((p) => ({ ...p, archived: undefined }))
+        setProjects(records || [])
       } else {
         setProjects([])
       }
     } else {
       setHasExtendedFields(true)
-      setProjects(data || [])
+      setProjects((data as Project[]) || [])
     }
 
     setLoading(false)
