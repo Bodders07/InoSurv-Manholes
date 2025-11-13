@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import Link from 'next/link'
 import { useView } from '@/app/components/ViewContext'
 import { supabase } from '@/lib/supabaseClient'
 import { deriveRoleInfo, canAdminister, canManageEverything } from '@/lib/roles'
@@ -30,6 +29,10 @@ export default function ManholesContent() {
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [showFilter, setShowFilter] = useState(false)
   const [createOpen, setCreateOpen] = useState(false)
+  const [exportOpen, setExportOpen] = useState(false)
+  const [exportProject, setExportProject] = useState('')
+  const [exportSelectAll, setExportSelectAll] = useState(true)
+  const [exportSelected, setExportSelected] = useState<string[]>([])
 
   useEffect(() => {
     async function loadData() {
@@ -133,9 +136,35 @@ export default function ManholesContent() {
       if (av > bv) return 1 * dir
       return 0
     })
-  }, [manholes, projectById, sortKey, sortDir, filterProjectNo, filterClient, filterProjectName, query])
+  }, [manholes, projectById, sortKey, sortDir, filterProjectNo, filterClient, filterProjectName, query])\r\n\r\n  const exportCandidates = useMemo(() => {
+    return rows.filter((r) => !exportProject || r.project_number === exportProject)
+  }, [rows, exportProject])
 
-  function toggleSort(key: SortKey) {
+  useEffect(() => {
+    if (!exportOpen) return
+    if (exportSelectAll) {
+      setExportSelected(exportCandidates.map((r) => r.id))
+    }
+  }, [exportOpen, exportSelectAll, exportCandidates])
+
+  const exportProjectOptions = useMemo(() => {
+    return Array.from(new Set(rows.map((r) => r.project_number).filter(Boolean))) as string[]
+  }, [rows])
+
+
+  function handleExportOpen() {
+    setExportProject('')
+    setExportSelectAll(true)
+    setExportSelected(rows.map((r) => r.id))
+    setExportOpen(true)
+  }
+
+  function toggleExportSelection(id: string) {
+    setExportSelected((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    )
+  }
+\r\n  function toggleSort(key: SortKey) {
     if (sortKey === key) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
     else {
       setSortKey(key)
@@ -186,6 +215,12 @@ export default function ManholesContent() {
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M3.75 5.5a.75.75 0 0 1 .75-.75h15a.75.75 0 0 1 .55 1.25l-5.3 5.96v4.29a.75.75 0 0 1-1.06.69l-3-1.2a.75.75 0 0 1-.47-.69v-3.09L3.2 6a.75.75 0 0 1 .55-1.25Z"/></svg>
               Filter
             </span>
+          </button>
+          <button
+            onClick={handleExportOpen}
+            className="px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-50"
+          >
+            <span className="inline-flex items-center gap-2">Export</span>
           </button>
           <button
             onClick={() => setCreateOpen(true)}
@@ -259,6 +294,74 @@ export default function ManholesContent() {
         </div>
       )}
 
+      {exportOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-2" onClick={() => setExportOpen(false)}>
+          <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-neutral-800">
+              <h3 className="text-lg font-semibold">Export Manholes</h3>
+              <button className="px-3 py-1.5 rounded border border-gray-300 hover:bg-gray-50" onClick={() => setExportOpen(false)}>Close</button>
+            </div>
+            <div className="p-4 space-y-4 overflow-y-auto">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Project</label>
+                  <select className="w-full border rounded p-2 bg-white dark:bg-neutral-800" value={exportProject} onChange={(e) => setExportProject(e.target.value)}>
+                    <option value="">All projects</option>
+                    {exportProjectOptions.map((option) => (
+                      <option key={option} value={option}>{option}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex items-center gap-2 mt-6 md:mt-auto">
+                  <input id="select-all" type="checkbox" checked={exportSelectAll} onChange={(e) => { const checked = e.target.checked; setExportSelectAll(checked); if (checked) { setExportSelected(exportCandidates.map((row) => row.id)) } }} />
+                  <label htmlFor="select-all" className="text-sm">Select all manholes in this list</label>
+                </div>
+              </div>
+
+              {!exportSelectAll && (
+                <div className="border rounded p-3 max-h-64 overflow-y-auto bg-white dark:bg-neutral-800">
+                  {exportCandidates.length === 0 ? (
+                    <p className="text-sm text-gray-500">No manholes found for the selected project.</p>
+                  ) : (
+                    exportCandidates.map((row) => (
+                      <label key={row.id} className="flex items-center gap-2 py-1 text-sm">
+                        <input
+                          type="checkbox"
+                          checked={exportSelected.includes(row.id)}
+                          onChange={() => toggleExportSelection(row.id)}
+                        />
+                        <span>{row.identifier || 'Unnamed'} ({row.project_number || 'No Project'})</span>
+                      </label>
+                    ))
+                  )}
+                </div>
+              )}
+
+              <div className="flex justify-end gap-2">
+                <button
+                  className="px-3 py-1.5 rounded border border-gray-300 hover:bg-gray-50"
+                  onClick={() => {
+                    setExportSelected([])
+                    setExportOpen(false)
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="px-4 py-1.5 rounded bg-blue-600 text-white hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  disabled={exportSelected.length === 0}
+                  onClick={() => {
+                    exportSelected.forEach((id) => window.open(`/manholes/${id}/export`, '_blank', 'noopener'));
+                    setExportOpen(false);
+                  }}
+                >
+                  Export Selected ({exportSelected.length})
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       {message && <p className="mb-4 text-red-600">{message}</p>}
 
       {loading ? (
@@ -289,12 +392,6 @@ export default function ManholesContent() {
                     >
                       Edit
                     </button>
-                    <a
-                      href={`/manholes/${r.id}/export`}
-                      className="ml-2 px-3 py-1 rounded border border-gray-300 hover:bg-gray-50"
-                    >
-                      Export
-                    </a>
                     {(isAdmin || isSuperAdmin) && (
                       <button
                         onClick={() => deleteManhole(r.id)}
