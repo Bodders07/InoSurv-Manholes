@@ -707,23 +707,29 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
         let rowY = y + headerHeight
         for (let i = 0; i < rows; i++) {
           const row = entries[i]
+          const cellTexts = cols.map((_, idx) => {
+            if (!row) return ['-']
+            const text =
+              idx === 0 ? row.label || '' :
+              idx === 1 ? row.size :
+              idx === 2 ? row.shape :
+              idx === 3 ? row.material :
+              idx === 4 ? row.depth :
+              idx === 5 ? row.invert :
+              row.notes
+            return doc.splitTextToSize(text || '-', cols[idx].width - 4)
+          })
+          const rowHeight = Math.max(
+            headerHeight,
+            ...cellTexts.map((lines) => Math.max(lines.length * 4 + 2, headerHeight))
+          )
           cursorX = jobBoxX
           cols.forEach((col, idx) => {
-            doc.rect(cursorX, rowY, col.width, headerHeight)
-            if (row) {
-              const text =
-                idx === 0 ? row.label || '' :
-                idx === 1 ? row.size :
-                idx === 2 ? row.shape :
-                idx === 3 ? row.material :
-                idx === 4 ? row.depth :
-                idx === 5 ? row.invert :
-                row.notes
-              doc.text(text || '-', cursorX + 2, rowY + 5)
-            }
+            doc.rect(cursorX, rowY, col.width, rowHeight)
+            doc.text(cellTexts[idx], cursorX + 2, rowY + 5, { baseline: 'top' })
             cursorX += col.width
           })
-          rowY += headerHeight
+          rowY += rowHeight
         }
         return rowY
       }
