@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState, useDeferredValue } from 'react'
 import { jsPDF } from 'jspdf'
 import { supabase } from '@/lib/supabaseClient'
 import { deriveRoleInfo, canAdminister, canManageEverything } from '@/lib/roles'
@@ -353,6 +353,9 @@ export default function ManholesContent() {
     return () => window.removeEventListener('keydown', onKey)
   }, [editOpen])
 
+  const deferredQuery = useDeferredValue(query)
+  const deferredExportSearch = useDeferredValue(exportSearch)
+
   const projectById = useMemo(() => {
     const map = new Map<string, { name: string; project_number: string; client: string }>()
     projects.forEach((p) =>
@@ -379,8 +382,8 @@ export default function ManholesContent() {
     if (filterProjectNo) data = data.filter((r) => r.project_number === filterProjectNo)
     if (filterClient) data = data.filter((r) => r.project_client === filterClient)
     if (filterProjectName) data = data.filter((r) => r.project_name === filterProjectName)
-    if (query.trim()) {
-      const q = query.toLowerCase()
+    if (deferredQuery.trim()) {
+      const q = deferredQuery.toLowerCase()
       data = data.filter(
         (r) =>
           (r.identifier || '').toLowerCase().includes(q) ||
@@ -397,19 +400,19 @@ export default function ManholesContent() {
       if (av > bv) return 1 * dir
       return 0
     })
-  }, [manholes, projectById, sortKey, sortDir, filterProjectNo, filterClient, filterProjectName, query])
+  }, [manholes, projectById, sortKey, sortDir, filterProjectNo, filterClient, filterProjectName, deferredQuery])
 
   const exportCandidates = useMemo(() => {
     const list = rows.filter((r) => !exportProject || r.project_number === exportProject)
-    if (!exportSearch.trim()) return list
-    const q = exportSearch.toLowerCase()
+    if (!deferredExportSearch.trim()) return list
+    const q = deferredExportSearch.toLowerCase()
     return list.filter(
       (r) =>
         (r.identifier || '').toLowerCase().includes(q) ||
         (r.project_number || '').toLowerCase().includes(q) ||
         (r.project_name || '').toLowerCase().includes(q)
     )
-  }, [rows, exportProject, exportSearch])
+  }, [rows, exportProject, deferredExportSearch])
 
   useEffect(() => {
     if (!exportOpen) return

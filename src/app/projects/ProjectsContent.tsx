@@ -1,7 +1,7 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useDeferredValue, useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import { deriveRoleInfo, canAdminister, canManageEverything } from '@/lib/roles'
 
@@ -113,6 +113,7 @@ const clientOptions = useMemo(() => {
 }, [projects])
   const [viewId, setViewId] = useState<string | null>(null)
   const [menuFor, setMenuFor] = useState<string | null>(null)
+  const deferredSearch = useDeferredValue(search)
 
   const detectRoles = useCallback(async () => {
     try {
@@ -191,7 +192,7 @@ const clientOptions = useMemo(() => {
   // Allow saving as long as a name is provided; optional fields are included if present
   const disableCreateSave = useMemo(() => saving || !projectName, [projectName, saving])
   const filteredProjects = useMemo(() => {
-    const q = search.trim().toLowerCase()
+    const q = deferredSearch.trim().toLowerCase()
     let list = projects
     if (q) {
       list = list.filter((p) =>
@@ -203,7 +204,7 @@ const clientOptions = useMemo(() => {
     if (filterNumber) list = list.filter((p) => (p.project_number || '') === filterNumber)
     if (filterClient) list = list.filter((p) => (p.client || '') === filterClient)
     return list
-  }, [projects, search, filterNumber, filterClient])
+  }, [projects, deferredSearch, filterNumber, filterClient])
 
   const activeProjects = useMemo(
     () => filteredProjects.filter((p) => !p.archived),
