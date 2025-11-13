@@ -309,6 +309,7 @@ export default function ManholesContent() {
   const [editId, setEditId] = useState<string | null>(null)
   const [editOpen, setEditOpen] = useState(false)
   const [message, setMessage] = useState('')
+  const [hydrated, setHydrated] = useState(false)
   const [projects, setProjects] = useState<Project[]>([])
   const [manholes, setManholes] = useState<Manhole[]>([])
   const [loading, setLoading] = useState(true)
@@ -364,6 +365,10 @@ export default function ManholesContent() {
     detect()
     const { data: sub } = supabase.auth.onAuthStateChange(() => detect())
     return () => sub.subscription.unsubscribe()
+  }, [])
+
+  useEffect(() => {
+    setHydrated(true)
   }, [])
 
   async function reloadLists() {
@@ -842,6 +847,14 @@ export default function ManholesContent() {
     setDeletingId(null)
     if (error) setMessage('Error: ' + error.message)
     else setManholes((list) => list.filter((m) => m.id !== id))
+  }
+
+  if (!hydrated) {
+    return (
+      <div className="p-8 text-sm text-gray-500">
+        Loading manholes...
+      </div>
+    )
   }
 
   return (
