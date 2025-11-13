@@ -2,8 +2,9 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { useEffect, useState } from 'react'
-import { usePathname, useRouter } from 'next/navigation'
+import type { ReactNode } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
 import { deriveRoleInfo, canManageEverything } from '@/lib/roles'
 import { useView, type AppView } from '@/app/components/ViewContext'
@@ -19,14 +20,24 @@ export default function SidebarLayout({
 }: {
   children: React.ReactNode
 }) {
-  const pathname = usePathname()
   const router = useRouter()
   const [isSuperAdmin, setIsSuperAdmin] = useState(false)
-  const [roleReady, setRoleReady] = useState(false)
-  const [pageOpacity, setPageOpacity] = useState(1)
+  const pageOpacity = 1
   const { view, setView } = useView()
   const [collapsed, setCollapsed] = useState(false)
   const [isSmallScreen, setIsSmallScreen] = useState(false)
+  const [adminOpen, setAdminOpen] = useState(false)
+
+  const detectRole = useCallback(async () => {
+    try {
+      const { data } = await supabase.auth.getSession()
+      const user = data.session?.user ?? null
+      const info = deriveRoleInfo(user)
+      setIsSuperAdmin(canManageEverything(info))
+    } catch {
+      setIsSuperAdmin(false)
+    }
+  }, [])
 
   // Basic auth guard: redirect to /auth if no session
   useEffect(() => {
@@ -38,7 +49,7 @@ export default function SidebarLayout({
       }
       // Derive role immediately from current session to avoid flicker
       try {
-        const user: any = data.session?.user
+        const user = data.session?.user ?? null
         if (user) {
           const info = deriveRoleInfo(user)
           setIsSuperAdmin(canManageEverything(info))
@@ -66,36 +77,34 @@ export default function SidebarLayout({
         } catch {
           setIsSuperAdmin(false)
         }
-        setRoleReady(true)
       })
       unsub = () => sub.data.subscription.unsubscribe()
       await detectRole()
-      setRoleReady(true)
     }
     init()
     return () => {
       try { unsub?.() } catch {}
     }
-  }, [router])
+  }, [detectRole, router])
 
-  // Track small screens and update on resize
   useEffect(() => {
-    const onResize = () => {
-      try { setIsSmallScreen(window.innerWidth < 768) } catch {}
-    }
-    onResize()
-    window.addEventListener('resize', onResize)
-    return () => window.removeEventListener('resize', onResize)
-  }, [])
-
-  // Restore collapsed state and auto-collapse on small screens for focused views
-  useEffect(() => {
+    if (typeof window === 'undefined') return undefined
+    let raf: number | null = null
     try {
       const saved = localStorage.getItem('sidebarCollapsed')
-      if (saved != null) setCollapsed(saved === '1')
-      if (isSmallScreen && view === 'manholes_add') setCollapsed(true)
+      if (saved != null) {
+        raf = requestAnimationFrame(() => setCollapsed(saved === '1'))
+      }
     } catch {}
-  }, [view, isSmallScreen])
+    const applySize = () => setIsSmallScreen(window.innerWidth < 768)
+    raf = requestAnimationFrame(applySize)
+    const onResize = () => setIsSmallScreen(window.innerWidth < 768)
+    window.addEventListener('resize', onResize)
+    return () => {
+      window.removeEventListener('resize', onResize)
+      if (raf) cancelAnimationFrame(raf)
+    }
+  }, [])
 
   function toggleCollapsed() {
     setCollapsed((c) => {
@@ -105,44 +114,23 @@ export default function SidebarLayout({
     })
   }
 
-  async function detectRole() {
-    try {
-      // Use session (no network) to derive role quickly
-      const { data } = await supabase.auth.getSession()
-      const user = data.session?.user
-      const info = deriveRoleInfo(user)
-      setIsSuperAdmin(canManageEverything(info))
-    } catch {
-      setIsSuperAdmin(false)
-    }
-  }
-
-  const publicNav: { id: AppView; label: string; icon: React.ReactNode }[] = [
+  const publicNav: { id: AppView; label: string; icon: ReactNode }[] = [
     { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={16} /> },
     { id: 'projects', label: 'Projects', icon: <FolderKanban size={16} /> },
     { id: 'manholes', label: 'Manholes', icon: <ClipboardList size={16} /> },
     { id: 'inspections', label: 'Inspections', icon: <ClipboardList size={16} /> },
     { id: 'settings', label: 'Settings', icon: <Settings size={16} /> },
   ]
-  const adminNav: { id: AppView; label: string; icon: React.ReactNode }[] = isSuperAdmin ? [
+  const adminNav: { id: AppView; label: string; icon: ReactNode }[] = isSuperAdmin ? [
     { id: 'users', label: 'User Management', icon: <Settings size={16} /> },
     { id: 'privileges', label: 'User Privileges', icon: <Settings size={16} /> },
     { id: 'storage', label: 'Storage Usage', icon: <Settings size={16} /> },
   ] : []
-  const navItems = [...publicNav]
-  const [adminOpen, setAdminOpen] = useState(false)
 
   async function handleSignOut() {
     await supabase.auth.signOut()
     router.replace('/auth')
   }
-
-  // Smooth fade between pages when pathname changes
-  useEffect(() => {
-    setPageOpacity(0)
-    const t = setTimeout(() => setPageOpacity(1), 140)
-    return () => clearTimeout(t)
-  }, [pathname])
 
   const sidebarWidth = isSmallScreen ? (collapsed ? 'w-0' : 'w-64') : (collapsed ? 'w-14' : 'w-64')
   return (
@@ -172,7 +160,7 @@ export default function SidebarLayout({
           </Link>
         </div>
         <nav className={`p-2 ${collapsed ? 'space-y-1' : 'p-4 space-y-1'}`}>
-          {navItems.map((item) => {
+          {publicNav.map((item) => {
             const isActive = view === item.id
             return (
               <button
