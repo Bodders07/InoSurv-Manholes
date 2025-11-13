@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import NextDynamic from 'next/dynamic'
 import { type SketchState } from '@/app/components/sketch/ChamberSketch'
 const ChamberSketch = NextDynamic(() => import('@/app/components/sketch/ChamberSketch'), { ssr: false })
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import SidebarLayout from '@/app/components/SidebarLayout'
 import { supabase } from '@/lib/supabaseClient'
 
@@ -30,11 +30,50 @@ const MEASURING_TOOLS = ['Tape','Staff','Laser Level']
 const PIPE_FUNCTIONS = ['Sewer','Watercourse','Combined','Highway','Gulley','Outlet','Inlet','Overflow','Backdrop','Vent Pipe','Foul Water Pipe','Surface Water Pipe','Duct','MH','OS','UTT','UTS','RWP','GU','BLD','Post','Empty']
 const PIPE_SHAPES = ['Circular','Egg','Rectangular','Trapezoidal','Square','Brick Arch','Unknown','Other']
 const PIPE_MATERIALS = ['Vitrified Clay','Concrete','Plastic','Asbestos Cement','Cast Iron','Spun Iron','Steel','Brick','Pitch Fibre','Unknown','Other']
+type ManholeRow = {
+  id: string
+  identifier: string | null
+  survey_date: string | null
+  measuring_tool: string | null
+  measuring_offset_mm: number | null
+  location_desc: string | null
+  latitude: number | null
+  longitude: number | null
+  easting: number | null
+  northing: number | null
+  cover_level: number | null
+  cover_shape: string | null
+  cover_diameter_mm: number | null
+  cover_width_mm: number | null
+  cover_length_mm: number | null
+  cover_material: string | null
+  cover_material_other: string | null
+  cover_duty: string | null
+  cover_condition: string | null
+  chamber_shape: string | null
+  chamber_diameter_mm: number | null
+  chamber_width_mm: number | null
+  chamber_length_mm: number | null
+  chamber_material: string | null
+  chamber_material_other: string | null
+  service_type: string | null
+  type: string | null
+  type_other: string | null
+  cover_lifted: string | null
+  cover_lifted_reason: string | null
+  incoming_pipes: Pipe[] | null
+  outgoing_pipes: Pipe[] | null
+  internal_photo_url: string | null
+  external_photo_url: string | null
+  sketch_json: SketchState | null
+}
 
 export default function EditManholePage() {
   const router = useRouter()
   const params = useParams() as { id: string }
+  const searchParams = useSearchParams()
   const manholeId = params.id
+  const embed = searchParams?.get('embed') === '1'
 
   const [loading, setLoading] = useState(true)
   const [message, setMessage] = useState('')
@@ -79,8 +118,8 @@ export default function EditManholePage() {
   // photos
   const [internalPhotoUrl, setInternalPhotoUrl] = useState('')
   const [externalPhotoUrl, setExternalPhotoUrl] = useState('')
-  const [internalPhotoFile, setInternalPhotoFile] = useState<any | null>(null)
-  const [externalPhotoFile, setExternalPhotoFile] = useState<any | null>(null)
+  const [internalPhotoFile, setInternalPhotoFile] = useState<File | null>(null)
+  const [externalPhotoFile, setExternalPhotoFile] = useState<File | null>(null)
 
   // sketch
   const [sketch, setSketch] = useState<SketchState | null>(null)
@@ -100,45 +139,50 @@ export default function EditManholePage() {
         .eq('id', manholeId)
         .maybeSingle()
       if (error) setMessage('Error loading manhole: ' + error.message)
-      if (data) {
-        setIdentifier(data.identifier || '')
-        setSurveyDate(data.survey_date || '')
-        setMeasuringTool(data.measuring_tool || '')
-        setLaserOffset((data.measuring_offset_mm ?? '').toString())
-        setLocationDesc(data.location_desc || '')
-        setLatitude((data.latitude ?? '').toString())
-        setLongitude((data.longitude ?? '').toString())
-        setEasting((data.easting ?? '').toString())
-        setNorthing((data.northing ?? '').toString())
-        setCoverLevel((data.cover_level ?? '').toString())
-        setCoverShape(data.cover_shape || '')
-        setCoverDiameter((data.cover_diameter_mm ?? '').toString())
-        setCoverWidth((data.cover_width_mm ?? '').toString())
-        setCoverLength((data.cover_length_mm ?? '').toString())
-        setCoverMaterial(data.cover_material || '')
-        setCoverMaterialOther(data.cover_material_other || '')
-        setCoverDuty(data.cover_duty || '')
-        setCoverCondition(data.cover_condition || '')
-        setChamberShape(data.chamber_shape || '')
-        setChamberDiameter((data.chamber_diameter_mm ?? '').toString())
-        setChamberWidth((data.chamber_width_mm ?? '').toString())
-        setChamberLength((data.chamber_length_mm ?? '').toString())
-        setChamberMaterial(data.chamber_material || '')
-        setChamberMaterialOther(data.chamber_material_other || '')
-        setServiceType(data.service_type || '')
-        setType(data.type || '')
-        setTypeOther(data.type_other || '')
-        setCoverLifted(data.cover_lifted || '')
-        setCoverNotReason(data.cover_lifted_reason || '')
-        setInternalPhotoUrl(data.internal_photo_url || '')
-        setExternalPhotoUrl(data.external_photo_url || '')
-        setSketch(data.sketch_json || null)
-        setIncoming(Array.isArray(data.incoming_pipes) && data.incoming_pipes.length
-          ? data.incoming_pipes
-          : [{ label: 'Pipe A', func: '', shape: '', material: '', invert_depth_m: '', width_mm: '', height_mm: '', diameter_mm: '', notes: '' }])
-        setOutgoing(Array.isArray(data.outgoing_pipes) && data.outgoing_pipes.length
-          ? data.outgoing_pipes
-          : [{ label: 'Pipe X', func: '', shape: '', material: '', invert_depth_m: '', width_mm: '', height_mm: '', diameter_mm: '', notes: '' }])
+      const row = data as ManholeRow | null
+      if (row) {
+        setIdentifier(row.identifier || '')
+        setSurveyDate(row.survey_date || '')
+        setMeasuringTool(row.measuring_tool || '')
+        setLaserOffset((row.measuring_offset_mm ?? '').toString())
+        setLocationDesc(row.location_desc || '')
+        setLatitude((row.latitude ?? '').toString())
+        setLongitude((row.longitude ?? '').toString())
+        setEasting((row.easting ?? '').toString())
+        setNorthing((row.northing ?? '').toString())
+        setCoverLevel((row.cover_level ?? '').toString())
+        setCoverShape(row.cover_shape || '')
+        setCoverDiameter((row.cover_diameter_mm ?? '').toString())
+        setCoverWidth((row.cover_width_mm ?? '').toString())
+        setCoverLength((row.cover_length_mm ?? '').toString())
+        setCoverMaterial(row.cover_material || '')
+        setCoverMaterialOther(row.cover_material_other || '')
+        setCoverDuty(row.cover_duty || '')
+        setCoverCondition(row.cover_condition || '')
+        setChamberShape(row.chamber_shape || '')
+        setChamberDiameter((row.chamber_diameter_mm ?? '').toString())
+        setChamberWidth((row.chamber_width_mm ?? '').toString())
+        setChamberLength((row.chamber_length_mm ?? '').toString())
+        setChamberMaterial(row.chamber_material || '')
+        setChamberMaterialOther(row.chamber_material_other || '')
+        setServiceType(row.service_type || '')
+        setType(row.type || '')
+        setTypeOther(row.type_other || '')
+        setCoverLifted(row.cover_lifted || '')
+        setCoverNotReason(row.cover_lifted_reason || '')
+        setInternalPhotoUrl(row.internal_photo_url || '')
+        setExternalPhotoUrl(row.external_photo_url || '')
+        setSketch(row.sketch_json || null)
+        const incomingPipes = Array.isArray(row.incoming_pipes) && row.incoming_pipes.length ? (row.incoming_pipes as Pipe[]) : null
+        const outgoingPipes = Array.isArray(row.outgoing_pipes) && row.outgoing_pipes.length ? (row.outgoing_pipes as Pipe[]) : null
+        setIncoming(
+          incomingPipes ??
+            [{ label: 'Pipe A', func: '', shape: '', material: '', invert_depth_m: '', width_mm: '', height_mm: '', diameter_mm: '', notes: '' }]
+        )
+        setOutgoing(
+          outgoingPipes ??
+            [{ label: 'Pipe X', func: '', shape: '', material: '', invert_depth_m: '', width_mm: '', height_mm: '', diameter_mm: '', notes: '' }]
+        )
       }
       setLoading(false)
     }
@@ -164,7 +208,7 @@ export default function EditManholePage() {
 
   async function save() {
     setMessage('')
-    const update: any = {
+    const update: Record<string, unknown> = {
       identifier,
       survey_date: surveyDate || null,
       measuring_tool: measuringTool || null,
@@ -208,13 +252,13 @@ export default function EditManholePage() {
     // Upload any new photos
     let uploadMsg = ''
     const bucket = supabase.storage.from('manhole-photos')
-    async function uploadOne(file: any | null, kind: 'internal' | 'external') {
+    async function uploadOne(file: File | null, kind: 'internal' | 'external') {
       if (!file) return null
       const ext = (file.name.split('.').pop() || 'jpg').toLowerCase()
       const path = `${manholeId}/${kind}-${Date.now()}.${ext}`
       const up = await bucket.upload(path, file, {
         upsert: true,
-        contentType: (file as any)?.type || 'image/jpeg',
+        contentType: file.type || 'image/jpeg',
         cacheControl: '3600',
       })
       if (up.error) {
@@ -237,13 +281,9 @@ export default function EditManholePage() {
     await uploadOne(internalPhotoFile, 'internal')
     await uploadOne(externalPhotoFile, 'external')
     setMessage('Success: Manhole updated.' + uploadMsg)
-    try {
-      const params = new URLSearchParams(window.location.search)
-      const embed = params.get('embed') === '1'
-      if (embed) {
-        window.parent?.postMessage({ type: 'close-edit-modal', refresh: true }, '*')
-      }
-    } catch {}
+    if (embed) {
+      window.parent?.postMessage({ type: 'close-edit-modal', refresh: true }, '*')
+    }
   }
 
   const content = (
@@ -607,7 +647,10 @@ export default function EditManholePage() {
                 {internalPhotoFile ? (
                   <span className="text-xs text-gray-600">New photo selected</span>
                 ) : internalPhotoUrl ? (
-                  <img src={internalPhotoUrl} alt="Internal" className="max-h-40 rounded border" />
+                  <>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={internalPhotoUrl} alt="Internal" className="max-h-40 rounded border" />
+                  </>
                 ) : (
                   <span className="text-xs text-gray-500">No photo</span>
                 )}
@@ -636,7 +679,10 @@ export default function EditManholePage() {
                 {externalPhotoFile ? (
                   <span className="text-xs text-gray-600">New photo selected</span>
                 ) : externalPhotoUrl ? (
-                  <img src={externalPhotoUrl} alt="External" className="max-h-40 rounded border" />
+                  <>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={externalPhotoUrl} alt="External" className="max-h-40 rounded border" />
+                  </>
                 ) : (
                   <span className="text-xs text-gray-500">No photo</span>
                 )}
@@ -659,26 +705,17 @@ export default function EditManholePage() {
             <div className="mt-6 flex gap-3">
               <button onClick={save} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Save</button>
               {/* Close/back respects embed mode to avoid navigating the main URL */}
-              {(() => {
-                try {
-                  const params = new URLSearchParams(window.location.search)
-                  const embed = params.get('embed') === '1'
-                  if (embed) {
-                    return (
-                      <button
-                        type="button"
-                        onClick={() => window.parent?.postMessage({ type: 'close-edit-modal' }, '*')}
-                        className="px-4 py-2 rounded border border-gray-300 hover:bg-gray-50"
-                      >
-                        Close
-                      </button>
-                    )
-                  }
-                } catch {}
-                return (
-                  <button onClick={()=> router.back()} className="px-4 py-2 rounded border border-gray-300 hover:bg-gray-50">Back</button>
-                )
-              })()}
+              {embed ? (
+                <button
+                  type="button"
+                  onClick={() => window.parent?.postMessage({ type: 'close-edit-modal' }, '*')}
+                  className="px-4 py-2 rounded border border-gray-300 hover:bg-gray-50"
+                >
+                  Close
+                </button>
+              ) : (
+                <button onClick={()=> router.back()} className="px-4 py-2 rounded border border-gray-300 hover:bg-gray-50">Back</button>
+              )}
             </div>
           </>
         )}
@@ -686,7 +723,6 @@ export default function EditManholePage() {
   )
 
   // Support embed mode to render without the app sidebar (for SPA/modal usage)
-  const embed = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('embed') === '1'
   if (embed) return content
   return (
     <SidebarLayout>
