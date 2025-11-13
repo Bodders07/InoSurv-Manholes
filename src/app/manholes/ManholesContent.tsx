@@ -71,6 +71,16 @@ function isEditModalMessage(payload: unknown): payload is EditModalMessage {
   return (payload as { type?: string }).type === 'close-edit-modal'
 }
 
+type ImageAsset = { dataUrl: string; format: 'PNG' | 'JPEG' }
+let cachedLogo: ImageAsset | null = null
+
+async function getLogoAsset() {
+  if (cachedLogo) return cachedLogo
+  const data = await fetchImageData('/inorail-logo.png')
+  if (data) cachedLogo = data
+  return cachedLogo
+}
+
 function valueOrDash(value: unknown) {
   if (value === null || value === undefined || value === '') return '-'
   return String(value)
@@ -513,7 +523,6 @@ export default function ManholesContent() {
         ctx.fillText(text, 40, 120 + index * 32)
       })
       ctx.font = '16px Arial'
-      ctx.fillText(`Generated ${new Date().toLocaleString()}`, 40, height - 40)
       const url = canvas.toDataURL('image/jpeg', 0.92)
       const link = document.createElement('a')
       link.href = url
@@ -543,6 +552,7 @@ export default function ManholesContent() {
         })(),
       }))
     }
+    const logo = await getLogoAsset()
     for (const record of records) {
       const doc = new jsPDF({ unit: 'mm', format: 'a4' })
       const pageWidth = doc.internal.pageSize.getWidth()
@@ -552,8 +562,12 @@ export default function ManholesContent() {
       const startX = margin
       doc.setDrawColor(60)
       doc.rect(startX, margin, innerWidth, pageHeight - margin * 2)
-      doc.setFontSize(18)
-      doc.text('InoRail', pageWidth / 2, margin + 8, { align: 'center' })
+      if (logo) {
+        doc.addImage(logo.dataUrl, logo.format, pageWidth / 2 - 22, margin + 2, 44, 10, undefined, 'FAST')
+      } else {
+        doc.setFontSize(18)
+        doc.text('InoRail', pageWidth / 2, margin + 8, { align: 'center' })
+      }
       doc.setFontSize(10)
       const jobBoxY = margin + 12
       const jobBoxWidth = innerWidth - 4
@@ -700,6 +714,16 @@ export default function ManholesContent() {
         if (dataUrl) {
           try {
             doc.addImage(dataUrl, format, x + 2, boxY + 8, targetWidth, targetHeight, undefined, 'FAST')
+            if (boxes[i].label === 'Chamber Sketch') {
+              const arrowBaseY = boxY + bottomHeight - 6
+              const arrowX = x + 12
+              doc.setFillColor(225, 17, 17)
+              doc.triangle(arrowX, arrowBaseY - 12, arrowX + 6, arrowBaseY, arrowX - 6, arrowBaseY, 'F')
+              doc.setTextColor(17, 24, 39)
+              doc.setFontSize(9)
+              doc.text('N', arrowX, arrowBaseY + 4, { align: 'center' })
+              doc.setTextColor(0, 0, 0)
+            }
           } catch {
             doc.text('Image unavailable', x + 2, boxY + 12)
           }
@@ -708,8 +732,6 @@ export default function ManholesContent() {
         }
       }
 
-      doc.setFontSize(9)
-      doc.text(`Generated ${new Date().toLocaleString()}`, jobBoxX, pageHeight - margin - 2)
       const safeName = safeFileSegment(String(record.identifier || record.id || 'manhole'))
       doc.save(`${safeName}.pdf`)
     }
