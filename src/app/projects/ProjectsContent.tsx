@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import type { ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import { deriveRoleInfo, canAdminister, canManageEverything } from '@/lib/roles'
 
@@ -14,8 +14,49 @@ type Project = {
   updated_at?: string | null
 }
 
+type ProjectInsertPayload = {
+  name: string
+  project_number?: string | null
+  client?: string | null
+}
+
+type ProjectUpdatePayload = {
+  name?: string
+  project_number?: string | null
+  client?: string | null
+}
+
+type ProjectMinimal = {
+  name: string | null
+  client: string | null
+  project_number: string | null
+}
+
+function IconBtn({ title, onClick, children }: { title: string; onClick: () => void; children: ReactNode }) {
+  return (
+    <button title={title} aria-label={title} onClick={onClick} className="p-1.5 rounded hover:bg-gray-200 text-gray-700">
+      {children}
+    </button>
+  )
+}
+
+function EyeIcon() {
+  return <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5"><path d="M12 5c5 0 9 5 9 7s-4 7-9 7-9-5-9-7 4-7 9-7Zm0 3.5A3.5 3.5 0 1 0 12 15a3.5 3.5 0 0 0 0-7Z"/></svg>
+}
+
+function PencilIcon() {
+  return <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5"><path d="M16.862 3.487a1.75 1.75 0 0 1 2.476 2.476l-10 10a1.75 1.75 0 0 1-.72.438l-4 1.25a.75.75 0 0 1-.938-.938l1.25-4a1.75 1.75 0 0 1 .438-.72l10-10Z"/><path d="M15 5 19 9" stroke="currentColor" strokeWidth="1.5"/></svg>
+}
+
+function TrashIcon() {
+  return <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5"><path d="M9 3.75A1.75 1.75 0 0 1 10.75 2h2.5A1.75 1.75 0 0 1 15 3.75V5h4.25a.75.75 0 0 1 0 1.5H4.75a.75.75 0 0 1 0-1.5H9V3.75Z"/><path d="M6.5 7h11l-.7 11.2a2 2 0 0 1-2 1.8H9.2a2 2 0 0 1-2-1.8L6.5 7Z"/></svg>
+}
+
+function DotsIcon() {
+  return <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5"><circle cx="5" cy="12" r="1.75" /><circle cx="12" cy="12" r="1.75" /><circle cx="19" cy="12" r="1.75" /></svg>
+}
+
 export default function ProjectsContent() {
-  const router = useRouter()
   // Create form state
   const [projectNumber, setProjectNumber] = useState('')
   const [client, setClient] = useState('')
@@ -36,7 +77,6 @@ export default function ProjectsContent() {
   const [editClient, setEditClient] = useState('')
   const [editProjectName, setEditProjectName] = useState('')
   const [editSaving, setEditSaving] = useState(false)
-  const [deletingId, setDeletingId] = useState<string | null>(null)
   // New top-bar UX state
   const [search, setSearch] = useState('')
   const [showCreate, setShowCreate] = useState(false)
@@ -45,45 +85,64 @@ export default function ProjectsContent() {
   const [filterClient, setFilterClient] = useState('')
 
   // Distinct lists for dropdown filters
-  const numberOptions = useMemo(() => {
-    const vals = Array.from(new Set((projects.map(p => p.project_number || '').filter(Boolean)))) as string[]
-    return vals.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
-  }, [projects])
-  const clientOptions = useMemo(() => {
-    const vals = Array.from(new Set((projects.map(p => p.client || '').filter(Boolean)))) as string[]
-    return vals.sort((a, b) => a.localeCompare(b))
-  }, [projects])
+const numberOptions = useMemo(() => {
+  const vals = Array.from(new Set((projects.map(p => p.project_number || '').filter(Boolean)))) as string[]
+  return vals.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
+}, [projects])
+const clientOptions = useMemo(() => {
+  const vals = Array.from(new Set((projects.map(p => p.client || '').filter(Boolean)))) as string[]
+  return vals.sort((a, b) => a.localeCompare(b))
+}, [projects])
   const [viewId, setViewId] = useState<string | null>(null)
   const [menuFor, setMenuFor] = useState<string | null>(null)
 
-  useEffect(() => {
-    async function loadProjects() {
-      setLoading(true)
-      setMessage('')
-      const { data, error } = await supabase
-        .from('projects')
-        .select('id, name, client, project_number, created_at, updated_at')
-        .order('project_number', { ascending: true })
-
-      if (error) {
-        // Columns not found: fall back to minimal selection
-        setHasExtendedFields(false)
-        const fallback = await supabase.from('projects').select('id, name').order('id')
-        if (!fallback.error) setProjects((fallback.data as any[]) as Project[])
-      } else {
-        setHasExtendedFields(true)
-        setProjects(data || [])
-      }
-
-      await detectRoles()
-      setLoading(false)
+  const detectRoles = useCallback(async () => {
+    try {
+      const { data } = await supabase.auth.getUser()
+      const info = deriveRoleInfo(data.user)
+      setIsAdmin(canAdminister(info))
+      setIsSuperAdmin(canManageEverything(info))
+    } catch {
+      setIsAdmin(false)
+      setIsSuperAdmin(false)
     }
-    loadProjects()
+  }, [])
+
+  const refreshProjects = useCallback(async () => {
+    setLoading(true)
+    setMessage('')
+    const { data, error } = await supabase
+      .from('projects')
+      .select('id, name, client, project_number, created_at, updated_at, archived')
+      .order('project_number', { ascending: true })
+
+    if (error) {
+      setHasExtendedFields(false)
+      const fallback = await supabase
+        .from('projects')
+        .select('id, name, client, project_number, archived')
+        .order('id')
+      if (!fallback.error) {
+        setProjects((fallback.data as Project[]) || [])
+      } else {
+        setProjects([])
+      }
+    } else {
+      setHasExtendedFields(true)
+      setProjects(data || [])
+    }
+
+    setLoading(false)
+  }, [])
+
+  useEffect(() => {
+    refreshProjects()
+    detectRoles()
     const { data: listener } = supabase.auth.onAuthStateChange(async () => {
       await detectRoles()
     })
     return () => listener.subscription.unsubscribe()
-  }, [])
+  }, [detectRoles, refreshProjects])
 
   useEffect(() => {
     function onMsg(e: MessageEvent) {
@@ -96,19 +155,8 @@ export default function ProjectsContent() {
       window.addEventListener('message', onMsg)
       return () => window.removeEventListener('message', onMsg)
     }
-  }, [])
-
-  async function detectRoles() {
-    try {
-      const { data } = await supabase.auth.getUser()
-      const info = deriveRoleInfo(data.user)
-      setIsAdmin(canAdminister(info))
-      setIsSuperAdmin(canManageEverything(info))
-    } catch {
-      setIsAdmin(false)
-      setIsSuperAdmin(false)
-    }
-  }
+    return undefined
+  }, [refreshProjects])
 
   // Allow saving as long as a name is provided; optional fields are included if present
   const disableCreateSave = useMemo(() => saving || !projectName, [projectName, saving])
@@ -127,6 +175,15 @@ export default function ProjectsContent() {
     return list
   }, [projects, search, filterNumber, filterClient])
 
+  const activeProjects = useMemo(
+    () => filteredProjects.filter((p) => !p.archived),
+    [filteredProjects]
+  )
+  const archivedProjects = useMemo(
+    () => filteredProjects.filter((p) => !!p.archived),
+    [filteredProjects]
+  )
+
   async function addProject() {
     setMessage('')
     if (!projectNumber || !client || !projectName) {
@@ -134,7 +191,7 @@ export default function ProjectsContent() {
       return
     }
     setSaving(true)
-    const payload: any = { name: projectName }
+    const payload: ProjectInsertPayload = { name: projectName }
     if (projectNumber) payload.project_number = projectNumber
     if (client) payload.client = client
     const { error } = await supabase.from('projects').insert([payload])
@@ -172,9 +229,9 @@ export default function ProjectsContent() {
       setMessage('Error duplicating: ' + error.message)
       return
     }
-    const src: any = data
-    const insert = {
-      name: src?.name ? src.name + ' (Copy)' : 'Copy',
+    const src = data as ProjectMinimal | null
+    const insert: ProjectInsertPayload = {
+      name: src?.name ? `${src.name} (Copy)` : 'Copy',
       client: src?.client ?? null,
       project_number: src?.project_number ?? null,
     }
@@ -186,47 +243,36 @@ export default function ProjectsContent() {
     }
   }
 
-  async function archiveProject(p: Project) {
+  async function toggleArchive(p: Project) {
     setMessage('')
-    const { error } = await supabase.from('projects').update({ archived: true } as any).eq('id', p.id)
+    const nextArchived = !p.archived
+    const { error } = await supabase
+      .from('projects')
+      .update({ archived: nextArchived } as { archived: boolean })
+      .eq('id', p.id)
     if (!error) {
-      setMessage('Success: Project archived.')
+      setMessage(`Success: Project ${nextArchived ? 'archived' : 'unarchived'}.`)
       await refreshProjects()
       return
     }
     if (error.message?.toLowerCase().includes('archived') && error.message?.toLowerCase().includes('column')) {
       const { error: nameErr } = await supabase
         .from('projects')
-        .update({ name: `Archived - ${p.name ?? ''}` })
+        .update({
+          name: nextArchived
+            ? `Archived - ${p.name ?? ''}`
+            : (p.name || '').replace(/^Archived -\s*/, '') || p.name,
+        })
         .eq('id', p.id)
-      if (nameErr) setMessage('Error archiving: ' + nameErr.message)
+      if (nameErr) setMessage('Error updating project: ' + nameErr.message)
       else {
-        setMessage('Success: Project archived (name prefixed).')
+        setMessage(`Success: Project ${nextArchived ? 'archived (name prefixed)' : 'unarchived (name restored)'}.`)
         await refreshProjects()
       }
     } else {
-      setMessage('Error archiving: ' + error.message)
+      setMessage('Error updating project: ' + error.message)
     }
   }
-
-  // Small inline icon buttons
-  const IconBtn = ({ title, onClick, children }: { title: string; onClick: () => void; children: React.ReactNode }) => (
-    <button title={title} aria-label={title} onClick={onClick} className="p-1.5 rounded hover:bg-gray-200 text-gray-700">
-      {children}
-    </button>
-  )
-  const Eye = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5"><path d="M12 5c5 0 9 5 9 7s-4 7-9 7-9-5-9-7 4-7 9-7Zm0 3.5A3.5 3.5 0 1 0 12 15a3.5 3.5 0 0 0 0-7Z"/></svg>
-  )
-  const Pencil = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5"><path d="M16.862 3.487a1.75 1.75 0 0 1 2.476 2.476l-10 10a1.75 1.75 0 0 1-.72.438l-4 1.25a.75.75 0 0 1-.938-.938l1.25-4a1.75 1.75 0 0 1 .438-.72l10-10Z"/><path d="M15 5 19 9" stroke="currentColor" strokeWidth="1.5"/></svg>
-  )
-  const Trash = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5"><path d="M9 3.75A1.75 1.75 0 0 1 10.75 2h2.5A1.75 1.75 0 0 1 15 3.75V5h4.25a.75.75 0 0 1 0 1.5H4.75a.75.75 0 0 1 0-1.5H9V3.75Z"/><path d="M6.5 7h11l-.7 11.2a2 2 0 0 1-2 1.8H9.2a2 2 0 0 1-2-1.8L6.5 7Z"/></svg>
-  )
-  const Dots = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5"><circle cx="5" cy="12" r="1.75"/><circle cx="12" cy="12" r="1.75"/><circle cx="19" cy="12" r="1.75"/></svg>
-  )
 
   function startEdit(p: Project) {
     setEditingId(p.id)
@@ -255,7 +301,7 @@ export default function ProjectsContent() {
     if (!editingId) return
     setMessage('')
     setEditSaving(true)
-    const update: any = { name: editProjectName }
+    const update: ProjectUpdatePayload = { name: editProjectName }
     if (hasExtendedFields) {
       update.project_number = editProjectNumber
       update.client = editClient
@@ -291,15 +337,12 @@ export default function ProjectsContent() {
     if (!proceed) return
 
     setMessage('')
-    setDeletingId(id)
 
     const { error, data } = await supabase
       .from('projects')
       .delete()
       .eq('id', id)
       .select('id')
-
-    setDeletingId(null)
 
     if (error) {
       if (error.message.toLowerCase().includes('foreign key')) {
@@ -470,38 +513,122 @@ export default function ProjectsContent() {
         </div>
       )}
 
-      <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
-        <div className="px-4 py-3 border-b border-gray-200">
-          <h2 className="font-semibold">Existing Projects</h2>
-        </div>
-        <div className="p-0 overflow-x-auto">
-          {loading ? (
-            <p className="p-4">Loading…</p>
-          ) : filteredProjects.length === 0 ? (
-            <p className="p-4 text-gray-600">No projects yet. Create your first one above.</p>
-          ) : (
-            <table className="min-w-full">
-              <thead>
-                <tr className="bg-gray-50 text-left">
-                  <th className="px-4 py-2 border-b">Project No.</th>
-                  <th className="px-4 py-2 border-b">Client</th>
-                  <th className="px-4 py-2 border-b">Project Name</th>
-                  <th className="px-4 py-2 border-b">Created</th>
-                  <th className="px-4 py-2 border-b">Last Updated</th>
-                  <th className="px-4 py-2 border-b w-px">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredProjects.map((p) => {
-                  const isEditing = editingId === p.id
-                  const created = p.created_at ? new Date(p.created_at) : null
-                  const updated = p.updated_at ? new Date(p.updated_at) : null
-                  const dt = (d: Date | null) => (d ? d.toLocaleString() : '-')
-                  return (
+      <div className="space-y-8">
+        <section className="bg-white rounded-lg border border-gray-200 shadow-sm">
+          <div className="px-4 py-3 border-b border-gray-200">
+            <h2 className="font-semibold">Existing Projects</h2>
+          </div>
+          <div className="p-0 overflow-x-auto">
+            {loading ? (
+              <p className="p-4">Loading…</p>
+            ) : activeProjects.length === 0 ? (
+              <p className="p-4 text-gray-600">No existing projects match your filters.</p>
+            ) : (
+              <table className="min-w-full">
+                <thead>
+                  <tr className="bg-gray-50 text-left">
+                    <th className="px-4 py-2 border-b">Project No.</th>
+                    <th className="px-4 py-2 border-b">Client</th>
+                    <th className="px-4 py-2 border-b">Project Name</th>
+                    <th className="px-4 py-2 border-b">Created</th>
+                    <th className="px-4 py-2 border-b">Last Updated</th>
+                    <th className="px-4 py-2 border-b w-px">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {activeProjects.map((p) => {
+                    const isEditing = editingId === p.id
+                    const created = p.created_at ? new Date(p.created_at) : null
+                    const updated = p.updated_at ? new Date(p.updated_at) : null
+                    const dt = (d: Date | null) => (d ? d.toLocaleString() : '-')
+                    return (
+                      <tr key={p.id} className="hover:bg-gray-50">
+                        <td className="px-4 py-2 border-b align-top">{p.project_number || '-'}</td>
+                        <td className="px-4 py-2 border-b align-top">{p.client || '-'}</td>
+                        <td className="px-4 py-2 border-b align-top">
+                          {p.name ? (
+                            <button className="text-orange-600 hover:underline" onClick={() => setViewId(p.id)}>
+                              {p.name}
+                            </button>
+                          ) : (
+                            '-'
+                          )}
+                        </td>
+                        <td className="px-4 py-2 border-b align-top">{dt(created)}</td>
+                        <td className="px-4 py-2 border-b align-top">{dt(updated)}</td>
+                        <td className="px-4 py-2 border-b align-top text-right">
+                          {isEditing ? (
+                            <div className="flex gap-2 justify-end">
+                              <button
+                                onClick={saveEdit}
+                                disabled={disableEditSave}
+                                className={`px-3 py-1 rounded text-white ${
+                                  disableEditSave ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'
+                                }`}
+                              >
+                                {editSaving ? 'Saving…' : 'Save'}
+                              </button>
+                              <button
+                                onClick={cancelEdit}
+                                className="px-3 py-1 rounded border border-gray-300 hover:bg-gray-50"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="flex gap-1 justify-end items-center relative">
+                              <IconBtn title="View" onClick={() => setViewId(p.id)}><EyeIcon /></IconBtn>
+                              <IconBtn title="Edit" onClick={() => startEdit(p)}><PencilIcon /></IconBtn>
+                              {(isAdmin || isSuperAdmin) && (
+                                <IconBtn title="Delete" onClick={() => deleteProject(p.id)}><TrashIcon /></IconBtn>
+                              )}
+                              <IconBtn
+                                title="More"
+                                onClick={() => setMenuFor(menuFor === p.id ? null : p.id)}
+                              >
+                                <DotsIcon />
+                              </IconBtn>
+                              {menuFor === p.id && (
+                                <div className="absolute right-0 top-full mt-1 w-40 rounded-md shadow-lg bg-white ring-1 ring-black/5 z-10">
+                                  <button className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100" onClick={() => { setMenuFor(null); duplicateProject(p.id) }}>Duplicate</button>
+                                  <button className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100" onClick={() => { setMenuFor(null); toggleArchive(p) }}>Archive</button>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </section>
+
+        {archivedProjects.length > 0 && (
+          <section className="bg-white rounded-lg border border-gray-200 shadow-sm">
+            <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
+              <h2 className="font-semibold">Archived Projects</h2>
+              <span className="text-xs text-gray-500">{archivedProjects.length} archived</span>
+            </div>
+            <div className="p-0 overflow-x-auto">
+              <table className="min-w-full">
+                <thead>
+                  <tr className="bg-gray-50 text-left">
+                    <th className="px-4 py-2 border-b">Project No.</th>
+                    <th className="px-4 py-2 border-b">Client</th>
+                    <th className="px-4 py-2 border-b">Project Name</th>
+                    <th className="px-4 py-2 border-b">Archived On</th>
+                    <th className="px-4 py-2 border-b w-px">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {archivedProjects.map((p) => (
                     <tr key={p.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-2 border-b align-top">{p.project_number || '-'}</td>
-                      <td className="px-4 py-2 border-b align-top">{p.client || '-'}</td>
-                      <td className="px-4 py-2 border-b align-top">
+                      <td className="px-4 py-2 border-b">{p.project_number || '-'}</td>
+                      <td className="px-4 py-2 border-b">{p.client || '-'}</td>
+                      <td className="px-4 py-2 border-b">
                         {p.name ? (
                           <button className="text-orange-600 hover:underline" onClick={() => setViewId(p.id)}>
                             {p.name}
@@ -510,56 +637,22 @@ export default function ProjectsContent() {
                           '-'
                         )}
                       </td>
-                      <td className="px-4 py-2 border-b align-top">{dt(created)}</td>
-                      <td className="px-4 py-2 border-b align-top">{dt(updated)}</td>
-                      <td className="px-4 py-2 border-b align-top text-right">
-                        {isEditing ? (
-                          <div className="flex gap-2 justify-end">
-                            <button
-                              onClick={saveEdit}
-                              disabled={disableEditSave}
-                              className={`px-3 py-1 rounded text-white ${
-                                disableEditSave ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'
-                              }`}
-                            >
-                              {editSaving ? 'Saving…' : 'Save'}
-                            </button>
-                            <button
-                              onClick={cancelEdit}
-                              className="px-3 py-1 rounded border border-gray-300 hover:bg-gray-50"
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        ) : (
-                          <div className="flex gap-1 justify-end items-center relative">
-                            <IconBtn title="View" onClick={() => setViewId(p.id)}><Eye /></IconBtn>
-                            <IconBtn title="Edit" onClick={() => startEdit(p)}><Pencil /></IconBtn>
-                            {(isAdmin || isSuperAdmin) && (
-                              <IconBtn title="Delete" onClick={() => deleteProject(p.id)}><Trash /></IconBtn>
-                            )}
-                            <IconBtn
-                              title="More"
-                              onClick={() => setMenuFor(menuFor === p.id ? null : p.id)}
-                            >
-                              <Dots />
-                            </IconBtn>
-                            {menuFor === p.id && (
-                              <div className="absolute right-0 top-full mt-1 w-40 rounded-md shadow-lg bg-white ring-1 ring-black/5 z-10">
-                                <button className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100" onClick={() => { setMenuFor(null); duplicateProject(p.id) }}>Duplicate</button>
-                                <button className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100" onClick={() => { setMenuFor(null); archiveProject(p) }}>Archive</button>
-                              </div>
-                            )}
-                          </div>
-                        )}
+                      <td className="px-4 py-2 border-b">{p.updated_at ? new Date(p.updated_at).toLocaleString() : '-'}</td>
+                      <td className="px-4 py-2 border-b text-right">
+                        <button
+                          className="text-blue-600 hover:underline text-sm"
+                          onClick={() => toggleArchive(p)}
+                        >
+                          Unarchive
+                        </button>
                       </td>
                     </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          )}
-        </div>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )}
       </div>
       {viewId && (
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-0 sm:p-6">
