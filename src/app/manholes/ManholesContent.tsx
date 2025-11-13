@@ -1,6 +1,6 @@
-﻿'use client'
+'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useView } from '@/app/components/ViewContext'
 import { supabase } from '@/lib/supabaseClient'
 import { deriveRoleInfo, canAdminister, canManageEverything } from '@/lib/roles'
@@ -8,6 +8,50 @@ import { deriveRoleInfo, canAdminister, canManageEverything } from '@/lib/roles'
 type Project = { id: string; name: string | null; project_number: string | null }
 type Manhole = { id: string; identifier: string | null; project_id: string }
 type SortKey = 'project_number' | 'project_name' | 'identifier'
+
+const CSV_COLUMNS = [
+  { key: 'project_number', label: 'Project No.' },
+  { key: 'project_name', label: 'Project Name' },
+  { key: 'project_client', label: 'Client' },
+  { key: 'identifier', label: 'Manhole' },
+  { key: 'location_desc', label: 'Location' },
+  { key: 'survey_date', label: 'Survey Date' },
+  { key: 'measuring_tool', label: 'Measuring Tool' },
+  { key: 'measuring_offset_mm', label: 'Offset (mm)' },
+  { key: 'latitude', label: 'Latitude' },
+  { key: 'longitude', label: 'Longitude' },
+  { key: 'easting', label: 'Easting' },
+  { key: 'northing', label: 'Northing' },
+  { key: 'cover_level', label: 'Cover Level' },
+  { key: 'cover_shape', label: 'Cover Shape' },
+  { key: 'cover_material', label: 'Cover Material' },
+  { key: 'cover_duty', label: 'Cover Duty' },
+  { key: 'cover_condition', label: 'Cover Condition' },
+  { key: 'chamber_shape', label: 'Chamber Shape' },
+  { key: 'chamber_material', label: 'Chamber Material' },
+  { key: 'incoming_pipes', label: 'Incoming Pipes' },
+  { key: 'outgoing_pipes', label: 'Outgoing Pipes' },
+] as const
+
+function escapeCsvValue(value: unknown) {
+  if (value === null || value === undefined) return ''
+  const raw =
+    typeof value === 'object' ? JSON.stringify(value) : String(value).replace(/\r?\n/g, ' ').trim()
+  if (raw === '') return ''
+  return /[",]/.test(raw) ? `"${raw.replace(/"/g, '""')}"` : raw
+}
+
+function buildCsvContent(records: any[]) {
+  const header = CSV_COLUMNS.map((col) => col.label).join(',')
+  const lines = records.map((record) =>
+    CSV_COLUMNS.map((col) => escapeCsvValue((record as any)[col.key])).join(',')
+  )
+  return [header, ...lines].join('\r\n')
+}
+
+function safeFileSegment(value: string) {
+  return value.replace(/[^a-z0-9_-]+/gi, '_') || 'manhole'
+}
 
 export default function ManholesContent() {
   const { setView } = useView()
@@ -33,6 +77,8 @@ export default function ManholesContent() {
   const [exportProject, setExportProject] = useState('')
   const [exportSelectAll, setExportSelectAll] = useState(true)
   const [exportSelected, setExportSelected] = useState<string[]>([])
+  const [exportFormat, setExportFormat] = useState<'pdf' | 'csv' | 'jpeg'>('pdf')
+  const [exportBusy, setExportBusy] = useState(false)
 
   useEffect(() => {
     async function loadData() {
@@ -157,13 +203,49 @@ export default function ManholesContent() {
     setExportProject('')
     setExportSelectAll(true)
     setExportSelected(rows.map((r) => r.id))
+    setExportFormat('pdf')
     setExportOpen(true)
   }
 
+  const fetchDetailedManholes = useCallback(
+    async (ids: string[]) => {
+      if (!ids.length) return []
+      const { data, error } = await supabase
+        .from('manholes')
+        .select('*')
+        .in('id', ids)
+      if (error) throw new Error(error.message)
+      const records = (data as any[]) || []
+      const orderMap = new Map(ids.map((id, index) => [id, index]))
+      return records
+        .map((record) => {
+          const info = projectById.get(record.project_id) || { name: '', project_number: '', client: '' }
+          return {
+            ...record,
+            project_name: info.name,
+            project_number: info.project_number,
+            project_client: info.client,
+          }
+        })
+        .sort((a, b) => {
+          const aIdx = orderMap.get(a.id) ?? 0
+          const bIdx = orderMap.get(b.id) ?? 0
+          return aIdx - bIdx
+        })
+    },
+    [projectById]
+  )
+
   function toggleExportSelection(id: string) {
-    setExportSelected((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
-    )
+    setExportSelected((prev) => {
+      if (prev.includes(id)) {
+        setExportSelectAll(false)
+        return prev.filter((item) => item !== id)
+      }
+      const next = [...prev, id]
+      if (next.length === exportCandidates.length) setExportSelectAll(true)
+      return next
+    })
   }
 
   function toggleSort(key: SortKey) {
@@ -174,10 +256,91 @@ export default function ManholesContent() {
     }
   }
 
+  function downloadCsvFile(records: any[]) {
+    const csv = buildCsvContent(records)
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `manholes-${new Date().toISOString().replace(/[:.]/g, '-')}.csv`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }
+
+  function downloadJpegFiles(records: any[]) {
+    const width = 1200
+    const height = 800
+    records.forEach((record: any) => {
+      const canvas = document.createElement('canvas')
+      canvas.width = width
+      canvas.height = height
+      const ctx = canvas.getContext('2d')
+      if (!ctx) return
+      ctx.fillStyle = '#ffffff'
+      ctx.fillRect(0, 0, width, height)
+      ctx.fillStyle = '#111827'
+      ctx.font = 'bold 32px Arial'
+      ctx.fillText('Manhole Summary', 40, 60)
+      ctx.font = '20px Arial'
+      const lines = [
+        `Project: ${record.project_name || '-'}`,
+        `Project No.: ${record.project_number || '-'}`,
+        `Client: ${record.project_client || '-'}`,
+        `Manhole: ${record.identifier || '-'}`,
+        `Location: ${record.location_desc || '-'}`,
+        `Survey Date: ${record.survey_date || '-'}`,
+        `Cover: ${record.cover_shape || '-'} / ${record.cover_material || '-'}`,
+        `Cover Duty: ${record.cover_duty || '-'}`,
+        `Cover Condition: ${record.cover_condition || '-'}`,
+        `Chamber: ${record.chamber_shape || '-'} / ${record.chamber_material || '-'}`,
+      ]
+      lines.forEach((text, index) => {
+        ctx.fillText(text, 40, 120 + index * 32)
+      })
+      ctx.font = '16px Arial'
+      ctx.fillText(`Generated ${new Date().toLocaleString()}`, 40, height - 40)
+      const url = canvas.toDataURL('image/jpeg', 0.92)
+      const link = document.createElement('a')
+      link.href = url
+      const safeName = safeFileSegment(String(record.identifier || record.id || 'manhole'))
+      link.download = `${safeName}.jpg`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+    })
+  }
+
+  async function handleExportSelected() {
+    if (exportSelected.length === 0 || exportBusy) return
+    if (exportFormat === 'pdf') {
+      exportSelected.forEach((id) => window.open(`/manholes/${id}/export`, '_blank', 'noopener'))
+      setExportOpen(false)
+      return
+    }
+    setExportBusy(true)
+    try {
+      const records = await fetchDetailedManholes(exportSelected)
+      if (!records.length) throw new Error('No data found for the selected manholes.')
+      if (exportFormat === 'csv') {
+        downloadCsvFile(records)
+      } else {
+        downloadJpegFiles(records)
+      }
+      setExportOpen(false)
+    } catch (err) {
+      const messageText = err instanceof Error ? err.message : String(err)
+      setMessage('Export failed: ' + messageText)
+    } finally {
+      setExportBusy(false)
+    }
+  }
+
   const SortButton = ({ label, keyName }: { label: string; keyName: SortKey }) => (
     <button onClick={() => toggleSort(keyName)} className="font-medium hover:underline inline-flex items-center">
       {label}
-      <span className="ml-2 text-xs">{sortKey === keyName ? (sortDir === 'asc' ? 'Ã¢â€ â€˜' : 'Ã¢â€ â€œ') : ''}</span>
+      <span className="ml-2 text-xs">{sortKey === keyName ? (sortDir === 'asc' ? '^' : 'v') : ''}</span>
     </button>
   )
 
@@ -339,6 +502,31 @@ export default function ManholesContent() {
                 </div>
               )}
 
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Export format</p>
+                <div className="flex flex-wrap gap-4 text-sm">
+                  {[
+                    { value: 'pdf', label: 'PDF (print sheet)' },
+                    { value: 'csv', label: 'CSV (spreadsheet)' },
+                    { value: 'jpeg', label: 'Image (JPEG)' },
+                  ].map((option) => (
+                    <label key={option.value} className="inline-flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="export-format"
+                        value={option.value}
+                        checked={exportFormat === option.value}
+                        onChange={() => setExportFormat(option.value as 'pdf' | 'csv' | 'jpeg')}
+                      />
+                      <span>{option.label}</span>
+                    </label>
+                  ))}
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  CSV downloads a single file. JPEG creates individual summary cards. PDF opens the detailed sheet in new tabs.
+                </p>
+              </div>
+
               <div className="flex justify-end gap-2">
                 <button
                   className="px-3 py-1.5 rounded border border-gray-300 hover:bg-gray-50"
@@ -351,13 +539,10 @@ export default function ManholesContent() {
                 </button>
                 <button
                   className="px-4 py-1.5 rounded bg-blue-600 text-white hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                  disabled={exportSelected.length === 0}
-                  onClick={() => {
-                    exportSelected.forEach((id) => window.open(`/manholes/${id}/export`, '_blank', 'noopener'));
-                    setExportOpen(false);
-                  }}
+                  disabled={exportSelected.length === 0 || exportBusy}
+                  onClick={handleExportSelected}
                 >
-                  Export Selected ({exportSelected.length})
+                  {exportBusy ? 'Preparing…' : `Export Selected (${exportSelected.length})`}
                 </button>
               </div>
             </div>
