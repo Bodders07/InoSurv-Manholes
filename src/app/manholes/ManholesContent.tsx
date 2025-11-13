@@ -1,13 +1,30 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useView } from '@/app/components/ViewContext'
 import { supabase } from '@/lib/supabaseClient'
 import { deriveRoleInfo, canAdminister, canManageEverything } from '@/lib/roles'
 
-type Project = { id: string; name: string | null; project_number: string | null }
+type Project = { id: string; name: string | null; project_number: string | null; client: string | null }
 type Manhole = { id: string; identifier: string | null; project_id: string }
 type SortKey = 'project_number' | 'project_name' | 'identifier'
+type DetailedManholeRecord = Record<string, unknown> & {
+  id: string
+  project_id: string
+  identifier: string | null
+  project_name: string | null
+  project_number: string | null
+  project_client: string | null
+}
+
+type EditModalMessage = {
+  type: 'close-edit-modal'
+  refresh?: boolean
+}
+
+function isEditModalMessage(payload: unknown): payload is EditModalMessage {
+  if (!payload || typeof payload !== 'object') return false
+  return (payload as { type?: string }).type === 'close-edit-modal'
+}
 
 const CSV_COLUMNS = [
   { key: 'project_number', label: 'Project No.' },
@@ -41,10 +58,10 @@ function escapeCsvValue(value: unknown) {
   return /[",]/.test(raw) ? `"${raw.replace(/"/g, '""')}"` : raw
 }
 
-function buildCsvContent(records: any[]) {
+function buildCsvContent(records: Record<string, unknown>[]) {
   const header = CSV_COLUMNS.map((col) => col.label).join(',')
   const lines = records.map((record) =>
-    CSV_COLUMNS.map((col) => escapeCsvValue((record as any)[col.key])).join(',')
+    CSV_COLUMNS.map((col) => escapeCsvValue(record[col.key])).join(',')
   )
   return [header, ...lines].join('\r\n')
 }
@@ -54,7 +71,6 @@ function safeFileSegment(value: string) {
 }
 
 export default function ManholesContent() {
-  const { setView } = useView()
   const [editId, setEditId] = useState<string | null>(null)
   const [editOpen, setEditOpen] = useState(false)
   const [message, setMessage] = useState('')
@@ -79,6 +95,7 @@ export default function ManholesContent() {
   const [exportSelected, setExportSelected] = useState<string[]>([])
   const [exportFormat, setExportFormat] = useState<'pdf' | 'csv' | 'jpeg'>('pdf')
   const [exportBusy, setExportBusy] = useState(false)
+  const [exportSearch, setExportSearch] = useState('')
 
   useEffect(() => {
     async function loadData() {
@@ -89,7 +106,7 @@ export default function ManholesContent() {
         supabase.from('manholes').select('id, identifier, project_id'),
       ])
       if (projRes.error) setMessage('Error loading projects: ' + projRes.error.message)
-      else setProjects(projRes.data || [])
+      else setProjects((projRes.data as Project[]) || [])
       if (mhRes.error) setMessage((prev) => prev || 'Error loading manholes: ' + mhRes.error!.message)
       else setManholes(mhRes.data || [])
       setLoading(false)
@@ -117,18 +134,17 @@ export default function ManholesContent() {
       supabase.from('projects').select('id, name, project_number, client'),
       supabase.from('manholes').select('id, identifier, project_id'),
     ])
-    if (!projRes.error && projRes.data) setProjects(projRes.data)
+    if (!projRes.error && projRes.data) setProjects(projRes.data as Project[])
     if (!mhRes.error && mhRes.data) setManholes(mhRes.data)
     setLoading(false)
   }
 
   useEffect(() => {
     function onMsg(ev: MessageEvent) {
-      if (!ev || typeof ev.data !== 'object') return
-      const { type, refresh } = ev.data as any
-      if (type === 'close-edit-modal') {
+      if (!ev) return
+      if (isEditModalMessage(ev.data)) {
         setEditOpen(false)
-        if (refresh) reloadLists()
+        if (ev.data.refresh) reloadLists()
       }
     }
     window.addEventListener('message', onMsg)
@@ -145,8 +161,14 @@ export default function ManholesContent() {
   }, [editOpen])
 
   const projectById = useMemo(() => {
-    const map = new Map<string, { name: string; project_number: string; client?: string | null }>()
-    projects.forEach((p) => map.set(p.id, { name: p.name || '', project_number: p.project_number || '', client: (p as any).client || '' }))
+    const map = new Map<string, { name: string; project_number: string; client: string }>()
+    projects.forEach((p) =>
+      map.set(p.id, {
+        name: p.name || '',
+        project_number: p.project_number || '',
+        client: p.client || '',
+      })
+    )
     return map
   }, [projects])
 
@@ -158,7 +180,7 @@ export default function ManholesContent() {
         identifier: m.identifier || '',
         project_name: p.name,
         project_number: p.project_number,
-        project_client: (p as any).client || '',
+        project_client: p.client || '',
       }
     })
     if (filterProjectNo) data = data.filter((r) => r.project_number === filterProjectNo)
@@ -185,8 +207,16 @@ export default function ManholesContent() {
   }, [manholes, projectById, sortKey, sortDir, filterProjectNo, filterClient, filterProjectName, query])
 
   const exportCandidates = useMemo(() => {
-    return rows.filter((r) => !exportProject || r.project_number === exportProject)
-  }, [rows, exportProject])
+    const list = rows.filter((r) => !exportProject || r.project_number === exportProject)
+    if (!exportSearch.trim()) return list
+    const q = exportSearch.toLowerCase()
+    return list.filter(
+      (r) =>
+        (r.identifier || '').toLowerCase().includes(q) ||
+        (r.project_number || '').toLowerCase().includes(q) ||
+        (r.project_name || '').toLowerCase().includes(q)
+    )
+  }, [rows, exportProject, exportSearch])
 
   useEffect(() => {
     if (!exportOpen) return
@@ -215,7 +245,7 @@ export default function ManholesContent() {
         .select('*')
         .in('id', ids)
       if (error) throw new Error(error.message)
-      const records = (data as any[]) || []
+      const records = (data as DetailedManholeRecord[]) || []
       const orderMap = new Map(ids.map((id, index) => [id, index]))
       return records
         .map((record) => {
@@ -256,7 +286,7 @@ export default function ManholesContent() {
     }
   }
 
-  function downloadCsvFile(records: any[]) {
+  function downloadCsvFile(records: DetailedManholeRecord[]) {
     const csv = buildCsvContent(records)
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
@@ -269,10 +299,10 @@ export default function ManholesContent() {
     URL.revokeObjectURL(url)
   }
 
-  function downloadJpegFiles(records: any[]) {
+  function downloadJpegFiles(records: DetailedManholeRecord[]) {
     const width = 1200
     const height = 800
-    records.forEach((record: any) => {
+    records.forEach((record) => {
       const canvas = document.createElement('canvas')
       canvas.width = width
       canvas.height = height
@@ -423,7 +453,7 @@ export default function ManholesContent() {
                 onChange={(e) => setFilterClient(e.target.value)}
               >
                 <option value="">All clients</option>
-                {[...new Set(projects.map(p => (p as any).client || '').filter(Boolean))]
+                {[...new Set(projects.map(p => p.client || '').filter(Boolean))]
                   .sort((a,b)=>a.localeCompare(b))
                   .map(c => (<option key={c} value={c}>{c}</option>))}
               </select>
@@ -476,10 +506,28 @@ export default function ManholesContent() {
                       <option key={option} value={option}>{option}</option>
                     ))}
                   </select>
+                  <label className="mt-2 inline-flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={exportSelectAll}
+                      onChange={(e) => {
+                        const checked = e.target.checked
+                        setExportSelectAll(checked)
+                        if (checked) setExportSelected(exportCandidates.map((row) => row.id))
+                      }}
+                    />
+                    Select all manholes in this list
+                  </label>
                 </div>
-                <div className="flex items-center gap-2 mt-6 md:mt-auto">
-                  <input id="select-all" type="checkbox" checked={exportSelectAll} onChange={(e) => { const checked = e.target.checked; setExportSelectAll(checked); if (checked) { setExportSelected(exportCandidates.map((row) => row.id)) } }} />
-                  <label htmlFor="select-all" className="text-sm">Select all manholes in this list</label>
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-medium">Search</label>
+                  <input
+                    type="text"
+                    value={exportSearch}
+                    onChange={(e) => setExportSearch(e.target.value)}
+                    placeholder="Search manholes..."
+                    className="w-full border rounded p-2 bg-white dark:bg-neutral-800"
+                  />
                 </div>
               </div>
 
