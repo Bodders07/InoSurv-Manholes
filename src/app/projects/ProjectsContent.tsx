@@ -136,13 +136,24 @@ const clientOptions = useMemo(() => {
   }, [])
 
   useEffect(() => {
-    refreshProjects()
-    detectRoles()
+    const id = requestAnimationFrame(() => {
+      refreshProjects()
+    })
+    return () => cancelAnimationFrame(id)
+  }, [refreshProjects])
+
+  useEffect(() => {
+    const id = requestAnimationFrame(() => {
+      detectRoles()
+    })
     const { data: listener } = supabase.auth.onAuthStateChange(async () => {
       await detectRoles()
     })
-    return () => listener.subscription.unsubscribe()
-  }, [detectRoles, refreshProjects])
+    return () => {
+      cancelAnimationFrame(id)
+      listener.subscription.unsubscribe()
+    }
+  }, [detectRoles])
 
   useEffect(() => {
     function onMsg(e: MessageEvent) {
@@ -207,15 +218,6 @@ const clientOptions = useMemo(() => {
       await refreshProjects()
       setShowCreate(false)
     }
-  }
-
-  async function refreshProjects() {
-    const { data, error } = await supabase
-      .from('projects')
-      .select('id, name, client, project_number, created_at, updated_at')
-      .order('project_number', { ascending: true })
-    if (error) return
-    setProjects(data || [])
   }
 
   async function duplicateProject(id: string) {
