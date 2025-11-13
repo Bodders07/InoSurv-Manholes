@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { jsPDF } from 'jspdf'
 import { supabase } from '@/lib/supabaseClient'
 import { deriveRoleInfo, canAdminister, canManageEverything } from '@/lib/roles'
+import type { SketchState } from '@/app/components/sketch/ChamberSketch'
 
 type Project = { id: string; name: string | null; project_number: string | null; client: string | null }
 type Manhole = { id: string; identifier: string | null; project_id: string }
@@ -15,11 +16,49 @@ type DetailedManholeRecord = Record<string, unknown> & {
   project_name: string | null
   project_number: string | null
   project_client: string | null
+  location_desc?: string | null
+  survey_date?: string | null
+  measuring_tool?: string | null
+  measuring_offset_mm?: number | null
+  latitude?: number | null
+  longitude?: number | null
+  easting?: number | null
+  northing?: number | null
+  cover_level?: number | null
+  cover_shape?: string | null
+  cover_diameter_mm?: number | null
+  cover_width_mm?: number | null
+  cover_length_mm?: number | null
+  cover_material?: string | null
+  cover_material_other?: string | null
+  cover_condition?: string | null
+  cover_duty?: string | null
+  chamber_shape?: string | null
+  chamber_diameter_mm?: number | null
+  chamber_width_mm?: number | null
+  chamber_length_mm?: number | null
+  chamber_material?: string | null
+  chamber_material_other?: string | null
+  service_type?: string | null
+  type?: string | null
+  type_other?: string | null
+  cover_lifted?: string | null
+  incoming_pipes?: PipeRecord[] | null
+  outgoing_pipes?: PipeRecord[] | null
+  internal_photo_url?: string | null
+  external_photo_url?: string | null
+  sketch_json?: SketchState | null
 }
 type PipeRecord = {
   label?: string | null
+  shape?: string | null
   func?: string | null
   material?: string | null
+  width_mm?: string | number | null
+  height_mm?: string | number | null
+  diameter_mm?: string | number | null
+  invert_depth_m?: string | number | null
+  notes?: string | null
 }
 
 type EditModalMessage = {
@@ -32,8 +71,142 @@ function isEditModalMessage(payload: unknown): payload is EditModalMessage {
   return (payload as { type?: string }).type === 'close-edit-modal'
 }
 
-function isPipeRecordArray(value: unknown): value is PipeRecord[] {
-  return Array.isArray(value)
+function valueOrDash(value: unknown) {
+  if (value === null || value === undefined || value === '') return '-'
+  return String(value)
+}
+
+function formatPipeSize(pipe?: PipeRecord) {
+  if (!pipe) return '-'
+  if (pipe.diameter_mm) return `${pipe.diameter_mm} mm`
+  if (pipe.width_mm || pipe.height_mm) return `${pipe.width_mm || '-'} x ${pipe.height_mm || '-'}`
+  return '-'
+}
+
+async function fetchImageData(url?: string | null) {
+  if (!url) return null
+  try {
+    const res = await fetch(url)
+    if (!res.ok) return null
+    const blob = await res.blob()
+    const dataUrl = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onloadend = () => resolve(reader.result as string)
+      reader.onerror = reject
+      reader.readAsDataURL(blob)
+    })
+    const header = dataUrl.slice(5, dataUrl.indexOf(';'))
+    const format = header.split('/')[1]?.toUpperCase() === 'PNG' ? 'PNG' : 'JPEG'
+    return { dataUrl, format: format as 'PNG' | 'JPEG' }
+  } catch {
+    return null
+  }
+}
+
+function renderSketchToDataUrl(sketch?: SketchState | null) {
+  if (!sketch) return null
+  const canvas = document.createElement('canvas')
+  canvas.width = 320
+  canvas.height = 320
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return null
+  ctx.fillStyle = '#ffffff'
+  ctx.fillRect(0, 0, canvas.width, canvas.height)
+  ctx.strokeStyle = '#4b5563'
+  ctx.lineWidth = 3
+  const scale = (value?: number) => ((value ?? 250) / 500) * canvas.width
+  const cx = scale(250)
+  const cy = scale(250)
+  const drawChamber = () => {
+    switch (sketch.chamberShape) {
+      case 'Square':
+        ctx.strokeRect(cx - 110, cy - 110, 220, 220)
+        break
+      case 'Rectangle':
+        ctx.strokeRect(cx - 150, cy - 90, 300, 180)
+        break
+      case 'Hexagon': {
+        ctx.beginPath()
+        const points = [
+          [cx, cy - 120],
+          [cx + 105, cy - 60],
+          [cx + 105, cy + 60],
+          [cx, cy + 120],
+          [cx - 105, cy + 60],
+          [cx - 105, cy - 60],
+        ]
+        points.forEach(([x, y], idx) => {
+          if (idx === 0) ctx.moveTo(x, y)
+          else ctx.lineTo(x, y)
+        })
+        ctx.closePath()
+        ctx.stroke()
+        break
+      }
+      default:
+        ctx.beginPath()
+        ctx.arc(cx, cy, 115, 0, Math.PI * 2)
+        ctx.stroke()
+        break
+    }
+  }
+  const drawCover = () => {
+    ctx.setLineDash([6, 4])
+    switch (sketch.coverShape) {
+      case 'Square':
+        ctx.strokeRect(cx - 80, cy - 80, 160, 160)
+        break
+      case 'Rectangle':
+        ctx.strokeRect(cx - 80, cy - 60, 160, 120)
+        break
+      case 'Triangle':
+        ctx.beginPath()
+        ctx.moveTo(cx, cy - 80)
+        ctx.lineTo(cx + 80, cy + 80)
+        ctx.lineTo(cx - 80, cy + 80)
+        ctx.closePath()
+        ctx.stroke()
+        break
+      default:
+        ctx.beginPath()
+        ctx.arc(cx, cy, 80, 0, Math.PI * 2)
+        ctx.stroke()
+    }
+    ctx.setLineDash([])
+  }
+  drawChamber()
+  drawCover()
+  const drawArrow = (sx: number, sy: number, ex: number, ey: number, color: string) => {
+    ctx.strokeStyle = color
+    ctx.fillStyle = color
+    ctx.beginPath()
+    ctx.moveTo(sx, sy)
+    ctx.lineTo(ex, ey)
+    ctx.stroke()
+    const angle = Math.atan2(ey - sy, ex - sx)
+    const len = 12
+    ctx.beginPath()
+    ctx.moveTo(ex, ey)
+    ctx.lineTo(ex - len * Math.cos(angle - Math.PI / 6), ey - len * Math.sin(angle - Math.PI / 6))
+    ctx.lineTo(ex - len * Math.cos(angle + Math.PI / 6), ey - len * Math.sin(angle + Math.PI / 6))
+    ctx.closePath()
+    ctx.fill()
+  }
+  ctx.font = '16px Arial'
+  ctx.fillStyle = '#111827'
+  sketch.items.forEach((item) => {
+    if (item.type === 'label') {
+      if (item.label) ctx.fillText(item.label, scale(item.x), scale(item.y))
+    } else {
+      const sx = scale(item.sx)
+      const sy = scale(item.sy)
+      const ex = scale(item.ex)
+      const ey = scale(item.ey)
+      drawArrow(sx, sy, ex, ey, item.type === 'out' ? '#b91c1c' : '#2563eb')
+      if (item.label) ctx.fillText(item.label, ex + 4, ey + 4)
+    }
+  })
+  return canvas.toDataURL('image/png')
 }
 
 const CSV_COLUMNS = [
@@ -352,48 +525,189 @@ export default function ManholesContent() {
     })
   }
 
-  function downloadPdfFiles(records: DetailedManholeRecord[]) {
-    const lineHeight = 8
-    const marginTop = 20
-    const startX = 14
-    const addLine = (doc: jsPDF, text: string, cursor: { y: number }) => {
-      doc.text(text, startX, cursor.y)
-      cursor.y += lineHeight
-      if (cursor.y > doc.internal.pageSize.getHeight() - marginTop) {
-        doc.addPage()
-        cursor.y = marginTop
-      }
+  async function downloadPdfFiles(records: DetailedManholeRecord[]) {
+    const summarizePipes = (pipes?: PipeRecord[] | null) => {
+      if (!pipes || !pipes.length) return []
+      return pipes.slice(0, 6).map((pipe) => ({
+        label: pipe.label || '',
+        size: formatPipeSize(pipe),
+        shape: pipe.shape || '-',
+        material: pipe.material || '-',
+        func: pipe.func || '-',
+        depth: valueOrDash(pipe.invert_depth_m),
+        invert: valueOrDash(pipe.notes),
+      }))
     }
-    const summarizePipes = (pipes?: unknown) => {
-      if (!pipes || !isPipeRecordArray(pipes) || pipes.length === 0) return 'None'
-      return pipes
-        .map((pipe) => `${pipe.label || 'Pipe'}: ${pipe.func || '-'} / ${pipe.material || '-'}`)
-        .join('; ')
-    }
-    records.forEach((record) => {
-      const doc = new jsPDF()
-      const cursor = { y: marginTop }
-      doc.setFontSize(16)
-      addLine(doc, `Manhole: ${record.identifier || '-'}`, cursor)
-      doc.setFontSize(12)
-      addLine(doc, `Project: ${record.project_name || '-'} (${record.project_number || '-'})`, cursor)
-      addLine(doc, `Client: ${record.project_client || '-'}`, cursor)
-      addLine(doc, `Location: ${record.location_desc || '-'}`, cursor)
-      addLine(doc, `Survey Date: ${record.survey_date || '-'}`, cursor)
-      addLine(doc, `Coordinates: ${record.latitude || '-'}, ${record.longitude || '-'}`, cursor)
-      addLine(doc, `Cover Level: ${record.cover_level || '-'}`, cursor)
-      addLine(doc, `Cover: ${record.cover_shape || '-'} / ${record.cover_material || '-'}`, cursor)
-      addLine(doc, `Cover Duty: ${record.cover_duty || '-'} (${record.cover_condition || '-'})`, cursor)
-      addLine(doc, `Chamber: ${record.chamber_shape || '-'} / ${record.chamber_material || '-'}`, cursor)
-      addLine(doc, `Service: ${record.service_type || '-'}`, cursor)
-      addLine(doc, `Type: ${record.type_other || record.type || '-'}`, cursor)
-      addLine(doc, `Incoming: ${summarizePipes(record.incoming_pipes)}`, cursor)
-      addLine(doc, `Outgoing: ${summarizePipes(record.outgoing_pipes)}`, cursor)
+    for (const record of records) {
+      const doc = new jsPDF({ unit: 'mm', format: 'a4' })
+      const pageWidth = doc.internal.pageSize.getWidth()
+      const pageHeight = doc.internal.pageSize.getHeight()
+      const margin = 10
+      const innerWidth = pageWidth - margin * 2
+      const startX = margin
+      doc.setDrawColor(60)
+      doc.rect(startX, margin, innerWidth, pageHeight - margin * 2)
+      doc.setFontSize(18)
+      doc.text('InoRail', pageWidth / 2, margin + 8, { align: 'center' })
       doc.setFontSize(10)
-      addLine(doc, `Generated ${new Date().toLocaleString()}`, cursor)
+      const jobBoxY = margin + 12
+      const jobBoxWidth = innerWidth - 4
+      const jobBoxHeight = 20
+      const jobBoxX = startX + 2
+      doc.rect(jobBoxX, jobBoxY, jobBoxWidth, jobBoxHeight)
+      const idBoxWidth = 55
+      doc.line(jobBoxX + jobBoxWidth - idBoxWidth, jobBoxY, jobBoxX + jobBoxWidth - idBoxWidth, jobBoxY + jobBoxHeight)
+      doc.text('Job No.:', jobBoxX + 3, jobBoxY + 6)
+      doc.text(valueOrDash(record.project_number), jobBoxX + 25, jobBoxY + 6)
+      doc.text('Project:', jobBoxX + 3, jobBoxY + 12)
+      doc.text(valueOrDash(record.project_name), jobBoxX + 25, jobBoxY + 12)
+      doc.text('Location:', jobBoxX + 3, jobBoxY + 18)
+      doc.text(valueOrDash(record.location_desc), jobBoxX + 25, jobBoxY + 18)
+      doc.text('Manhole ID', jobBoxX + jobBoxWidth - idBoxWidth + 3, jobBoxY + 6)
+      doc.text(valueOrDash(record.identifier), jobBoxX + jobBoxWidth - idBoxWidth + 3, jobBoxY + 12)
+
+      const sectionY = jobBoxY + jobBoxHeight + 8
+      const columnWidth = (jobBoxWidth - 4) / 2
+      const drawSection = (title: string, rows: { label: string; value: string }[], x: number, y: number) => {
+        const height = rows.length * 6 + 8
+        doc.rect(x, y, columnWidth, height)
+        doc.setFontSize(11)
+        doc.text(title, x + columnWidth / 2, y - 1, { align: 'center' })
+        doc.setFontSize(9)
+        rows.forEach((row, idx) => {
+          doc.text(`${row.label} ${row.value}`, x + 3, y + 6 + idx * 6)
+        })
+        return height
+      }
+      const coverRows = [
+        { label: 'Service Type:', value: valueOrDash(record.service_type) },
+        { label: 'Cover Material:', value: valueOrDash(record.cover_material || record.cover_material_other) },
+        { label: 'Cover Shape:', value: valueOrDash(record.cover_shape) },
+        { label: 'Cover Size:', value: valueOrDash(record.cover_diameter_mm || `${record.cover_width_mm || ''}x${record.cover_length_mm || ''}`) },
+        { label: 'Cover Cond:', value: valueOrDash(record.cover_condition) },
+        { label: 'Cover Duty:', value: valueOrDash(record.cover_duty) },
+      ]
+      const generalRows = [
+        { label: 'Survey Date:', value: valueOrDash(record.survey_date) },
+        { label: 'Tool:', value: valueOrDash(record.measuring_tool) },
+        { label: 'Easting/Northing:', value: `${valueOrDash(record.easting)} / ${valueOrDash(record.northing)}` },
+        { label: 'Lat / Lon:', value: `${valueOrDash(record.latitude)} / ${valueOrDash(record.longitude)}` },
+        { label: 'Cover Level:', value: valueOrDash(record.cover_level) },
+        { label: 'Cover Lifted:', value: valueOrDash(record.cover_lifted) },
+      ]
+      const coverHeight = drawSection('Cover Details', coverRows, jobBoxX, sectionY)
+      const generalHeight = drawSection('General Details', generalRows, jobBoxX + columnWidth + 4, sectionY)
+      let currentY = sectionY + Math.max(coverHeight, generalHeight) + 6
+      const chamberRows = [
+        { label: 'Shape:', value: valueOrDash(record.chamber_shape) },
+        { label: 'Dimensions:', value: valueOrDash(record.chamber_diameter_mm || `${record.chamber_width_mm || ''}x${record.chamber_length_mm || ''}`) },
+        { label: 'Material:', value: valueOrDash(record.chamber_material || record.chamber_material_other) },
+        { label: 'Condition:', value: valueOrDash(record.cover_condition) },
+      ]
+      doc.rect(jobBoxX, currentY, jobBoxWidth, chamberRows.length * 6 + 8)
+      doc.setFontSize(11)
+      doc.text('Chamber Details', jobBoxX + jobBoxWidth / 2, currentY - 1, { align: 'center' })
+      doc.setFontSize(9)
+      chamberRows.forEach((row, idx) => {
+        doc.text(`${row.label} ${row.value}`, jobBoxX + 3, currentY + 6 + idx * 6)
+      })
+      currentY += chamberRows.length * 6 + 12
+
+      type PipeRow = {
+        label: string
+        size: string
+        shape: string
+        material: string
+        func: string
+        depth: string
+        invert: string
+      }
+      const drawPipeTable = (title: string, entries: PipeRow[], y: number, rows = 6) => {
+        const cols = [
+          { label: 'Label', width: 12 },
+          { label: 'Size', width: 25 },
+          { label: 'Shape', width: 22 },
+          { label: 'Material', width: 28 },
+          { label: 'Function', width: 30 },
+          { label: 'Depth', width: 24 },
+          { label: 'Invert', width: 33 },
+        ]
+        doc.setFontSize(11)
+        doc.text(title, jobBoxX + jobBoxWidth / 2, y - 2, { align: 'center' })
+        const headerHeight = 7
+        doc.setFontSize(9)
+        let cursorX = jobBoxX
+        cols.forEach((col) => {
+          doc.rect(cursorX, y, col.width, headerHeight)
+          doc.text(col.label, cursorX + 2, y + 5)
+          cursorX += col.width
+        })
+        let rowY = y + headerHeight
+        for (let i = 0; i < rows; i++) {
+          const row = entries[i]
+          cursorX = jobBoxX
+          cols.forEach((col, idx) => {
+            doc.rect(cursorX, rowY, col.width, headerHeight)
+            if (row) {
+              const text =
+                idx === 0 ? row.label || '' :
+                idx === 1 ? row.size :
+                idx === 2 ? row.shape :
+                idx === 3 ? row.material :
+                idx === 4 ? row.func :
+                idx === 5 ? row.depth :
+                row.invert
+              doc.text(text || '-', cursorX + 2, rowY + 5)
+            }
+            cursorX += col.width
+          })
+          rowY += headerHeight
+        }
+        return rowY
+      }
+      currentY = drawPipeTable('Incoming Pipes', summarizePipes(record.incoming_pipes), currentY + 4, 6) + 6
+      currentY = drawPipeTable('Outgoing Pipes', summarizePipes(record.outgoing_pipes), currentY, 3) + 6
+
+      const bottomHeight = 60
+      const boxWidth = (jobBoxWidth - 8) / 3
+      const boxY = Math.min(currentY, pageHeight - bottomHeight - margin - 5)
+      const boxes = [
+        { label: 'Chamber Sketch', dataUrl: renderSketchToDataUrl(record.sketch_json) },
+        { label: 'Internal Photo', dataUrl: null, url: record.internal_photo_url },
+        { label: 'External Photo', dataUrl: null, url: record.external_photo_url },
+      ]
+      for (let i = 0; i < boxes.length; i++) {
+        const x = jobBoxX + i * (boxWidth + 4)
+        doc.rect(x, boxY, boxWidth, bottomHeight)
+        doc.setFontSize(10)
+        doc.text(boxes[i].label, x + 2, boxY + 6)
+        const targetHeight = bottomHeight - 12
+        const targetWidth = boxWidth - 4
+        let dataUrl = boxes[i].dataUrl
+        let format: 'PNG' | 'JPEG' = 'PNG'
+        if (!dataUrl && boxes[i].url) {
+          const fetched = await fetchImageData(boxes[i].url)
+          if (fetched) {
+            dataUrl = fetched.dataUrl
+            format = fetched.format
+          }
+        }
+        if (dataUrl) {
+          try {
+            doc.addImage(dataUrl, format, x + 2, boxY + 8, targetWidth, targetHeight, undefined, 'FAST')
+          } catch {
+            doc.text('Image unavailable', x + 2, boxY + 12)
+          }
+        } else {
+          doc.text('No data', x + 2, boxY + 12)
+        }
+      }
+
+      doc.setFontSize(9)
+      doc.text(`Generated ${new Date().toLocaleString()}`, jobBoxX, pageHeight - margin - 2)
       const safeName = safeFileSegment(String(record.identifier || record.id || 'manhole'))
       doc.save(`${safeName}.pdf`)
-    })
+    }
   }
 
   async function handleExportSelected() {
@@ -407,7 +721,7 @@ export default function ManholesContent() {
       } else if (exportFormat === 'jpeg') {
         downloadJpegFiles(records)
       } else {
-        downloadPdfFiles(records)
+        await downloadPdfFiles(records)
       }
       setExportOpen(false)
     } catch (err) {
