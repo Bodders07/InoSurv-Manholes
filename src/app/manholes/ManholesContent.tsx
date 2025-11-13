@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useEffect, useMemo, useState } from 'react'
 import { useView } from '@/app/components/ViewContext'
@@ -136,7 +136,9 @@ export default function ManholesContent() {
       if (av > bv) return 1 * dir
       return 0
     })
-  }, [manholes, projectById, sortKey, sortDir, filterProjectNo, filterClient, filterProjectName, query])\r\n\r\n  const exportCandidates = useMemo(() => {
+  }, [manholes, projectById, sortKey, sortDir, filterProjectNo, filterClient, filterProjectName, query])
+
+  const exportCandidates = useMemo(() => {
     return rows.filter((r) => !exportProject || r.project_number === exportProject)
   }, [rows, exportProject])
 
@@ -151,7 +153,6 @@ export default function ManholesContent() {
     return Array.from(new Set(rows.map((r) => r.project_number).filter(Boolean))) as string[]
   }, [rows])
 
-
   function handleExportOpen() {
     setExportProject('')
     setExportSelectAll(true)
@@ -164,7 +165,8 @@ export default function ManholesContent() {
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
     )
   }
-\r\n  function toggleSort(key: SortKey) {
+
+  function toggleSort(key: SortKey) {
     if (sortKey === key) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
     else {
       setSortKey(key)
