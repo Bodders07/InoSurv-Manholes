@@ -65,9 +65,9 @@ type PipeRow = {
   size: string
   shape: string
   material: string
-  func: string
   depth: string
   invert: string
+  notes: string
 }
 
 
@@ -587,23 +587,23 @@ export default function ManholesContent() {
     })
   }
 
-  const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null, limit = 6) => {
-    if (!pipes || !pipes.length) return []
-    return pipes.slice(0, limit).map((pipe) => ({
-      label: pipe.label || '',
-      size: formatPipeSize(pipe),
-      shape: pipe.shape || '-',
-      material: pipe.material || '-',
-      func: pipe.func || '-',
-      depth: valueOrDash(pipe.invert_depth_m),
-      invert: (() => {
-        if (coverLevel === null || coverLevel === undefined) return '-'
-        const depth = parseFloat(String(pipe.invert_depth_m ?? '').replace(/[^\d.-]/g, ''))
-        if (Number.isNaN(depth)) return '-'
-        return (coverLevel - depth).toFixed(3)
-      })(),
-    }))
-  }
+const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null, limit = 6) => {
+  if (!pipes || !pipes.length) return []
+  return pipes.slice(0, limit).map((pipe) => ({
+    label: pipe.label || '',
+    size: formatPipeSize(pipe),
+    shape: pipe.shape || '-',
+    material: pipe.material || '-',
+    depth: valueOrDash(pipe.invert_depth_m),
+    invert: (() => {
+      if (coverLevel === null || coverLevel === undefined) return '-'
+      const depth = parseFloat(String(pipe.invert_depth_m ?? '').replace(/[^\d.-]/g, ''))
+      if (Number.isNaN(depth)) return '-'
+      return (coverLevel - depth).toFixed(3)
+    })(),
+    notes: pipe.notes || '',
+  }))
+}
 
   async function createPdfDoc(record: DetailedManholeRecord, logo: ImageAsset | null) {
     const doc = new jsPDF({ unit: 'mm', format: 'a4' })
@@ -690,9 +690,9 @@ export default function ManholesContent() {
           { label: 'Size', width: 25 },
           { label: 'Shape', width: 22 },
           { label: 'Material', width: 28 },
-          { label: 'Function', width: 30 },
-          { label: 'Depth', width: 24 },
-          { label: 'Invert', width: 33 },
+          { label: 'Depth', width: 28 },
+          { label: 'Invert', width: 28 },
+          { label: 'Notes', width: 26 },
         ]
         doc.setFontSize(11)
         doc.text(title, jobBoxX + jobBoxWidth / 2, y - 2, { align: 'center' })
@@ -716,9 +716,9 @@ export default function ManholesContent() {
                 idx === 1 ? row.size :
                 idx === 2 ? row.shape :
                 idx === 3 ? row.material :
-                idx === 4 ? row.func :
-                idx === 5 ? row.depth :
-                row.invert
+                idx === 4 ? row.depth :
+                idx === 5 ? row.invert :
+                row.notes
               doc.text(text || '-', cursorX + 2, rowY + 5)
             }
             cursorX += col.width
