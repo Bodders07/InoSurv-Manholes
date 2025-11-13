@@ -42,9 +42,10 @@ export default function ChamberSketch({
   )
   const svgRef = useRef<SVGSVGElement | null>(null)
   const dragging = useRef<{ id: string; handle: 'start' | 'end' | 'label' } | null>(null)
-  const [labelNext, setLabelNext] = useState<'A'|'B'|'C'|'D'|'E'|'F'|'G'|'H'|'I'|'J'|'K'|'L'|'M'|'N'|'O'|'P'|'Q'|'R'|'S'|'T'|'U'|'V'|'W'|'X'|'Y'|'Z'>('A')
-  const [inletNext, setInletNext] = useState<'A'|'B'|'C'|'D'|'E'|'F'|'G'|'H'|'I'|'J'|'K'|'L'|'M'|'N'|'O'|'P'|'Q'|'R'|'S'|'T'|'U'|'V'|'W'|'X'|'Y'|'Z'>('A')
-  const [outletNext, setOutletNext] = useState<'X'|'Y'|'Z'>('X')
+  const [labelNext, setLabelNext] = useState('A')
+  const [inletNext, setInletNext] = useState('A')
+  const [outletNext, setOutletNext] = useState<'X' | 'Y' | 'Z'>('X')
+  const [selectedId, setSelectedId] = useState<string | null>(null)
 
   useEffect(() => {
     onChange?.(state)
@@ -72,18 +73,18 @@ export default function ChamberSketch({
       base.label = labelNext
       // advance A->B->...->Z->A
       const n = bumpLetter(labelNext, 'A', 'Z')
-      setLabelNext(String.fromCharCode(n) as any)
+      setLabelNext(String.fromCharCode(n))
     }
     if (type === 'in') {
       base.label = inletNext
       const n = bumpLetter(inletNext, 'A', 'Z')
-      setInletNext(String.fromCharCode(n) as any)
+      setInletNext(String.fromCharCode(n))
     }
     if (type === 'out') {
       base.label = outletNext
       // advance X->Y->Z->X
-      const n = outletNext === 'X' ? 'Y' : outletNext === 'Y' ? 'Z' : 'X'
-      setOutletNext(n as any)
+      const nextOutlet: 'X' | 'Y' | 'Z' = outletNext === 'X' ? 'Y' : outletNext === 'Y' ? 'Z' : 'X'
+      setOutletNext(nextOutlet)
     }
     setState((s) => ({ ...s, items: [...s.items, base] }))
   }
@@ -96,6 +97,7 @@ export default function ChamberSketch({
   }
 
   function onPointerDown(e: React.PointerEvent, id: string, handle: 'start' | 'end' | 'label') {
+    setSelectedId(id)
     dragging.current = { id, handle }
     ;(e.target as Element).setPointerCapture?.(e.pointerId)
     try { e.preventDefault() } catch {}
@@ -133,6 +135,10 @@ export default function ChamberSketch({
   // Fallback: allow starting drag by tapping near a handle (mobile-friendly)
   function startNearestHandleDrag(e: React.PointerEvent<SVGSVGElement>) {
     if (!svgRef.current) return
+    if (e.target === svgRef.current) {
+      setSelectedId(null)
+    }
+    if (!selectedId) return
     const pt = svgRef.current.createSVGPoint()
     pt.x = e.clientX
     pt.y = e.clientY
@@ -142,7 +148,7 @@ export default function ChamberSketch({
     let best: { id: string; handle: 'start' | 'end' } | null = null
     let bestD = Infinity
     for (const it of state.items) {
-      if (it.type === 'label') continue
+      if (it.type === 'label' || it.id !== selectedId) continue
       const sx = it.sx ?? center.x
       const sy = it.sy ?? center.y
       const ex = it.ex ?? it.x ?? center.x
@@ -297,25 +303,40 @@ export default function ChamberSketch({
               <g key={it.id}>
                 {it.type !== 'label' && (
                   <>
-                    <path d={arrowPath} stroke={color} strokeWidth={2.5} fill="none" markerEnd="url(#arrow)" />
-                    <rect
-                      x={sx - hh}
-                      y={sy - hh}
-                      width={handleSize}
-                      height={handleSize}
-                      fill={color}
-                      onPointerDown={(e) => onPointerDown(e, it.id, 'start')}
-                      style={{ cursor: 'grab' }}
+                    <path
+                      d={arrowPath}
+                      stroke={color}
+                      strokeWidth={2.5}
+                      fill="none"
+                      markerEnd="url(#arrow)"
+                      onPointerDown={(evt) => {
+                        evt.stopPropagation()
+                        setSelectedId(it.id)
+                      }}
+                      style={{ cursor: 'pointer' }}
                     />
-                    <rect
-                      x={ex - hh}
-                      y={ey - hh}
-                      width={handleSize}
-                      height={handleSize}
-                      fill={color}
-                      onPointerDown={(e) => onPointerDown(e, it.id, 'end')}
-                      style={{ cursor: 'grab' }}
-                    />
+                    {selectedId === it.id && (
+                      <>
+                        <rect
+                          x={sx - hh}
+                          y={sy - hh}
+                          width={handleSize}
+                          height={handleSize}
+                          fill={color}
+                          onPointerDown={(e) => onPointerDown(e, it.id, 'start')}
+                          style={{ cursor: 'grab' }}
+                        />
+                        <rect
+                          x={ex - hh}
+                          y={ey - hh}
+                          width={handleSize}
+                          height={handleSize}
+                          fill={color}
+                          onPointerDown={(e) => onPointerDown(e, it.id, 'end')}
+                          style={{ cursor: 'grab' }}
+                        />
+                      </>
+                    )}
                     {/* Labels sit at the handle end (ex,ey) for both types */}
                     {it.label && (
                       <text x={ex + 8} y={ey - 8} fontSize="12" fill={color} fontWeight={600}>{it.label}</text>
