@@ -535,9 +535,9 @@ export default function ManholesContent() {
   }
 
   async function downloadPdfFiles(records: DetailedManholeRecord[]) {
-    const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null) => {
+    const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null, limit = 6) => {
       if (!pipes || !pipes.length) return []
-      return pipes.slice(0, 6).map((pipe) => ({
+      return pipes.slice(0, limit).map((pipe) => ({
         label: pipe.label || '',
         size: formatPipeSize(pipe),
         shape: pipe.shape || '-',
@@ -684,8 +684,10 @@ export default function ManholesContent() {
         }
         return rowY
       }
-      currentY = drawPipeTable('Incoming Pipes', summarizePipes(record.incoming_pipes, record.cover_level as number | null), currentY + 4, 6) + 6
-      currentY = drawPipeTable('Outgoing Pipes', summarizePipes(record.outgoing_pipes, record.cover_level as number | null), currentY, 3) + 6
+      const incomingEntries = summarizePipes(record.incoming_pipes, record.cover_level as number | null, 6)
+      currentY = drawPipeTable('Incoming Pipes', incomingEntries, currentY + 4, Math.max(incomingEntries.length, 1)) + 6
+      const outgoingEntries = summarizePipes(record.outgoing_pipes, record.cover_level as number | null, 2)
+      currentY = drawPipeTable('Outgoing Pipes', outgoingEntries, currentY, Math.max(outgoingEntries.length, 1)) + 6
 
       const bottomHeight = 60
       const boxWidth = (jobBoxWidth - 8) / 3
@@ -714,16 +716,16 @@ export default function ManholesContent() {
         if (dataUrl) {
           try {
             doc.addImage(dataUrl, format, x + 2, boxY + 8, targetWidth, targetHeight, undefined, 'FAST')
-            if (boxes[i].label === 'Chamber Sketch') {
-              const arrowBaseY = boxY + bottomHeight - 6
-              const arrowX = x + 12
-              doc.setFillColor(225, 17, 17)
-              doc.triangle(arrowX, arrowBaseY - 12, arrowX + 6, arrowBaseY, arrowX - 6, arrowBaseY, 'F')
-              doc.setTextColor(17, 24, 39)
-              doc.setFontSize(9)
-              doc.text('N', arrowX, arrowBaseY + 4, { align: 'center' })
-              doc.setTextColor(0, 0, 0)
-            }
+                        if (boxes[i].label === 'Chamber Sketch') {
+                          const arrowBaseY = boxY + bottomHeight - 4
+                          const arrowX = x + 10
+                          doc.setFillColor(225, 17, 17)
+                          doc.triangle(arrowX, arrowBaseY - 8, arrowX + 4, arrowBaseY, arrowX - 4, arrowBaseY, 'F')
+                          doc.setTextColor(17, 24, 39)
+                          doc.setFontSize(7)
+                          doc.text('N', arrowX, arrowBaseY + 3, { align: 'center' })
+                          doc.setTextColor(0, 0, 0)
+                        }
           } catch {
             doc.text('Image unavailable', x + 2, boxY + 12)
           }

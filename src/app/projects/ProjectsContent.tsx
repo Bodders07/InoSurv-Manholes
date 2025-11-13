@@ -33,6 +33,23 @@ type ProjectMinimal = {
   project_number: string | null
 }
 
+const formatDate = (value?: string | null) => {
+  if (!value) return '-'
+  try {
+    return new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'UTC',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    }).format(new Date(value))
+  } catch {
+    return '-'
+  }
+}
+
 function IconBtn({ title, onClick, children }: { title: string; onClick: () => void; children: ReactNode }) {
   return (
     <button title={title} aria-label={title} onClick={onClick} className="p-1.5 rounded hover:bg-gray-200 text-gray-700">
@@ -542,9 +559,8 @@ const clientOptions = useMemo(() => {
                 <tbody>
                   {activeProjects.map((p) => {
                     const isEditing = editingId === p.id
-                    const created = p.created_at ? new Date(p.created_at) : null
-                    const updated = p.updated_at ? new Date(p.updated_at) : null
-                    const dt = (d: Date | null) => (d ? d.toLocaleString() : '-')
+                  const createdText = formatDate(p.created_at)
+                  const updatedText = formatDate(p.updated_at)
                     return (
                       <tr key={p.id} className="hover:bg-gray-50">
                         <td className="px-4 py-2 border-b align-top">{p.project_number || '-'}</td>
@@ -558,8 +574,8 @@ const clientOptions = useMemo(() => {
                             '-'
                           )}
                         </td>
-                        <td className="px-4 py-2 border-b align-top">{dt(created)}</td>
-                        <td className="px-4 py-2 border-b align-top">{dt(updated)}</td>
+                      <td className="px-4 py-2 border-b align-top">{createdText}</td>
+                      <td className="px-4 py-2 border-b align-top">{updatedText}</td>
                         <td className="px-4 py-2 border-b align-top text-right">
                           {isEditing ? (
                             <div className="flex gap-2 justify-end">
@@ -641,7 +657,7 @@ const clientOptions = useMemo(() => {
                           '-'
                         )}
                       </td>
-                      <td className="px-4 py-2 border-b">{p.updated_at ? new Date(p.updated_at).toLocaleString() : '-'}</td>
+                      <td className="px-4 py-2 border-b">{formatDate(p.updated_at)}</td>
                       <td className="px-4 py-2 border-b text-right">
                         <button
                           className="text-blue-600 hover:underline text-sm"
