@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useMemo, useState } from 'react'
 import { useView } from '@/app/components/ViewContext'
@@ -177,7 +177,7 @@ export default function ManholesContent() {
   const SortButton = ({ label, keyName }: { label: string; keyName: SortKey }) => (
     <button onClick={() => toggleSort(keyName)} className="font-medium hover:underline inline-flex items-center">
       {label}
-      <span className="ml-2 text-xs">{sortKey === keyName ? (sortDir === 'asc' ? 'â†‘' : 'â†“') : ''}</span>
+      <span className="ml-2 text-xs">{sortKey === keyName ? (sortDir === 'asc' ? 'Ã¢â€ â€˜' : 'Ã¢â€ â€œ') : ''}</span>
     </button>
   )
 
@@ -367,7 +367,7 @@ export default function ManholesContent() {
       {message && <p className="mb-4 text-red-600">{message}</p>}
 
       {loading ? (
-        <p>Loadingâ€¦</p>
+        <p>Loading...</p>
       ) : rows.length === 0 ? (
         <p className="text-gray-600">No manholes yet. Add your first one.</p>
       ) : (
@@ -402,7 +402,7 @@ export default function ManholesContent() {
                           deletingId === r.id ? 'bg-gray-400 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'
                         }`}
                       >
-                        {deletingId === r.id ? 'Deletingâ€¦' : 'Delete'}
+                        {deletingId === r.id ? 'Deleting...' : 'Delete'}
                       </button>
                     )}
                   </td>
