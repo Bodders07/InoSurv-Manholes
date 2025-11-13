@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, useEffect, useMemo, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import SidebarLayout from '@/app/components/SidebarLayout'
 import { supabase } from '@/lib/supabaseClient'
@@ -15,7 +15,6 @@ interface Project {
 
 type Pipe = {
   label: string
-  func: string
   shape: string
   material: string
   invert_depth_m: string
@@ -36,10 +35,6 @@ const TYPE_OPTIONS = [
 ]
 
 const MEASURING_TOOLS = ['Tape','Staff','Laser Level']
-const PIPE_FUNCTIONS = [
-  'Sewer','Watercourse','Combined','Highway','Gulley','Outlet','Inlet','Overflow','Backdrop','Vent Pipe','Foul Water Pipe',
-  'Surface Water Pipe','Duct','MH','OS','UTT','UTS','RWP','GU','BLD','Post','Empty'
-]
 const PIPE_SHAPES = ['Circular','Egg','Rectangular','Trapezoidal','Square','Brick Arch','Unknown','Other']
 const PIPE_MATERIALS = ['Vitrified Clay','Concrete','Plastic','Asbestos Cement','Cast Iron','Spun Iron','Steel','Brick','Pitch Fibre','Unknown','Other']
 
@@ -51,7 +46,7 @@ function nextLabel(current: string) {
 function AddManholeForm({ standaloneLayout = true }: { standaloneLayout?: boolean }) {
   const params = useSearchParams()
   const [projects, setProjects] = useState<Project[]>([])
-  const [projectId, setProjectId] = useState('')
+  const [projectId, setProjectId] = useState(() => params.get('project') || '')
 
   // Basic fields
   const [identifier, setIdentifier] = useState('')
@@ -76,10 +71,10 @@ function AddManholeForm({ standaloneLayout = true }: { standaloneLayout?: boolea
 
   // Pipes
   const [incoming, setIncoming] = useState<Pipe[]>(() =>
-    ['A'].map(l => ({ label: `Pipe ${l}`, func: '', shape: '', material: '', invert_depth_m: '', width_mm: '', height_mm: '', diameter_mm: '', notes: '' }))
+    ['A'].map(l => ({ label: `Pipe ${l}`, shape: '', material: '', invert_depth_m: '', width_mm: '', height_mm: '', diameter_mm: '', notes: '' }))
   )
   const [outgoing, setOutgoing] = useState<Pipe[]>(() =>
-    ['X'].map(l => ({ label: `Pipe ${l}`, func: '', shape: '', material: '', invert_depth_m: '', width_mm: '', height_mm: '', diameter_mm: '', notes: '' }))
+    ['X'].map(l => ({ label: `Pipe ${l}`, shape: '', material: '', invert_depth_m: '', width_mm: '', height_mm: '', diameter_mm: '', notes: '' }))
   )
 
   const [message, setMessage] = useState('')
@@ -115,9 +110,9 @@ function AddManholeForm({ standaloneLayout = true }: { standaloneLayout?: boolea
   const [chamberMaterial, setChamberMaterial] = useState('')
   const [chamberMaterialOther, setChamberMaterialOther] = useState('')
   // Photos
-  const [internalPhoto, setInternalPhoto] = useState<any | null>(null)
+  const [internalPhoto, setInternalPhoto] = useState<File | null>(null)
   const [internalPreview, setInternalPreview] = useState('')
-  const [externalPhoto, setExternalPhoto] = useState<any | null>(null)
+  const [externalPhoto, setExternalPhoto] = useState<File | null>(null)
   const [externalPreview, setExternalPreview] = useState('')
 
   useEffect(() => {
@@ -128,16 +123,10 @@ function AddManholeForm({ standaloneLayout = true }: { standaloneLayout?: boolea
     fetchProjects()
   }, [])
 
-  // Preselect project via ?project=
-  useEffect(() => {
-    const q = params.get('project')
-    if (q) setProjectId(q)
-  }, [params])
-
   function addIncomingPipe() {
     const last = incoming[incoming.length - 1]?.label || 'Pipe A'
     const next = nextLabel(last.replace('Pipe ', '') || 'A')
-    setIncoming([...incoming, { label: `Pipe ${next}`, func: '', shape: '', material: '', invert_depth_m: '', width_mm: '', height_mm: '', diameter_mm: '', notes: '' }])
+    setIncoming([...incoming, { label: `Pipe ${next}`, shape: '', material: '', invert_depth_m: '', width_mm: '', height_mm: '', diameter_mm: '', notes: '' }])
   }
   function removeIncomingPipe(index: number) {
     if (index === 0) return // keep Pipe A as default
@@ -146,7 +135,7 @@ function AddManholeForm({ standaloneLayout = true }: { standaloneLayout?: boolea
   function addOutgoingPipe() {
     const last = outgoing[outgoing.length - 1]?.label || 'Pipe X'
     const next = nextLabel(last.replace('Pipe ', '') || 'X')
-    setOutgoing([...outgoing, { label: `Pipe ${next}`, func: '', shape: '', material: '', invert_depth_m: '', width_mm: '', height_mm: '', diameter_mm: '', notes: '' }])
+    setOutgoing([...outgoing, { label: `Pipe ${next}`, shape: '', material: '', invert_depth_m: '', width_mm: '', height_mm: '', diameter_mm: '', notes: '' }])
   }
   function removeOutgoingPipe(index: number) {
     if (index === 0) return // keep Pipe X as default
@@ -159,7 +148,7 @@ function AddManholeForm({ standaloneLayout = true }: { standaloneLayout?: boolea
       return
     }
 
-    const payload: any = {
+    const payload: Record<string, unknown> = {
       project_id: projectId,
       identifier,
       survey_date: surveyDate || null,
@@ -238,13 +227,13 @@ ALTER TABLE public.manholes
       let uploadMsg = ''
       if (newId && (internalPhoto || externalPhoto)) {
         const bucket = supabase.storage.from('manhole-photos')
-        async function uploadOne(file: any | null, kind: 'internal' | 'external') {
+        async function uploadOne(file: File | null, kind: 'internal' | 'external') {
           if (!file) return null
           const ext = (file.name.split('.').pop() || 'jpg').toLowerCase()
           const path = `${newId}/${kind}-${Date.now()}.${ext}`
           const up = await bucket.upload(path, file, {
             upsert: true,
-            contentType: (file as any)?.type || 'image/jpeg',
+            contentType: file.type || 'image/jpeg',
             cacheControl: '3600',
           })
           if (up.error) {
@@ -301,8 +290,8 @@ ALTER TABLE public.manholes
       setExternalPreview('')
       setChamberMaterial('')
       setChamberMaterialOther('')
-      setIncoming([{ label: 'Pipe A', func: '', shape: '', material: '', invert_depth_m: '', width_mm: '', height_mm: '', diameter_mm: '', notes: '' }])
-      setOutgoing([{ label: 'Pipe X', func: '', shape: '', material: '', invert_depth_m: '', width_mm: '', height_mm: '', diameter_mm: '', notes: '' }])
+      setIncoming([{ label: 'Pipe A', shape: '', material: '', invert_depth_m: '', width_mm: '', height_mm: '', diameter_mm: '', notes: '' }])
+      setOutgoing([{ label: 'Pipe X', shape: '', material: '', invert_depth_m: '', width_mm: '', height_mm: '', diameter_mm: '', notes: '' }])
     }
   }
 
@@ -514,15 +503,7 @@ ALTER TABLE public.manholes
             <div key={idx} className="border rounded p-4 bg-white">
               <div className="font-medium mb-3">{p.label}</div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-sm mb-1">Function</label>
-                  <select className="w-full border p-2 rounded" value={p.func} onChange={(e)=>{
-                    const v=[...incoming]; v[idx].func=e.target.value; setIncoming(v)
-                  }}>
-                    <option value="">Select</option>
-                    {PIPE_FUNCTIONS.map(o=> <option key={o} value={o}>{o}</option>)}
-                  </select>
-                </div>
+                {/* Function removed */}
                 <div>
                   <label className="block text-sm mb-1">Shape</label>
                   <select className="w-full border p-2 rounded" value={p.shape} onChange={(e)=>{const v=[...incoming]; v[idx].shape=e.target.value; setIncoming(v)}}>
@@ -586,13 +567,7 @@ ALTER TABLE public.manholes
             <div key={idx} className="border rounded p-4 bg-white">
               <div className="font-medium mb-3">{p.label}</div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-sm mb-1">Function</label>
-                  <select className="w-full border p-2 rounded" value={p.func} onChange={(e)=>{const v=[...outgoing]; v[idx].func=e.target.value; setOutgoing(v)}}>
-                    <option value="">Select</option>
-                    {PIPE_FUNCTIONS.map(o=> <option key={o} value={o}>{o}</option>)}
-                  </select>
-                </div>
+                {/* Function removed */}
                 <div>
                   <label className="block text-sm mb-1">Shape</label>
                   <select className="w-full border p-2 rounded" value={p.shape} onChange={(e)=>{const v=[...outgoing]; v[idx].shape=e.target.value; setOutgoing(v)}}>
@@ -667,6 +642,7 @@ ALTER TABLE public.manholes
           </div>
           {internalPreview && (
             <div className="mt-2">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={internalPreview} alt="Internal preview" className="max-h-40 rounded border" />
               <button type="button" onClick={() => { setInternalPhoto(null); setInternalPreview('') }} className="mt-2 px-3 py-1 rounded border border-gray-300 hover:bg-gray-50">Remove</button>
             </div>
@@ -691,6 +667,7 @@ ALTER TABLE public.manholes
           </div>
           {externalPreview && (
             <div className="mt-2">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={externalPreview} alt="External preview" className="max-h-40 rounded border" />
               <button type="button" onClick={() => { setExternalPhoto(null); setExternalPreview('') }} className="mt-2 px-3 py-1 rounded border border-gray-300 hover:bg-gray-50">Remove</button>
             </div>
