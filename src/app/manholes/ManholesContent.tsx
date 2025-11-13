@@ -526,7 +526,7 @@ export default function ManholesContent() {
   }
 
   async function downloadPdfFiles(records: DetailedManholeRecord[]) {
-    const summarizePipes = (pipes?: PipeRecord[] | null) => {
+    const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null) => {
       if (!pipes || !pipes.length) return []
       return pipes.slice(0, 6).map((pipe) => ({
         label: pipe.label || '',
@@ -535,7 +535,12 @@ export default function ManholesContent() {
         material: pipe.material || '-',
         func: pipe.func || '-',
         depth: valueOrDash(pipe.invert_depth_m),
-        invert: valueOrDash(pipe.notes),
+        invert: (() => {
+          if (coverLevel === null || coverLevel === undefined) return '-'
+          const depth = parseFloat(String(pipe.invert_depth_m ?? '').replace(/[^\d.-]/g, ''))
+          if (Number.isNaN(depth)) return '-'
+          return (coverLevel - depth).toFixed(3)
+        })(),
       }))
     }
     for (const record of records) {
@@ -665,8 +670,8 @@ export default function ManholesContent() {
         }
         return rowY
       }
-      currentY = drawPipeTable('Incoming Pipes', summarizePipes(record.incoming_pipes), currentY + 4, 6) + 6
-      currentY = drawPipeTable('Outgoing Pipes', summarizePipes(record.outgoing_pipes), currentY, 3) + 6
+      currentY = drawPipeTable('Incoming Pipes', summarizePipes(record.incoming_pipes, record.cover_level as number | null), currentY + 4, 6) + 6
+      currentY = drawPipeTable('Outgoing Pipes', summarizePipes(record.outgoing_pipes, record.cover_level as number | null), currentY, 3) + 6
 
       const bottomHeight = 60
       const boxWidth = (jobBoxWidth - 8) / 3
