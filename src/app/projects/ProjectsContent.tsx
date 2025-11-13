@@ -12,6 +12,7 @@ type Project = {
   project_number: string | null
   created_at?: string | null
   updated_at?: string | null
+  archived?: boolean | null
 }
 
 type ProjectInsertPayload = {
