@@ -690,9 +690,9 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
           { label: 'Size', width: 25 },
           { label: 'Shape', width: 22 },
           { label: 'Material', width: 28 },
-          { label: 'Depth', width: 28 },
-          { label: 'Invert', width: 28 },
-          { label: 'Notes', width: 26 },
+          { label: 'Depth', width: 24 },
+          { label: 'Invert', width: 24 },
+          { label: 'Notes', width: 45 },
         ]
         doc.setFontSize(11)
         doc.text(title, jobBoxX + jobBoxWidth / 2, y - 2, { align: 'center' })
@@ -707,29 +707,23 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
         let rowY = y + headerHeight
         for (let i = 0; i < rows; i++) {
           const row = entries[i]
-          const cellTexts = cols.map((_, idx) => {
-            if (!row) return ['-']
-            const text =
-              idx === 0 ? row.label || '' :
-              idx === 1 ? row.size :
-              idx === 2 ? row.shape :
-              idx === 3 ? row.material :
-              idx === 4 ? row.depth :
-              idx === 5 ? row.invert :
-              row.notes
-            return doc.splitTextToSize(text || '-', cols[idx].width - 4)
-          })
-          const rowHeight = Math.max(
-            headerHeight,
-            ...cellTexts.map((lines) => Math.max(lines.length * 4 + 2, headerHeight))
-          )
           cursorX = jobBoxX
           cols.forEach((col, idx) => {
-            doc.rect(cursorX, rowY, col.width, rowHeight)
-            doc.text(cellTexts[idx], cursorX + 2, rowY + 5, { baseline: 'top' })
+            doc.rect(cursorX, rowY, col.width, headerHeight)
+            if (row) {
+              const text =
+                idx === 0 ? row.label || '' :
+                idx === 1 ? row.size :
+                idx === 2 ? row.shape :
+                idx === 3 ? row.material :
+                idx === 4 ? row.depth :
+                idx === 5 ? row.invert :
+                row.notes
+              doc.text(text || '-', cursorX + 2, rowY + 5)
+            }
             cursorX += col.width
           })
-          rowY += rowHeight
+          rowY += headerHeight
         }
         return rowY
       }
