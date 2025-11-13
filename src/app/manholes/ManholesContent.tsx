@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { jsPDF } from 'jspdf'
 import { supabase } from '@/lib/supabaseClient'
 import { deriveRoleInfo, canAdminister, canManageEverything } from '@/lib/roles'
 
@@ -15,6 +16,11 @@ type DetailedManholeRecord = Record<string, unknown> & {
   project_number: string | null
   project_client: string | null
 }
+type PipeRecord = {
+  label?: string | null
+  func?: string | null
+  material?: string | null
+}
 
 type EditModalMessage = {
   type: 'close-edit-modal'
@@ -24,6 +30,10 @@ type EditModalMessage = {
 function isEditModalMessage(payload: unknown): payload is EditModalMessage {
   if (!payload || typeof payload !== 'object') return false
   return (payload as { type?: string }).type === 'close-edit-modal'
+}
+
+function isPipeRecordArray(value: unknown): value is PipeRecord[] {
+  return Array.isArray(value)
 }
 
 const CSV_COLUMNS = [
@@ -342,21 +352,62 @@ export default function ManholesContent() {
     })
   }
 
+  function downloadPdfFiles(records: DetailedManholeRecord[]) {
+    const lineHeight = 8
+    const marginTop = 20
+    const startX = 14
+    const addLine = (doc: jsPDF, text: string, cursor: { y: number }) => {
+      doc.text(text, startX, cursor.y)
+      cursor.y += lineHeight
+      if (cursor.y > doc.internal.pageSize.getHeight() - marginTop) {
+        doc.addPage()
+        cursor.y = marginTop
+      }
+    }
+    const summarizePipes = (pipes?: unknown) => {
+      if (!pipes || !isPipeRecordArray(pipes) || pipes.length === 0) return 'None'
+      return pipes
+        .map((pipe) => `${pipe.label || 'Pipe'}: ${pipe.func || '-'} / ${pipe.material || '-'}`)
+        .join('; ')
+    }
+    records.forEach((record) => {
+      const doc = new jsPDF()
+      const cursor = { y: marginTop }
+      doc.setFontSize(16)
+      addLine(doc, `Manhole: ${record.identifier || '-'}`, cursor)
+      doc.setFontSize(12)
+      addLine(doc, `Project: ${record.project_name || '-'} (${record.project_number || '-'})`, cursor)
+      addLine(doc, `Client: ${record.project_client || '-'}`, cursor)
+      addLine(doc, `Location: ${record.location_desc || '-'}`, cursor)
+      addLine(doc, `Survey Date: ${record.survey_date || '-'}`, cursor)
+      addLine(doc, `Coordinates: ${record.latitude || '-'}, ${record.longitude || '-'}`, cursor)
+      addLine(doc, `Cover Level: ${record.cover_level || '-'}`, cursor)
+      addLine(doc, `Cover: ${record.cover_shape || '-'} / ${record.cover_material || '-'}`, cursor)
+      addLine(doc, `Cover Duty: ${record.cover_duty || '-'} (${record.cover_condition || '-'})`, cursor)
+      addLine(doc, `Chamber: ${record.chamber_shape || '-'} / ${record.chamber_material || '-'}`, cursor)
+      addLine(doc, `Service: ${record.service_type || '-'}`, cursor)
+      addLine(doc, `Type: ${record.type_other || record.type || '-'}`, cursor)
+      addLine(doc, `Incoming: ${summarizePipes(record.incoming_pipes)}`, cursor)
+      addLine(doc, `Outgoing: ${summarizePipes(record.outgoing_pipes)}`, cursor)
+      doc.setFontSize(10)
+      addLine(doc, `Generated ${new Date().toLocaleString()}`, cursor)
+      const safeName = safeFileSegment(String(record.identifier || record.id || 'manhole'))
+      doc.save(`${safeName}.pdf`)
+    })
+  }
+
   async function handleExportSelected() {
     if (exportSelected.length === 0 || exportBusy) return
-    if (exportFormat === 'pdf') {
-      exportSelected.forEach((id) => window.open(`/manholes/${id}/export`, '_blank', 'noopener'))
-      setExportOpen(false)
-      return
-    }
     setExportBusy(true)
     try {
       const records = await fetchDetailedManholes(exportSelected)
       if (!records.length) throw new Error('No data found for the selected manholes.')
       if (exportFormat === 'csv') {
         downloadCsvFile(records)
-      } else {
+      } else if (exportFormat === 'jpeg') {
         downloadJpegFiles(records)
+      } else {
+        downloadPdfFiles(records)
       }
       setExportOpen(false)
     } catch (err) {
