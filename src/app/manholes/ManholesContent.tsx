@@ -113,7 +113,7 @@ function isEditModalMessage(payload: unknown): payload is EditModalMessage {
   return (payload as { type?: string }).type === 'close-edit-modal'
 }
 
-type ImageAsset = { dataUrl: string; format: 'PNG' | 'JPEG' }
+type ImageAsset = { dataUrl: string; format: 'PNG' | 'JPEG'; width: number; height: number }
 let cachedLogo: ImageAsset | null = null
 
 async function getLogoAsset() {
@@ -177,9 +177,15 @@ async function fetchImageData(url?: string | null) {
       reader.onerror = reject
       reader.readAsDataURL(blob)
     })
+    const imgDims = await new Promise<{ width: number; height: number }>((resolve) => {
+      const img = new Image()
+      img.onload = () => resolve({ width: img.naturalWidth || img.width, height: img.naturalHeight || img.height })
+      img.onerror = () => resolve({ width: 0, height: 0 })
+      img.src = dataUrl
+    })
     const header = dataUrl.slice(5, dataUrl.indexOf(';'))
     const format = header.split('/')[1]?.toUpperCase() === 'PNG' ? 'PNG' : 'JPEG'
-    return { dataUrl, format: format as 'PNG' | 'JPEG' }
+    return { dataUrl, format: format as 'PNG' | 'JPEG', width: imgDims.width, height: imgDims.height }
   } catch {
     return null
   }
@@ -777,8 +783,8 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
       const bottomHeight = 60
       const boxWidth = (jobBoxWidth - 8) / 3
       const boxY = Math.min(currentY, pageHeight - bottomHeight - margin - 5)
-      const boxes = [
-        { label: 'Chamber Sketch', dataUrl: renderSketchToDataUrl(record.sketch_json) },
+      const boxes: Array<{ label: string; dataUrl: string | null; url?: string | null; width?: number; height?: number }> = [
+        { label: 'Chamber Sketch', dataUrl: renderSketchToDataUrl(record.sketch_json), width: 320, height: 320 },
         { label: 'Internal Photo', dataUrl: null, url: record.internal_photo_url },
         { label: 'External Photo', dataUrl: null, url: record.external_photo_url },
       ]
@@ -791,16 +797,29 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
         const targetWidth = boxWidth - 4
         let dataUrl = boxes[i].dataUrl
         let format: 'PNG' | 'JPEG' = 'PNG'
+        let imgWidth = boxes[i].width ?? 0
+        let imgHeight = boxes[i].height ?? 0
         if (!dataUrl && boxes[i].url) {
           const fetched = await fetchImageData(boxes[i].url)
           if (fetched) {
             dataUrl = fetched.dataUrl
             format = fetched.format
+            imgWidth = fetched.width
+            imgHeight = fetched.height
           }
         }
         if (dataUrl) {
           try {
-            doc.addImage(dataUrl, format, x + 2, boxY + 8, targetWidth, targetHeight, undefined, 'FAST')
+            const aspect = imgWidth > 0 && imgHeight > 0 ? imgWidth / imgHeight : targetWidth / targetHeight
+            let drawWidth = targetWidth
+            let drawHeight = drawWidth / aspect
+            if (drawHeight > targetHeight) {
+              drawHeight = targetHeight
+              drawWidth = drawHeight * aspect
+            }
+            const offsetX = x + 2 + (targetWidth - drawWidth) / 2
+            const offsetY = boxY + 8 + (targetHeight - drawHeight) / 2
+            doc.addImage(dataUrl, format, offsetX, offsetY, drawWidth, drawHeight, undefined, 'FAST')
             if (boxes[i].label === 'Chamber Sketch') {
               // Legend (top-right)
               const legendWidth = 22
