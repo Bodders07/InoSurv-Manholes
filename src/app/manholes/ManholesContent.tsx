@@ -803,34 +803,35 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
             doc.addImage(dataUrl, format, x + 2, boxY + 8, targetWidth, targetHeight, undefined, 'FAST')
             if (boxes[i].label === 'Chamber Sketch') {
               // Legend (top-right)
-              const legendWidth = 34
-              const legendHeight = 16
-              const legendX = x + boxWidth - legendWidth - 4
-              const legendY = boxY + 4
-              const sampleStartX = legendX + 4
+              const legendWidth = 22
+              const legendHeight = 10
+              const legendX = x + boxWidth - legendWidth - 2
+              const legendY = boxY + 2
+              const sampleStartX = legendX + 2.5
               doc.setDrawColor(200)
               doc.rect(legendX, legendY, legendWidth, legendHeight)
-              doc.setFontSize(6)
+              doc.setFontSize(5.5)
               // Cover sample (dashed effect using short segments)
               doc.setDrawColor(51)
-              const dashY = legendY + 5
-              doc.line(sampleStartX, dashY, sampleStartX + 4, dashY)
-              doc.line(sampleStartX + 6, dashY, sampleStartX + 10, dashY)
-              doc.text('Cover', sampleStartX + 14, legendY + 6.5)
+              const dashY = legendY + 3.5
+              doc.line(sampleStartX, dashY, sampleStartX + 2.8, dashY)
+              doc.line(sampleStartX + 4.6, dashY, sampleStartX + 7.4, dashY)
+              doc.text('Cover', sampleStartX + 8.8, dashY + 1)
               // Chamber sample (solid)
               doc.setDrawColor(119)
-              doc.line(sampleStartX, legendY + 11, sampleStartX + 12, legendY + 11)
-              doc.text('Chamber', sampleStartX + 14, legendY + 12.5)
+              const chamberY = legendY + 7
+              doc.line(sampleStartX, chamberY, sampleStartX + 7.4, chamberY)
+              doc.text('Chamber', sampleStartX + 8.8, chamberY + 1)
               doc.setDrawColor(60)
 
               // North arrow (bottom-right, smaller)
-              const arrowBaseY = boxY + bottomHeight - 6
-              const arrowX = x + boxWidth - 12
+              const arrowBaseY = boxY + bottomHeight - 4
+              const arrowX = x + boxWidth - 6
               doc.setFillColor(225, 17, 17)
-              doc.triangle(arrowX, arrowBaseY - 6, arrowX + 3, arrowBaseY, arrowX - 3, arrowBaseY, 'F')
+              doc.triangle(arrowX, arrowBaseY - 4, arrowX + 2.5, arrowBaseY, arrowX - 2.5, arrowBaseY, 'F')
               doc.setTextColor(17, 24, 39)
               doc.setFontSize(6)
-              doc.text('N', arrowX, arrowBaseY + 2.5, { align: 'center' })
+              doc.text('N', arrowX, arrowBaseY + 1.6, { align: 'center' })
               doc.setTextColor(0, 0, 0)
             }
           } catch {
