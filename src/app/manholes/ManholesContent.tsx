@@ -3,8 +3,8 @@
 import { useCallback, useEffect, useMemo, useState, useDeferredValue, type ReactNode } from 'react'
 import { jsPDF } from 'jspdf'
 import { supabase } from '@/lib/supabaseClient'
-import { deriveRoleInfo, canAdminister, canManageEverything } from '@/lib/roles'
 import type { SketchState } from '@/app/components/sketch/ChamberSketch'
+import { usePermissions } from '@/app/components/PermissionsContext'
 
 type Project = { id: string; name: string | null; project_number: string | null; client: string | null }
 type Manhole = { id: string; identifier: string | null; project_id: string }
@@ -369,8 +369,6 @@ export default function ManholesContent() {
   const [filterClient, setFilterClient] = useState<string>('')
   const [filterProjectName, setFilterProjectName] = useState<string>('')
   const [query, setQuery] = useState('')
-  const [isAdmin, setIsAdmin] = useState(false)
-  const [isSuperAdmin, setIsSuperAdmin] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [showFilter, setShowFilter] = useState(false)
   const [createOpen, setCreateOpen] = useState(false)
@@ -384,6 +382,11 @@ export default function ManholesContent() {
   const [exportFormat, setExportFormat] = useState<'pdf' | 'csv' | 'jpeg'>('pdf')
   const [exportBusy, setExportBusy] = useState(false)
   const [exportSearch, setExportSearch] = useState('')
+  const { has } = usePermissions()
+  const canCreateManhole = has('manhole-create')
+  const canEditManhole = has('manhole-edit')
+  const canDeleteManhole = has('manhole-delete')
+  const canExportManholes = has('export-pdf') || has('export-csv')
 
   useEffect(() => {
     async function loadData() {
@@ -400,20 +403,6 @@ export default function ManholesContent() {
       setLoading(false)
     }
     loadData()
-    const detect = async () => {
-      try {
-        const { data } = await supabase.auth.getUser()
-        const info = deriveRoleInfo(data.user)
-        setIsAdmin(canAdminister(info))
-        setIsSuperAdmin(canManageEverything(info))
-      } catch {
-        setIsAdmin(false)
-        setIsSuperAdmin(false)
-      }
-    }
-    detect()
-    const { data: sub } = supabase.auth.onAuthStateChange(() => detect())
-    return () => sub.subscription.unsubscribe()
   }, [])
 
   useEffect(() => {
@@ -525,6 +514,7 @@ export default function ManholesContent() {
   }, [rows])
 
   function handleExportOpen() {
+    if (!canExportManholes) return
     setExportProject('')
     setExportSelectAll(true)
     setExportSelected(rows.map((r) => r.id))
@@ -961,7 +951,7 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
   )
 
   async function deleteManhole(id: string) {
-    if (!isAdmin && !isSuperAdmin) return
+    if (!canDeleteManhole) return
     const proceed = typeof window !== 'undefined' ? window.confirm('Delete this manhole? This cannot be undone.') : true
     if (!proceed) return
     setMessage('')
@@ -1005,21 +995,25 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
               Filter
             </span>
           </button>
-          <button
-            onClick={handleExportOpen}
-            className="px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-50"
-          >
-            <span className="inline-flex items-center gap-2">Export</span>
-          </button>
-          <button
-            onClick={() => setCreateOpen(true)}
-            className="px-3 py-2 rounded-lg bg-orange-600 text-white hover:bg-orange-700"
-          >
-            <span className="inline-flex items-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M12 4.75a.75.75 0 0 1 .75.75v5.75H18.5a.75.75 0 0 1 0 1.5h-5.75V18.5a.75.75 0 0 1-1.5 0v-5.75H5.5a.75.75 0 0 1 0-1.5h5.75V5.5a.75.75 0 0 1 .75-.75Z"/></svg>
-              New Manhole
-            </span>
-          </button>
+          {canExportManholes && (
+            <button
+              onClick={handleExportOpen}
+              className="px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-50"
+            >
+              <span className="inline-flex items-center gap-2">Export</span>
+            </button>
+          )}
+          {canCreateManhole && (
+            <button
+              onClick={() => setCreateOpen(true)}
+              className="px-3 py-2 rounded-lg bg-orange-600 text-white hover:bg-orange-700"
+            >
+              <span className="inline-flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M12 4.75a.75.75 0 0 1 .75.75v5.75H18.5a.75.75 0 0 1 0 1.5h-5.75V18.5a.75.75 0 0 1-1.5 0v-5.75H5.5a.75.75 0 0 1 0-1.5h5.75V5.5a.75.75 0 0 1 .75-.75Z"/></svg>
+                New Manhole
+              </span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -1240,8 +1234,10 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
                           <EyeIcon />
                         )}
                       </IconBtn>
-                      <IconBtn title="Edit manhole" onClick={() => { setEditId(r.id); setEditOpen(true) }}><PencilIcon /></IconBtn>
-                      {(isAdmin || isSuperAdmin) && (
+                      {canEditManhole && (
+                        <IconBtn title="Edit manhole" onClick={() => { setEditId(r.id); setEditOpen(true) }}><PencilIcon /></IconBtn>
+                      )}
+                      {canDeleteManhole && (
                         <IconBtn title="Delete manhole" onClick={() => deleteManhole(r.id)}>
                           {deletingId === r.id ? (
                             <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24">

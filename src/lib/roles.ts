@@ -1,4 +1,5 @@
 import type { User } from '@supabase/supabase-js'
+import type { RoleKey } from '@/types/permissions'
 
 export type RoleInfo = {
   email: string
@@ -6,6 +7,7 @@ export type RoleInfo = {
   roles: string[]
   isAdmin: boolean
   isSuperAdmin: boolean
+  roleKey: RoleKey
 }
 
 const ADMIN_SET = new Set(['admin', 'owner', 'superadmin', 'root'])
@@ -27,7 +29,12 @@ export function deriveRoleInfo(user: User | null | undefined): RoleInfo {
   // Superadmin detection: exact membership in roles or role
   const isSuperAdmin = role === 'superadmin' || roles.includes('superadmin')
 
-  return { email, role, roles, isAdmin, isSuperAdmin }
+  let roleKey: RoleKey = 'viewer'
+  if (isSuperAdmin) roleKey = 'superadmin'
+  else if (isAdmin) roleKey = 'admin'
+  else if (role.includes('editor') || roles.includes('editor')) roleKey = 'editor'
+
+  return { email, role, roles, isAdmin, isSuperAdmin, roleKey }
 }
 
 export function canManageEverything(info: RoleInfo): boolean {

@@ -85,6 +85,11 @@ export default function PrivilegesContent() {
       setPermissions(draft)
       setEditable(false)
       setStatus('Permissions updated successfully.')
+      try {
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new Event('permissions-updated'))
+        }
+      } catch {}
     } catch (err) {
       setStatus(err instanceof Error ? err.message : 'Failed to save permissions.')
     } finally {

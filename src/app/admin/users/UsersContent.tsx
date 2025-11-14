@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
-import { deriveRoleInfo, canAdminister, canManageEverything } from '@/lib/roles'
+import { deriveRoleInfo } from '@/lib/roles'
+import { usePermissions } from '@/app/components/PermissionsContext'
 
 const ROLES = [
   { value: 'superadmin', label: 'Super Admin' },
@@ -27,9 +28,6 @@ export default function UsersContent() {
   const [deletingUserId, setDeletingUserId] = useState<string | null>(null)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
 
-  const [isAdmin, setIsAdmin] = useState(false)
-  const [isSuperAdmin, setIsSuperAdmin] = useState(false)
-
   const [showAuthDebug, setShowAuthDebug] = useState(false)
   const [dbgEmail, setDbgEmail] = useState('')
   const [dbgRole, setDbgRole] = useState('')
@@ -37,13 +35,16 @@ export default function UsersContent() {
   const [dbgIsSuper, setDbgIsSuper] = useState(false)
   const [dbgIsAdmin, setDbgIsAdmin] = useState(false)
 
+  const { has } = usePermissions()
+  const canInviteUsers = has('invite-users')
+  const canChangeRoles = has('change-roles')
+  const canViewAdminPanels = has('view-admin-panels')
+
   const detectAccess = useCallback(async () => {
     const { data } = await supabase.auth.getUser()
     const info = deriveRoleInfo(data.user)
-    const adminDetected = canAdminister(info)
-    const superDetected = canManageEverything(info)
-    setIsAdmin(adminDetected)
-    setIsSuperAdmin(superDetected)
+    const adminDetected = info.isAdmin
+    const superDetected = info.isSuperAdmin
     setDbgEmail(info.email)
     setDbgRole(info.role)
     setDbgRoles(info.roles)
@@ -107,7 +108,7 @@ export default function UsersContent() {
     }
   }, [token, loadUsers])
 
-  const canInvite = useMemo(() => !!email && !!inviteRole && !submitting && isAdmin && !!token, [email, inviteRole, submitting, isAdmin, token])
+  const canInvite = useMemo(() => !!email && !!inviteRole && !submitting && canInviteUsers && !!token, [email, inviteRole, submitting, canInviteUsers, token])
 
   async function inviteUser() {
     if (!canInvite) return
@@ -141,8 +142,8 @@ export default function UsersContent() {
   }
 
   async function saveUserRole(userId: string, newRole: string) {
-    if (!isSuperAdmin) {
-      setMessage('Error: Only Super Admin can change roles.')
+    if (!canChangeRoles) {
+      setMessage('Error: You do not have permission to change roles.')
       return
     }
     if (!token) {
@@ -173,8 +174,8 @@ export default function UsersContent() {
   }
 
   async function deleteUser(userId: string) {
-    if (!isSuperAdmin) {
-      setMessage('Error: Only Super Admin can delete users.')
+    if (!canChangeRoles) {
+      setMessage('Error: You do not have permission to delete users.')
       return
     }
     if (userId === currentUserId) {
@@ -214,7 +215,7 @@ export default function UsersContent() {
     <>
       <div className="flex items-center justify-between mb-2">
         <h1 className="text-2xl font-bold">User Management</h1>
-        {isSuperAdmin && (
+        {canViewAdminPanels && (
           <button
             className="text-xs underline text-blue-700 hover:text-blue-900"
             onClick={() => setShowAuthDebug((s) => !s)}
@@ -223,7 +224,7 @@ export default function UsersContent() {
           </button>
         )}
       </div>
-      {isSuperAdmin && showAuthDebug && (
+      {canViewAdminPanels && showAuthDebug && (
         <div className="mb-4 text-sm bg-gray-50 border border-gray-200 rounded p-3">
           <div><span className="font-medium">Email:</span> {dbgEmail || '-'}</div>
           <div><span className="font-medium">app_metadata.role:</span> {dbgRole || '-'}</div>
@@ -233,8 +234,8 @@ export default function UsersContent() {
         </div>
       )}
 
-      {!isAdmin ? (
-        <p className="text-red-600">Access denied. Admins only.</p>
+      {!canViewAdminPanels ? (
+        <p className="text-red-600">Access denied. Admin tools are disabled for this role.</p>
       ) : (
         <div className="space-y-8">
           <div className="max-w-lg bg-white border border-gray-200 rounded shadow-sm p-4">
@@ -278,7 +279,7 @@ export default function UsersContent() {
             <div className="px-4 py-3 border-b"><h2 className="font-semibold">Existing Users</h2></div>
             <div className="overflow-x-auto">
               {loadingUsers ? (
-                <p className="p-4">Loading…</p>
+                <p className="p-4">Loading...</p>
               ) : (
                 <table className="min-w-full">
                   <thead>
@@ -299,7 +300,7 @@ export default function UsersContent() {
                               className="border rounded p-2"
                               value={current}
                               onChange={(e) => saveUserRole(u.id, e.target.value)}
-                              disabled={!isSuperAdmin || savingRoleId === u.id}
+                              disabled={!canChangeRoles || savingRoleId === u.id}
                             >
                               {ROLES.map((r) => (
                                 <option key={r.value} value={r.value}>{r.label}</option>
@@ -308,9 +309,9 @@ export default function UsersContent() {
                           </td>
                           <td className="px-4 py-2 border-b">
                             <div className="flex items-center gap-3">
-                              {!isSuperAdmin && <span className="text-xs text-gray-500">Super Admin only</span>}
-                              {savingRoleId === u.id && <span className="text-xs text-gray-500">Saving…</span>}
-                              {isSuperAdmin && (
+                              {!canChangeRoles && <span className="text-xs text-gray-500">Permission required</span>}
+                              {savingRoleId === u.id && <span className="text-xs text-gray-500">Saving...</span>}
+                              {canChangeRoles && (
                                 <button
                                   onClick={() => deleteUser(u.id)}
                                   disabled={deletingUserId === u.id || u.id === currentUserId}
@@ -320,7 +321,7 @@ export default function UsersContent() {
                                       : 'bg-red-600 hover:bg-red-700'
                                   }`}
                                 >
-                                  {deletingUserId === u.id ? 'Deleting…' : u.id === currentUserId ? 'Cannot delete self' : 'Delete'}
+                                  {deletingUserId === u.id ? 'Deleting...' : u.id === currentUserId ? 'Cannot delete self' : 'Delete'}
                                 </button>
                               )}
                             </div>

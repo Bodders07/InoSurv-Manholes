@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react'
 import { useCallback, useDeferredValue, useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
-import { deriveRoleInfo, canAdminister, canManageEverything } from '@/lib/roles'
+import { usePermissions } from '@/app/components/PermissionsContext'
 
 type Project = {
   id: string
@@ -86,8 +86,6 @@ export default function ProjectsContent() {
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
   const [hasExtendedFields, setHasExtendedFields] = useState(true)
-  const [isAdmin, setIsAdmin] = useState(false)
-  const [isSuperAdmin, setIsSuperAdmin] = useState(false)
 
   // Inline edit state
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -101,6 +99,16 @@ export default function ProjectsContent() {
   const [showFilter, setShowFilter] = useState(false)
   const [filterNumber, setFilterNumber] = useState('')
   const [filterClient, setFilterClient] = useState('')
+  const { has } = usePermissions()
+  const canCreateProject = has('project-create')
+  const canEditProject = has('project-edit')
+  const canDeleteProject = has('project-delete')
+  useEffect(() => {
+    if (!canCreateProject) setShowCreate(false)
+  }, [canCreateProject])
+  useEffect(() => {
+    if (!canEditProject) setEditingId(null)
+  }, [canEditProject])
 
   // Distinct lists for dropdown filters
 const numberOptions = useMemo(() => {
@@ -114,18 +122,6 @@ const clientOptions = useMemo(() => {
   const [viewId, setViewId] = useState<string | null>(null)
   const [menuFor, setMenuFor] = useState<string | null>(null)
   const deferredSearch = useDeferredValue(search)
-
-  const detectRoles = useCallback(async () => {
-    try {
-      const { data } = await supabase.auth.getUser()
-      const info = deriveRoleInfo(data.user)
-      setIsAdmin(canAdminister(info))
-      setIsSuperAdmin(canManageEverything(info))
-    } catch {
-      setIsAdmin(false)
-      setIsSuperAdmin(false)
-    }
-  }, [])
 
   const refreshProjects = useCallback(async () => {
     setLoading(true)
@@ -161,19 +157,6 @@ const clientOptions = useMemo(() => {
     })
     return () => cancelAnimationFrame(id)
   }, [refreshProjects])
-
-  useEffect(() => {
-    const id = requestAnimationFrame(() => {
-      detectRoles()
-    })
-    const { data: listener } = supabase.auth.onAuthStateChange(async () => {
-      await detectRoles()
-    })
-    return () => {
-      cancelAnimationFrame(id)
-      listener.subscription.unsubscribe()
-    }
-  }, [detectRoles])
 
   useEffect(() => {
     function onMsg(e: MessageEvent) {
@@ -217,6 +200,10 @@ const clientOptions = useMemo(() => {
 
   async function addProject() {
     setMessage('')
+    if (!canCreateProject) {
+      setMessage('You do not have permission to create projects.')
+      return
+    }
     if (!projectNumber || !client || !projectName) {
       setMessage('Please complete all fields before saving.')
       return
@@ -297,6 +284,7 @@ const clientOptions = useMemo(() => {
   }
 
   function startEdit(p: Project) {
+    if (!canEditProject) return
     setEditingId(p.id)
     setEditProjectNumber(p.project_number || '')
     setEditClient(p.client || '')
@@ -320,7 +308,7 @@ const clientOptions = useMemo(() => {
   )
 
   async function saveEdit() {
-    if (!editingId) return
+    if (!editingId || !canEditProject) return
     setMessage('')
     setEditSaving(true)
     const update: ProjectUpdatePayload = { name: editProjectName }
@@ -339,8 +327,8 @@ const clientOptions = useMemo(() => {
   }
 
   async function deleteProject(id: string) {
-    if (!isAdmin && !isSuperAdmin) {
-      setMessage('Error: Only admins can delete projects.')
+    if (!canDeleteProject) {
+      setMessage('Error: You do not have permission to delete projects.')
       return
     }
 
@@ -409,19 +397,21 @@ const clientOptions = useMemo(() => {
               Filter
             </span>
           </button>
-          <button
-            onClick={() => setShowCreate(true)}
-            className="px-3 py-2 rounded-lg bg-orange-600 text-white hover:bg-orange-700"
-          >
-            <span className="inline-flex items-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M12 4.75a.75.75 0 0 1 .75.75v5.75H18.5a.75.75 0 0 1 0 1.5h-5.75V18.5a.75.75 0 0 1-1.5 0v-5.75H5.5a.75.75 0 0 1 0-1.5h5.75V5.5a.75.75 0 0 1 .75-.75Z"/></svg>
-              New Project
-            </span>
-          </button>
+          {canCreateProject && (
+            <button
+              onClick={() => setShowCreate(true)}
+              className="px-3 py-2 rounded-lg bg-orange-600 text-white hover:bg-orange-700"
+            >
+              <span className="inline-flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M12 4.75a.75.75 0 0 1 .75.75v5.75H18.5a.75.75 0 0 1 0 1.5h-5.75V18.5a.75.75 0 0 1-1.5 0v-5.75H5.5a.75.75 0 0 1 0-1.5h5.75V5.5a.75.75 0 0 1 .75-.75Z"/></svg>
+                New Project
+              </span>
+            </button>
+          )}
         </div>
       </div>
 
-      {showCreate && (
+      {canCreateProject && showCreate && (
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
           <div className="w-full max-w-3xl bg-white dark:bg-neutral-900 rounded-lg border border-gray-200 dark:border-neutral-800 shadow-lg">
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-neutral-800">
@@ -480,7 +470,7 @@ const clientOptions = useMemo(() => {
                     disableCreateSave ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
                   }`}
                 >
-                  {saving ? 'Saving…' : 'Save Project'}
+                  {saving ? 'Saving...' : 'Save Project'}
                 </button>
               </div>
             </div>
@@ -559,7 +549,7 @@ const clientOptions = useMemo(() => {
                 </thead>
                 <tbody>
                   {activeProjects.map((p) => {
-                    const isEditing = editingId === p.id
+                    const isEditing = canEditProject && editingId === p.id
                   const createdText = formatDate(p.created_at)
                   const updatedText = formatDate(p.updated_at)
                     return (
@@ -616,7 +606,7 @@ const clientOptions = useMemo(() => {
                                   disableEditSave ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'
                                 }`}
                               >
-                                {editSaving ? 'Saving…' : 'Save'}
+                                {editSaving ? 'Saving...' : 'Save'}
                               </button>
                               <button
                                 onClick={cancelEdit}
@@ -628,8 +618,8 @@ const clientOptions = useMemo(() => {
                           ) : (
                             <div className="flex gap-1 justify-end items-center relative">
                               <IconBtn title="View" onClick={() => setViewId(p.id)}><EyeIcon /></IconBtn>
-                              <IconBtn title="Edit" onClick={() => startEdit(p)}><PencilIcon /></IconBtn>
-                              {(isAdmin || isSuperAdmin) && (
+                              {canEditProject && <IconBtn title="Edit" onClick={() => startEdit(p)}><PencilIcon /></IconBtn>}
+                              {canDeleteProject && (
                                 <IconBtn title="Delete" onClick={() => deleteProject(p.id)}><TrashIcon /></IconBtn>
                               )}
                               <IconBtn

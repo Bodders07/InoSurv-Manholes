@@ -3,11 +3,11 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import type { ReactNode } from 'react'
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
-import { deriveRoleInfo, canManageEverything } from '@/lib/roles'
 import { useView, type AppView } from '@/app/components/ViewContext'
+import { usePermissions } from '@/app/components/PermissionsContext'
 import {
   LayoutDashboard,
   FolderKanban,
@@ -22,23 +22,12 @@ export default function SidebarLayout({
   children: React.ReactNode
 }) {
   const router = useRouter()
-  const [isSuperAdmin, setIsSuperAdmin] = useState(false)
   const pageOpacity = 1
   const { view, setView } = useView()
   const [collapsed, setCollapsed] = useState(false)
   const [isSmallScreen, setIsSmallScreen] = useState(false)
   const [adminOpen, setAdminOpen] = useState(false)
-
-  const detectRole = useCallback(async () => {
-    try {
-      const { data } = await supabase.auth.getSession()
-      const user = data.session?.user ?? null
-      const info = deriveRoleInfo(user)
-      setIsSuperAdmin(canManageEverything(info))
-    } catch {
-      setIsSuperAdmin(false)
-    }
-  }, [])
+  const { has, loading: permissionsLoading } = usePermissions()
 
   // Basic auth guard: redirect to /auth if no session
   useEffect(() => {
@@ -47,15 +36,8 @@ export default function SidebarLayout({
       const { data } = await supabase.auth.getSession()
       if (!data.session) {
         router.replace('/auth')
+        return
       }
-      // Derive role immediately from current session to avoid flicker
-      try {
-        const user = data.session?.user ?? null
-        if (user) {
-          const info = deriveRoleInfo(user)
-          setIsSuperAdmin(canManageEverything(info))
-        }
-      } catch {}
       // If the user arrived via an invite link and hit any app page,
       // send them to the password setup flow.
       try {
@@ -71,22 +53,14 @@ export default function SidebarLayout({
       } catch {}
       const sub = supabase.auth.onAuthStateChange((_e, session) => {
         if (!session) router.replace('/auth')
-        // Re-evaluate role using the new session
-        try {
-          const info = deriveRoleInfo(session?.user)
-          setIsSuperAdmin(canManageEverything(info))
-        } catch {
-          setIsSuperAdmin(false)
-        }
       })
       unsub = () => sub.data.subscription.unsubscribe()
-      await detectRole()
     }
     init()
     return () => {
       try { unsub?.() } catch {}
     }
-  }, [detectRole, router])
+  }, [router])
 
   useEffect(() => {
     if (typeof window === 'undefined') return undefined
@@ -122,11 +96,13 @@ export default function SidebarLayout({
     { id: 'inspections', label: 'Map View', icon: <Map size={16} /> },
     { id: 'settings', label: 'Settings', icon: <Settings size={16} /> },
   ]
-  const adminNav: { id: AppView; label: string; icon: ReactNode }[] = isSuperAdmin ? [
-    { id: 'users', label: 'User Management', icon: <Settings size={16} /> },
-    { id: 'privileges', label: 'User Privileges', icon: <Settings size={16} /> },
-    { id: 'storage', label: 'Storage Usage', icon: <Settings size={16} /> },
-  ] : []
+  const adminCatalog: { id: AppView; label: string; icon: ReactNode; permission: string }[] = [
+    { id: 'users', label: 'User Management', icon: <Settings size={16} />, permission: 'change-roles' },
+    { id: 'privileges', label: 'User Privileges', icon: <Settings size={16} />, permission: 'change-roles' },
+    { id: 'storage', label: 'Storage Usage', icon: <Settings size={16} />, permission: 'view-storage' },
+  ]
+  const adminNav = adminCatalog.filter((item) => has(item.permission))
+  const canSeeAdminTools = !permissionsLoading && has('view-admin-panels') && adminNav.length > 0
 
   async function handleSignOut() {
     await supabase.auth.signOut()
@@ -180,7 +156,7 @@ export default function SidebarLayout({
             )
           })}
 
-          {isSuperAdmin && (
+          {canSeeAdminTools && (
             <div className="mt-2">
               <button
                 type="button"
@@ -192,7 +168,7 @@ export default function SidebarLayout({
                   <Settings size={16} />
                   <span>Admin Tools</span>
                 </span>
-                {!collapsed && <span className="ml-auto text-xs">{adminOpen ? '▾' : '▸'}</span>}
+                {!collapsed && <span className="ml-auto text-xs">{adminOpen ? '-' : '+'}</span>}
                 {collapsed && <Settings size={16} />}
               </button>
               {adminOpen && !collapsed && (
@@ -220,7 +196,7 @@ export default function SidebarLayout({
             onClick={handleSignOut}
             className={`w-full ${collapsed ? 'text-center px-2' : 'text-left px-3'} py-2 rounded bg-red-600 text-white hover:bg-red-700 transition`}
           >
-            {collapsed ? '⎋' : 'Sign out'}
+            {collapsed ? 'Out' : 'Sign out'}
           </button>
         </div>
       </div>
@@ -232,7 +208,7 @@ export default function SidebarLayout({
         onClick={() => setCollapsed(false)}
         className="fixed left-2 top-2 z-50 md:hidden px-3 py-2 rounded bg-gray-700 text-white shadow"
       >
-        ☰
+        Menu
       </button>
 
       {/* Main content area */}
