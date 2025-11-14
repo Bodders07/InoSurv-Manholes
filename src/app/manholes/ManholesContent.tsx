@@ -801,16 +801,38 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
         if (dataUrl) {
           try {
             doc.addImage(dataUrl, format, x + 2, boxY + 8, targetWidth, targetHeight, undefined, 'FAST')
-                        if (boxes[i].label === 'Chamber Sketch') {
-                          const arrowBaseY = boxY + bottomHeight - 4
-                          const arrowX = x + 10
-                          doc.setFillColor(225, 17, 17)
-                          doc.triangle(arrowX, arrowBaseY - 8, arrowX + 4, arrowBaseY, arrowX - 4, arrowBaseY, 'F')
-                          doc.setTextColor(17, 24, 39)
-                          doc.setFontSize(7)
-                          doc.text('N', arrowX, arrowBaseY + 3, { align: 'center' })
-                          doc.setTextColor(0, 0, 0)
-                        }
+            if (boxes[i].label === 'Chamber Sketch') {
+              // Legend (top-right)
+              const legendWidth = 34
+              const legendHeight = 16
+              const legendX = x + boxWidth - legendWidth - 4
+              const legendY = boxY + 4
+              const sampleStartX = legendX + 4
+              doc.setDrawColor(200)
+              doc.rect(legendX, legendY, legendWidth, legendHeight)
+              doc.setFontSize(6)
+              // Cover sample (dashed)
+              doc.setDrawColor(51)
+              doc.setLineDash([1.5, 1], 0)
+              doc.line(sampleStartX, legendY + 5, sampleStartX + 12, legendY + 5)
+              doc.setLineDash()
+              doc.text('Cover', sampleStartX + 14, legendY + 6.5)
+              // Chamber sample (solid)
+              doc.setDrawColor(119)
+              doc.line(sampleStartX, legendY + 11, sampleStartX + 12, legendY + 11)
+              doc.text('Chamber', sampleStartX + 14, legendY + 12.5)
+              doc.setDrawColor(60)
+
+              // North arrow (bottom-right, smaller)
+              const arrowBaseY = boxY + bottomHeight - 6
+              const arrowX = x + boxWidth - 12
+              doc.setFillColor(225, 17, 17)
+              doc.triangle(arrowX, arrowBaseY - 6, arrowX + 3, arrowBaseY, arrowX - 3, arrowBaseY, 'F')
+              doc.setTextColor(17, 24, 39)
+              doc.setFontSize(6)
+              doc.text('N', arrowX, arrowBaseY + 2.5, { align: 'center' })
+              doc.setTextColor(0, 0, 0)
+            }
           } catch {
             doc.text('Image unavailable', x + 2, boxY + 12)
           }
