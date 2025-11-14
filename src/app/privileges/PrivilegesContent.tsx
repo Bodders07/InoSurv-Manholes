@@ -11,7 +11,7 @@ const ROLE_TABS: { id: RoleKey; label: string; description: string }[] = [
 
 type RoleKey = 'viewer' | 'editor' | 'admin' | 'superadmin'
 
-type CategoryKey = 'general' | 'manholes' | 'projects' | 'adminTools' | 'exports'
+type CategoryKey = 'general' | 'manholes' | 'projects' | 'media' | 'exports' | 'adminTools'
 
 const CATEGORY_ORDER: { id: CategoryKey; title: string }[] = [
   { id: 'general', title: 'General Experience' },
