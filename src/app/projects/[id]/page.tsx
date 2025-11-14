@@ -111,14 +111,14 @@ export default function ProjectDetailPage() {
             <table className="min-w-full bg-white border border-gray-200 rounded-lg">
               <thead>
                 <tr className="bg-gray-50 text-left">
-                <th className="px-4 py-2 border-b">Identifier</th>
+                <th className="px-4 py-2 border-b">Manhole ID</th>
                 <th className="px-4 py-2 border-b w-px">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {manholes.map((m) => (
                   <tr key={m.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-2 border-b font-medium">{m.identifier || '-'}</td>
+                    <td className="px-4 py-2 border-b font-medium">{m.Manhole ID || '-'}</td>
                     <td className="px-4 py-2 border-b text-right">
                       <div className="flex justify-end gap-2"></div>
                       <button
