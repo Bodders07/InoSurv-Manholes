@@ -564,10 +564,39 @@ const clientOptions = useMemo(() => {
                   const updatedText = formatDate(p.updated_at)
                     return (
                       <tr key={p.id} className="hover:bg-gray-50">
-                        <td className="px-4 py-2 border-b align-top">{p.project_number || '-'}</td>
-                        <td className="px-4 py-2 border-b align-top">{p.client || '-'}</td>
                         <td className="px-4 py-2 border-b align-top">
-                          {p.name ? (
+                          {isEditing ? (
+                            <input
+                              className="w-full border rounded px-2 py-1 text-sm"
+                              value={editProjectNumber}
+                              onChange={(e) => setEditProjectNumber(e.target.value)}
+                              placeholder="Project No."
+                            />
+                          ) : (
+                            p.project_number || '-'
+                          )}
+                        </td>
+                        <td className="px-4 py-2 border-b align-top">
+                          {isEditing ? (
+                            <input
+                              className="w-full border rounded px-2 py-1 text-sm"
+                              value={editClient}
+                              onChange={(e) => setEditClient(e.target.value)}
+                              placeholder="Client"
+                            />
+                          ) : (
+                            p.client || '-'
+                          )}
+                        </td>
+                        <td className="px-4 py-2 border-b align-top">
+                          {isEditing ? (
+                            <input
+                              className="w-full border rounded px-2 py-1 text-sm"
+                              value={editProjectName}
+                              onChange={(e) => setEditProjectName(e.target.value)}
+                              placeholder="Project name"
+                            />
+                          ) : p.name ? (
                             <button className="text-orange-600 hover:underline" onClick={() => setViewId(p.id)}>
                               {p.name}
                             </button>
