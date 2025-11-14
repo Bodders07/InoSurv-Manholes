@@ -96,6 +96,12 @@ export default function ChamberSketch({
     setState((s) => ({ ...s, chamberShape: shape }))
   }
 
+  function resetCounters() {
+    setLabelNext('A')
+    setInletNext('A')
+    setOutletNext('X')
+  }
+
   function onPointerDown(e: React.PointerEvent, id: string, handle: 'start' | 'end' | 'label') {
     setSelectedId(id)
     dragging.current = { id, handle }
@@ -248,7 +254,16 @@ export default function ChamberSketch({
           <button type="button" className={`sketch-btn rounded border ${compact ? 'text-xs px-2 py-1' : 'px-2 py-1'}`} onClick={() => addItem('in')}>Add Inlet</button>
           <button type="button" className={`sketch-btn rounded border ${compact ? 'text-xs px-2 py-1' : 'px-2 py-1'}`} onClick={() => addItem('out')}>Add Outlet</button>
           <button type="button" className={`sketch-btn rounded border ${compact ? 'text-xs px-2 py-1' : 'px-2 py-1'}`} onClick={() => addItem('label')}>Add Label</button>
-          <button type="button" className={`sketch-btn rounded border ${compact ? 'text-xs px-2 py-1' : 'px-2 py-1'}`} onClick={() => setState({ ...state, items: [] })}>Clear</button>
+          <button
+            type="button"
+            className={`sketch-btn rounded border ${compact ? 'text-xs px-2 py-1' : 'px-2 py-1'}`}
+            onClick={() => {
+              setState((s) => ({ ...s, items: [] }))
+              resetCounters()
+            }}
+          >
+            Clear
+          </button>
         </div>
       </div>
 
