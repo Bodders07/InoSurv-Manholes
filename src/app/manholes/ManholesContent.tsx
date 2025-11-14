@@ -171,21 +171,34 @@ async function fetchImageData(url?: string | null) {
     const res = await fetch(url)
     if (!res.ok) return null
     const blob = await res.blob()
-    const dataUrl = await new Promise<string>((resolve, reject) => {
-      const reader = new FileReader()
-      reader.onloadend = () => resolve(reader.result as string)
-      reader.onerror = reject
-      reader.readAsDataURL(blob)
-    })
-    const imgDims = await new Promise<{ width: number; height: number }>((resolve) => {
-      const img = new Image()
-      img.onload = () => resolve({ width: img.naturalWidth || img.width, height: img.naturalHeight || img.height })
-      img.onerror = () => resolve({ width: 0, height: 0 })
-      img.src = dataUrl
-    })
-    const header = dataUrl.slice(5, dataUrl.indexOf(';'))
-    const format = header.split('/')[1]?.toUpperCase() === 'PNG' ? 'PNG' : 'JPEG'
-    return { dataUrl, format: format as 'PNG' | 'JPEG', width: imgDims.width, height: imgDims.height }
+    const objectUrl = URL.createObjectURL(blob)
+    try {
+      const { dataUrl, width, height } = await new Promise<{ dataUrl: string; width: number; height: number }>((resolve, reject) => {
+        const img = new Image()
+        img.onload = () => {
+          const canvas = document.createElement('canvas')
+          const w = img.naturalWidth || img.width || 1
+          const h = img.naturalHeight || img.height || 1
+          canvas.width = w
+          canvas.height = h
+          const ctx = canvas.getContext('2d')
+          if (!ctx) {
+            resolve({ dataUrl: objectUrl, width: w, height: h })
+            return
+          }
+          ctx.drawImage(img, 0, 0, w, h)
+          const mime = blob.type === 'image/png' ? 'image/png' : 'image/jpeg'
+          const data = canvas.toDataURL(mime, 0.92)
+          resolve({ dataUrl: data, width: w, height: h })
+        }
+        img.onerror = reject
+        img.src = objectUrl
+      })
+      const format: 'PNG' | 'JPEG' = blob.type === 'image/png' ? 'PNG' : 'JPEG'
+      return { dataUrl, format, width, height }
+    } finally {
+      URL.revokeObjectURL(objectUrl)
+    }
   } catch {
     return null
   }
