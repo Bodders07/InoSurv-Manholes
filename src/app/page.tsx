@@ -31,7 +31,7 @@ export default function HomePage() {
       {view === 'storage' && <StoragePanel />}
 
       {view === 'inspections' && (
-        <div className="p-4 text-gray-600">Inspections coming soon…</div>
+        <div className="p-4 text-gray-600">Map view coming soon…</div>
       )}
     </SidebarLayout>
   )
