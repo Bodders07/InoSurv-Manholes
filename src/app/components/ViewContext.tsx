@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { createContext, useContext, useMemo, useState } from 'react'
 
 export type AppView =
   | 'dashboard'
@@ -21,14 +21,15 @@ type ViewCtx = {
 const Ctx = createContext<ViewCtx | null>(null)
 
 export function ViewProvider({ children }: { children: React.ReactNode }) {
-  const [view, setView] = useState<AppView>('dashboard')
-
-  useEffect(() => {
+  const [view, setView] = useState<AppView>(() => {
+    if (typeof window === 'undefined') return 'dashboard'
     try {
       const saved = localStorage.getItem('appView') as AppView | null
-      if (saved) setView(saved)
-    } catch {}
-  }, [])
+      return saved || 'dashboard'
+    } catch {
+      return 'dashboard'
+    }
+  })
 
   const value = useMemo<ViewCtx>(() => ({
     view,

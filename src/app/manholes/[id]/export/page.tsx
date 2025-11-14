@@ -286,6 +286,7 @@ function PhotoCard({ label, url }: { label: string; url: string }) {
     <div className="border rounded-lg bg-white p-4">
       <h2 className="text-lg font-semibold mb-3">{label}</h2>
       <div className="aspect-video overflow-hidden rounded border border-gray-200 bg-black/5">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={url} alt={label} className="h-full w-full object-cover" />
       </div>
     </div>

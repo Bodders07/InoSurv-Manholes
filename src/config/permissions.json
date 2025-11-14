@@ -1,0 +1,146 @@
+{
+  "viewer": {
+    "general": [
+      { "key": "view-dashboard", "label": "View dashboard & lists", "allowed": true },
+      { "key": "search", "label": "Use search & filters", "allowed": true },
+      { "key": "view-activity", "label": "View activity feed", "allowed": true },
+      { "key": "edit-settings", "label": "Change site settings", "allowed": false }
+    ],
+    "manholes": [
+      { "key": "manhole-view", "label": "View manholes", "allowed": true },
+      { "key": "manhole-create", "label": "Create manholes", "allowed": false },
+      { "key": "manhole-edit", "label": "Edit manholes", "allowed": false },
+      { "key": "manhole-delete", "label": "Delete manholes", "allowed": false }
+    ],
+    "projects": [
+      { "key": "project-view", "label": "View projects", "allowed": true },
+      { "key": "project-create", "label": "Create projects", "allowed": false },
+      { "key": "project-edit", "label": "Edit projects", "allowed": false },
+      { "key": "project-delete", "label": "Archive/Delete projects", "allowed": false }
+    ],
+    "media": [
+      { "key": "upload-photo", "label": "Upload photos", "allowed": false },
+      { "key": "edit-sketch", "label": "Edit chamber sketch", "allowed": false },
+      { "key": "delete-media", "label": "Delete photos/sketches", "allowed": false }
+    ],
+    "exports": [
+      { "key": "export-pdf", "label": "Generate PDF exports", "allowed": false },
+      { "key": "export-csv", "label": "Export CSV/Sheets", "allowed": false },
+      { "key": "download-files", "label": "Download attachments", "allowed": true }
+    ],
+    "adminTools": [
+      { "key": "view-admin-panels", "label": "View admin panels", "allowed": false },
+      { "key": "invite-users", "label": "Invite users", "allowed": false },
+      { "key": "change-roles", "label": "Change user roles", "allowed": false },
+      { "key": "view-storage", "label": "View storage usage", "allowed": false }
+    ]
+  },
+  "editor": {
+    "general": [
+      { "key": "view-dashboard", "label": "View dashboard & lists", "allowed": true },
+      { "key": "search", "label": "Use search & filters", "allowed": true },
+      { "key": "view-activity", "label": "View activity feed", "allowed": true },
+      { "key": "edit-settings", "label": "Change site settings", "allowed": false }
+    ],
+    "manholes": [
+      { "key": "manhole-view", "label": "View manholes", "allowed": true },
+      { "key": "manhole-create", "label": "Create manholes", "allowed": true },
+      { "key": "manhole-edit", "label": "Edit manholes", "allowed": true },
+      { "key": "manhole-delete", "label": "Delete manholes", "allowed": false }
+    ],
+    "projects": [
+      { "key": "project-view", "label": "View projects", "allowed": true },
+      { "key": "project-create", "label": "Create projects", "allowed": true },
+      { "key": "project-edit", "label": "Edit projects", "allowed": true },
+      { "key": "project-delete", "label": "Archive/Delete projects", "allowed": false }
+    ],
+    "media": [
+      { "key": "upload-photo", "label": "Upload photos", "allowed": true },
+      { "key": "edit-sketch", "label": "Edit chamber sketch", "allowed": true },
+      { "key": "delete-media", "label": "Delete photos/sketches", "allowed": false }
+    ],
+    "exports": [
+      { "key": "export-pdf", "label": "Generate PDF exports", "allowed": true },
+      { "key": "export-csv", "label": "Export CSV/Sheets", "allowed": true },
+      { "key": "download-files", "label": "Download attachments", "allowed": true }
+    ],
+    "adminTools": [
+      { "key": "view-admin-panels", "label": "View admin panels", "allowed": false },
+      { "key": "invite-users", "label": "Invite users", "allowed": false },
+      { "key": "change-roles", "label": "Change user roles", "allowed": false },
+      { "key": "view-storage", "label": "View storage usage", "allowed": false }
+    ]
+  },
+  "admin": {
+    "general": [
+      { "key": "view-dashboard", "label": "View dashboard & lists", "allowed": true },
+      { "key": "search", "label": "Use search & filters", "allowed": true },
+      { "key": "view-activity", "label": "View activity feed", "allowed": true },
+      { "key": "edit-settings", "label": "Change site settings", "allowed": true }
+    ],
+    "manholes": [
+      { "key": "manhole-view", "label": "View manholes", "allowed": true },
+      { "key": "manhole-create", "label": "Create manholes", "allowed": true },
+      { "key": "manhole-edit", "label": "Edit manholes", "allowed": true },
+      { "key": "manhole-delete", "label": "Delete manholes", "allowed": true }
+    ],
+    "projects": [
+      { "key": "project-view", "label": "View projects", "allowed": true },
+      { "key": "project-create", "label": "Create projects", "allowed": true },
+      { "key": "project-edit", "label": "Edit projects", "allowed": true },
+      { "key": "project-delete", "label": "Archive/Delete projects", "allowed": true }
+    ],
+    "media": [
+      { "key": "upload-photo", "label": "Upload photos", "allowed": true },
+      { "key": "edit-sketch", "label": "Edit chamber sketch", "allowed": true },
+      { "key": "delete-media", "label": "Delete photos/sketches", "allowed": true }
+    ],
+    "exports": [
+      { "key": "export-pdf", "label": "Generate PDF exports", "allowed": true },
+      { "key": "export-csv", "label": "Export CSV/Sheets", "allowed": true },
+      { "key": "download-files", "label": "Download attachments", "allowed": true }
+    ],
+    "adminTools": [
+      { "key": "view-admin-panels", "label": "View admin panels", "allowed": true },
+      { "key": "invite-users", "label": "Invite users", "allowed": true },
+      { "key": "change-roles", "label": "Change user roles", "allowed": false },
+      { "key": "view-storage", "label": "View storage usage", "allowed": true }
+    ]
+  },
+  "superadmin": {
+    "general": [
+      { "key": "view-dashboard", "label": "View dashboard & lists", "allowed": true },
+      { "key": "search", "label": "Use search & filters", "allowed": true },
+      { "key": "view-activity", "label": "View activity feed", "allowed": true },
+      { "key": "edit-settings", "label": "Change site settings", "allowed": true }
+    ],
+    "manholes": [
+      { "key": "manhole-view", "label": "View manholes", "allowed": true },
+      { "key": "manhole-create", "label": "Create manholes", "allowed": true },
+      { "key": "manhole-edit", "label": "Edit manholes", "allowed": true },
+      { "key": "manhole-delete", "label": "Delete manholes", "allowed": true }
+    ],
+    "projects": [
+      { "key": "project-view", "label": "View projects", "allowed": true },
+      { "key": "project-create", "label": "Create projects", "allowed": true },
+      { "key": "project-edit", "label": "Edit projects", "allowed": true },
+      { "key": "project-delete", "label": "Archive/Delete projects", "allowed": true }
+    ],
+    "media": [
+      { "key": "upload-photo", "label": "Upload photos", "allowed": true },
+      { "key": "edit-sketch", "label": "Edit chamber sketch", "allowed": true },
+      { "key": "delete-media", "label": "Delete photos/sketches", "allowed": true }
+    ],
+    "exports": [
+      { "key": "export-pdf", "label": "Generate PDF exports", "allowed": true },
+      { "key": "export-csv", "label": "Export CSV/Sheets", "allowed": true },
+      { "key": "download-files", "label": "Download attachments", "allowed": true }
+    ],
+    "adminTools": [
+      { "key": "view-admin-panels", "label": "View admin panels", "allowed": true },
+      { "key": "invite-users", "label": "Invite users", "allowed": true },
+      { "key": "change-roles", "label": "Change user roles", "allowed": true },
+      { "key": "view-storage", "label": "View storage usage", "allowed": true }
+    ]
+  }
+}

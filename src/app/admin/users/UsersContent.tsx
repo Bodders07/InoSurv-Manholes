@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import { deriveRoleInfo, canAdminister, canManageEverything } from '@/lib/roles'
 
@@ -11,6 +11,9 @@ const ROLES = [
   { value: 'viewer', label: 'Viewer' },
 ]
 
+type UserRow = { id: string; email: string; role: string | null }
+type UsersResponse = { users?: UserRow[]; error?: string }
+
 export default function UsersContent() {
   const [email, setEmail] = useState('')
   const [inviteRole, setInviteRole] = useState('viewer')
@@ -18,7 +21,7 @@ export default function UsersContent() {
   const [submitting, setSubmitting] = useState(false)
   const [token, setToken] = useState<string | null>(null)
 
-  const [users, setUsers] = useState<{ id: string; email: string; role: string | null }[]>([])
+  const [users, setUsers] = useState<UserRow[]>([])
   const [loadingUsers, setLoadingUsers] = useState(true)
   const [savingRoleId, setSavingRoleId] = useState<string | null>(null)
   const [deletingUserId, setDeletingUserId] = useState<string | null>(null)
@@ -33,6 +36,49 @@ export default function UsersContent() {
   const [dbgRoles, setDbgRoles] = useState<string[]>([])
   const [dbgIsSuper, setDbgIsSuper] = useState(false)
   const [dbgIsAdmin, setDbgIsAdmin] = useState(false)
+
+  const detectAccess = useCallback(async () => {
+    const { data } = await supabase.auth.getUser()
+    const info = deriveRoleInfo(data.user)
+    const adminDetected = canAdminister(info)
+    const superDetected = canManageEverything(info)
+    setIsAdmin(adminDetected)
+    setIsSuperAdmin(superDetected)
+    setDbgEmail(info.email)
+    setDbgRole(info.role)
+    setDbgRoles(info.roles)
+    setDbgIsAdmin(adminDetected)
+    setDbgIsSuper(superDetected)
+  }, [])
+
+  const loadUsers = useCallback(async (tok?: string | null) => {
+    setLoadingUsers(true)
+    try {
+      let authToken = tok
+      if (!authToken) {
+        const { data } = await supabase.auth.getSession()
+        authToken = data.session?.access_token ?? null
+      }
+      if (!authToken) {
+        setMessage('Please sign in to view users.')
+        return
+      }
+      const res = await fetch('/api/admin/users', {
+        headers: { Authorization: `Bearer ${authToken}` },
+      })
+      const payload = (await res.json()) as UsersResponse
+      if (res.ok && payload.users) {
+        setUsers(payload.users.map((u) => ({ id: u.id, email: u.email, role: u.role ?? null })))
+      } else {
+        setMessage('Error: ' + (payload.error || 'Failed to load users'))
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to load users'
+      setMessage('Error: ' + msg)
+    } finally {
+      setLoadingUsers(false)
+    }
+  }, [])
 
   useEffect(() => {
     async function init() {
@@ -53,58 +99,22 @@ export default function UsersContent() {
       await loadUsers(tok)
     })
     return () => listener.subscription.unsubscribe()
-  }, [])
-
-  async function detectAccess() {
-    const { data } = await supabase.auth.getUser()
-    const info = deriveRoleInfo(data.user)
-    const adminDetected = canAdminister(info)
-    const superDetected = canManageEverything(info)
-    setIsAdmin(adminDetected)
-    setIsSuperAdmin(superDetected)
-    setDbgEmail(info.email)
-    setDbgRole(info.role)
-    setDbgRoles(info.roles)
-    setDbgIsAdmin(adminDetected)
-    setDbgIsSuper(superDetected)
-  }
-
-  async function loadUsers(tok?: string | null) {
-    setLoadingUsers(true)
-    try {
-      const t = tok ?? token ?? (await supabase.auth.getSession()).data.session?.access_token
-      if (!t) {
-        setMessage('Please sign in to view users.')
-        return
-      }
-      const res = await fetch('/api/admin/users', {
-        headers: { Authorization: `Bearer ${t}` },
-      })
-      const payload = await res.json()
-      if (res.ok) {
-        setUsers(
-          (payload.users || []).map((u: any) => ({ id: u.id, email: u.email, role: u.role || null }))
-        )
-      } else {
-        setMessage('Error: ' + (payload.error || 'Failed to load users'))
-      }
-    } catch (e: any) {
-      setMessage('Error: ' + (e?.message || 'Failed to load users'))
-    } finally {
-      setLoadingUsers(false)
-    }
-  }
+  }, [detectAccess, loadUsers])
 
   useEffect(() => {
     if (token) {
       loadUsers(token)
     }
-  }, [token])
+  }, [token, loadUsers])
 
   const canInvite = useMemo(() => !!email && !!inviteRole && !submitting && isAdmin && !!token, [email, inviteRole, submitting, isAdmin, token])
 
   async function inviteUser() {
     if (!canInvite) return
+    if (!token) {
+      setMessage('Error: Missing auth token.')
+      return
+    }
     setMessage('')
     setSubmitting(true)
     try {
@@ -116,14 +126,15 @@ export default function UsersContent() {
         },
         body: JSON.stringify({ email, role: inviteRole }),
       })
-      const payload = await res.json()
+      const payload = (await res.json()) as { error?: string }
       if (!res.ok) throw new Error(payload.error || 'Failed to create user')
       setMessage('Success: Invitation sent')
       setEmail('')
       setInviteRole('viewer')
-      await loadUsers()
-    } catch (e: any) {
-      setMessage('Error: ' + (e?.message || 'Failed'))
+      await loadUsers(token)
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed'
+      setMessage('Error: ' + msg)
     } finally {
       setSubmitting(false)
     }
@@ -132,6 +143,10 @@ export default function UsersContent() {
   async function saveUserRole(userId: string, newRole: string) {
     if (!isSuperAdmin) {
       setMessage('Error: Only Super Admin can change roles.')
+      return
+    }
+    if (!token) {
+      setMessage('Error: Missing auth token.')
       return
     }
     setSavingRoleId(userId)
@@ -145,12 +160,13 @@ export default function UsersContent() {
         },
         body: JSON.stringify({ userId, role: newRole }),
       })
-      const payload = await res.json()
+      const payload = (await res.json()) as { error?: string }
       if (!res.ok) throw new Error(payload.error || 'Failed to update role')
       setMessage('Success: Role updated')
-      await loadUsers()
-    } catch (e: any) {
-      setMessage('Error: ' + (e?.message || 'Failed to update role'))
+      await loadUsers(token)
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to update role'
+      setMessage('Error: ' + msg)
     } finally {
       setSavingRoleId(null)
     }
@@ -167,6 +183,10 @@ export default function UsersContent() {
     }
     const proceed = typeof window !== 'undefined' ? window.confirm('Delete this user? This cannot be undone.') : true
     if (!proceed) return
+    if (!token) {
+      setMessage('Error: Missing auth token.')
+      return
+    }
     setDeletingUserId(userId)
     setMessage('')
     try {
@@ -178,12 +198,13 @@ export default function UsersContent() {
         },
         body: JSON.stringify({ userId }),
       })
-      const payload = await res.json()
+      const payload = (await res.json()) as { error?: string }
       if (!res.ok) throw new Error(payload.error || 'Failed to delete user')
       setMessage('Success: User deleted')
-      await loadUsers()
-    } catch (e: any) {
-      setMessage('Error: ' + (e?.message || 'Failed to delete user'))
+      await loadUsers(token)
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to delete user'
+      setMessage('Error: ' + msg)
     } finally {
       setDeletingUserId(null)
     }
@@ -317,4 +338,3 @@ export default function UsersContent() {
     </>
   )
 }
-

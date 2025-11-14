@@ -8,7 +8,7 @@ export default function TestPage() {
 
   useEffect(() => {
     async function check() {
-      const { data, error } = await supabase.from('test_table').select('*').limit(1)
+      const { error } = await supabase.from('test_table').select('*').limit(1)
       if (error) setMessage('Error: Connection failed: ' + error.message)
       else setMessage('Success: Supabase connected! Table is accessible')
     }
@@ -17,4 +17,3 @@ export default function TestPage() {
 
   return <div className="p-8 text-lg">{message}</div>
 }
-

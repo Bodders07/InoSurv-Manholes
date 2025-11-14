@@ -1,3 +1,5 @@
+import type { User } from '@supabase/supabase-js'
+
 export type RoleInfo = {
   email: string
   role: string
@@ -8,12 +10,12 @@ export type RoleInfo = {
 
 const ADMIN_SET = new Set(['admin', 'owner', 'superadmin', 'root'])
 
-export function deriveRoleInfo(user: any): RoleInfo {
+export function deriveRoleInfo(user: User | null | undefined): RoleInfo {
   const email = String(user?.email || '').toLowerCase()
-  const meta = (user?.app_metadata as any) || {}
-  const role = String(meta.role || '').toLowerCase()
+  const meta = (user?.app_metadata as Record<string, unknown>) || {}
+  const role = String(meta.role ?? '').toLowerCase()
   const roles = Array.isArray(meta.roles)
-    ? (meta.roles as any[]).map((r) => String(r).toLowerCase())
+    ? meta.roles.map((value) => String(value).toLowerCase())
     : []
   const isFlag = Boolean(meta.is_admin)
 
@@ -35,4 +37,3 @@ export function canManageEverything(info: RoleInfo): boolean {
 export function canAdminister(info: RoleInfo): boolean {
   return info.isAdmin || info.isSuperAdmin
 }
-

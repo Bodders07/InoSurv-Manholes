@@ -28,8 +28,9 @@ export default function StoragePage() {
         const payload = await res.json()
         if (!res.ok) throw new Error(payload.error || 'Failed to load storage usage')
         setUsage(payload)
-      } catch (e: any) {
-        setMessage('Error: ' + (e?.message || 'Failed to load'))
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : 'Failed to load'
+        setMessage('Error: ' + msg)
       }
     }
     load()
@@ -79,4 +80,3 @@ export default function StoragePage() {
   if (embed) return content
   return <SidebarLayout>{content}</SidebarLayout>
 }
-

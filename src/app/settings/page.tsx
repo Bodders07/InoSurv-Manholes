@@ -22,20 +22,24 @@ function applyTheme(choice: ThemeChoice) {
 }
 
 export default function SettingsPage() {
-  const [choice, setChoice] = useState<ThemeChoice>('dark')
-  const [saved, setSaved] = useState<ThemeChoice>('dark')
+  const [choice, setChoice] = useState<ThemeChoice>(() => {
+    if (typeof window === 'undefined') return 'dark'
+    return (localStorage.getItem('theme') as ThemeChoice) || 'dark'
+  })
+  const [saved, setSaved] = useState<ThemeChoice>(choice)
 
   useEffect(() => {
-    const savedLS = (localStorage.getItem('theme') as ThemeChoice) || 'dark'
-    setChoice(savedLS)
-    setSaved(savedLS)
-    applyTheme(savedLS)
-    // Keep in sync if system preference changes
+    applyTheme(choice)
+  }, [choice])
+
+  useEffect(() => {
+    if (choice !== 'system') return undefined
     const mq = window.matchMedia('(prefers-color-scheme: dark)')
-    const handler = () => (choice === 'system') && applyTheme('system')
+    const handler = () => applyTheme('system')
     mq.addEventListener?.('change', handler)
+    handler()
     return () => mq.removeEventListener?.('change', handler)
-  }, [])
+  }, [choice])
 
   function onChange(next: ThemeChoice) {
     setChoice(next)

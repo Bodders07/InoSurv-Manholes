@@ -22,8 +22,11 @@ function applyTheme(choice: ThemeChoice) {
 
 export default function SettingsContent() {
   const router = useRouter()
-  const [choice, setChoice] = useState<ThemeChoice>('dark')
-  const [saved, setSaved] = useState<ThemeChoice>('dark')
+  const [choice, setChoice] = useState<ThemeChoice>(() => {
+    if (typeof window === 'undefined') return 'dark'
+    return (localStorage.getItem('theme') as ThemeChoice) || 'dark'
+  })
+  const [saved, setSaved] = useState<ThemeChoice>(choice)
   // Password change state
   const [curPwd, setCurPwd] = useState('')
   const [newPwd, setNewPwd] = useState('')
@@ -32,15 +35,16 @@ export default function SettingsContent() {
   const [pwdMsg, setPwdMsg] = useState('')
 
   useEffect(() => {
-    const savedLS = (localStorage.getItem('theme') as ThemeChoice) || 'dark'
-    setChoice(savedLS)
-    setSaved(savedLS)
-    applyTheme(savedLS)
+    applyTheme(choice)
+  }, [choice])
+  useEffect(() => {
+    if (choice !== 'system') return undefined
     const mq = window.matchMedia('(prefers-color-scheme: dark)')
-    const handler = () => (choice === 'system') && applyTheme('system')
+    const handler = () => applyTheme('system')
     mq.addEventListener?.('change', handler)
+    handler()
     return () => mq.removeEventListener?.('change', handler)
-  }, [])
+  }, [choice])
 
   function onChange(next: ThemeChoice) {
     setChoice(next)
@@ -94,8 +98,9 @@ export default function SettingsContent() {
         // Small delay to show message, then redirect
         setTimeout(() => router.replace('/auth'), 300)
       }
-    } catch (e: any) {
-      setPwdMsg('Error: ' + (e?.message || 'Failed to update password'))
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to update password'
+      setPwdMsg('Error: ' + msg)
     } finally {
       setPwdPending(false)
     }
