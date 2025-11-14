@@ -664,13 +664,15 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
       doc.setDrawColor(60)
       doc.rect(startX, margin, innerWidth, pageHeight - margin * 2)
       if (logo) {
-        doc.addImage(logo.dataUrl, logo.format, pageWidth / 2 - 22, margin + 2, 44, 10, undefined, 'FAST')
+        const logoWidth = 44
+        const logoHeight = logoWidth * (logo.height && logo.width ? logo.height / logo.width : 0.35)
+        doc.addImage(logo.dataUrl, logo.format, startX + 4, margin + 4, logoWidth, logoHeight, undefined, 'FAST')
       } else {
         doc.setFontSize(18)
-        doc.text('InoRail', pageWidth / 2, margin + 8, { align: 'center' })
+        doc.text('InoRail', startX + 24, margin + 12, { align: 'left' })
       }
       doc.setFontSize(10)
-      const jobBoxY = margin + 12
+      const jobBoxY = margin + 18
       const jobBoxWidth = innerWidth - 4
       const jobBoxHeight = 20
       const jobBoxX = startX + 2
