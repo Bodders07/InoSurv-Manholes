@@ -128,10 +128,40 @@ function valueOrDash(value: unknown) {
   return String(value)
 }
 
-function formatPipeSize(pipe?: PipeRecord) {
+const DIAMETER_SYMBOL = 'Ø'
+const PIPE_DIAMETER_SHAPES = new Set(['Circular', 'Egg', 'Brick Arch', 'Unknown', 'Other'])
+
+function formatPipeSize(pipe?: PipeRecord, shape?: string | null) {
   if (!pipe) return '-'
-  if (pipe.diameter_mm) return `${pipe.diameter_mm} mm`
-  if (pipe.width_mm || pipe.height_mm) return `${pipe.width_mm || '-'} x ${pipe.height_mm || '-'}`
+  const usesDiameter = shape ? PIPE_DIAMETER_SHAPES.has(shape) : false
+  const diameter = pipe.diameter_mm
+  const hasDiameter = diameter !== null && diameter !== undefined && String(diameter).trim() !== ''
+  const width = pipe.width_mm
+  const height = pipe.height_mm
+  const hasWidthHeight = (width !== null && width !== undefined && String(width).trim() !== '') ||
+    (height !== null && height !== undefined && String(height).trim() !== '')
+
+  if (usesDiameter && hasDiameter) return `${DIAMETER_SYMBOL}${diameter} mm`
+  if (!usesDiameter && hasWidthHeight) return `${width || '-'} x ${height || '-'}`
+  if (hasDiameter) return `${DIAMETER_SYMBOL}${diameter} mm`
+  if (hasWidthHeight) return `${width || '-'} x ${height || '-'}`
+  return '-'
+}
+
+function formatDimensionByShape(
+  shape?: string | null,
+  diameter?: string | number | null,
+  width?: string | number | null,
+  length?: string | number | null
+) {
+  const usesDiameter = shape === 'Circle' || shape === 'Hexagon'
+  const hasDiameter = diameter !== null && diameter !== undefined && String(diameter).trim() !== ''
+  const hasWidth = width !== null && width !== undefined && String(width).trim() !== ''
+  const hasLength = length !== null && length !== undefined && String(length).trim() !== ''
+  if (usesDiameter && hasDiameter) return `${DIAMETER_SYMBOL}${diameter} mm`
+  if (!usesDiameter && (hasWidth || hasLength)) return `${width || '-'} x ${length || '-'}`
+  if (hasDiameter) return `${DIAMETER_SYMBOL}${diameter} mm`
+  if (hasWidth || hasLength) return `${width || '-'} x ${length || '-'}`
   return '-'
 }
 
@@ -591,7 +621,7 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
   if (!pipes || !pipes.length) return []
   return pipes.slice(0, limit).map((pipe) => ({
     label: pipe.label || '',
-    size: formatPipeSize(pipe),
+    size: formatPipeSize(pipe, pipe.shape),
     shape: pipe.shape || '-',
     material: pipe.material || '-',
     depth: valueOrDash(pipe.invert_depth_m),
@@ -650,11 +680,23 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
         })
         return height
       }
+      const coverSize = formatDimensionByShape(
+        record.cover_shape,
+        record.cover_diameter_mm,
+        record.cover_width_mm,
+        record.cover_length_mm
+      )
+      const chamberSize = formatDimensionByShape(
+        record.chamber_shape,
+        record.chamber_diameter_mm,
+        record.chamber_width_mm,
+        record.chamber_length_mm
+      )
       const coverRows = [
         { label: 'Service Type:', value: valueOrDash(record.service_type) },
         { label: 'Cover Material:', value: valueOrDash(record.cover_material || record.cover_material_other) },
         { label: 'Cover Shape:', value: valueOrDash(record.cover_shape) },
-        { label: 'Cover Size:', value: valueOrDash(record.cover_diameter_mm || `${record.cover_width_mm || ''}x${record.cover_length_mm || ''}`) },
+        { label: 'Cover Size:', value: coverSize },
         { label: 'Cover Cond:', value: valueOrDash(record.cover_condition) },
         { label: 'Cover Duty:', value: valueOrDash(record.cover_duty) },
       ]
@@ -671,7 +713,7 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
       let currentY = sectionY + Math.max(coverHeight, generalHeight) + 6
       const chamberRows = [
         { label: 'Shape:', value: valueOrDash(record.chamber_shape) },
-        { label: 'Dimensions:', value: valueOrDash(record.chamber_diameter_mm || `${record.chamber_width_mm || ''}x${record.chamber_length_mm || ''}`) },
+        { label: 'Dimensions:', value: chamberSize },
         { label: 'Material:', value: valueOrDash(record.chamber_material || record.chamber_material_other) },
         { label: 'Condition:', value: valueOrDash(record.cover_condition) },
       ]
