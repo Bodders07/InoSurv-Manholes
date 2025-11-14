@@ -27,7 +27,14 @@ export default function ProjectDetailPage() {
   const [message, setMessage] = useState('')
   const [isSuperAdmin, setIsSuperAdmin] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
-  const [embed, setEmbed] = useState(false)
+  const [embed] = useState(() => {
+    if (typeof window === 'undefined') return false
+    try {
+      return new URLSearchParams(window.location.search).get('embed') === '1'
+    } catch {
+      return false
+    }
+  })
 
   useEffect(() => {
     async function load() {
@@ -58,13 +65,6 @@ export default function ProjectDetailPage() {
     }
     load()
   }, [projectId])
-
-  useEffect(() => {
-    try {
-      const sp = new URLSearchParams(window.location.search)
-      setEmbed(sp.get('embed') === '1')
-    } catch {}
-  }, [])
 
   async function deleteManhole(id: string) {
     if (!isSuperAdmin) return
