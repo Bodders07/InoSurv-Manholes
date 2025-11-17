@@ -212,11 +212,7 @@ export default function SidebarLayout({
   }
 
   const refreshPage = () => {
-    try {
-      router.refresh()
-    } catch {
-      window.location.reload()
-    }
+    window.location.reload()
   }
 
   const sidebarWidth = isSmallScreen ? (collapsed ? 'w-0' : 'w-64') : (collapsed ? 'w-14' : 'w-64')
