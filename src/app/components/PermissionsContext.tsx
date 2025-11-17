@@ -93,6 +93,18 @@ export function PermissionsProvider({ children }: { children: React.ReactNode })
     return () => window.removeEventListener('permissions-updated', handler)
   }, [loadConfig])
 
+  useEffect(() => {
+    function handleFocus() {
+      loadConfig()
+    }
+    window.addEventListener('focus', handleFocus)
+    const interval = window.setInterval(loadConfig, 60_000)
+    return () => {
+      window.removeEventListener('focus', handleFocus)
+      window.clearInterval(interval)
+    }
+  }, [loadConfig])
+
   const allowedKeys = useMemo(() => {
     const flattened = flattenAllowed(config, role)
     return new Set(flattened)
