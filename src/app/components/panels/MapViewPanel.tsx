@@ -48,8 +48,13 @@ export default function MapViewPanel() {
   const mappedPoints = useMemo(() => {
     return points
       .map((point) => {
-        const lat = typeof point.latitude === 'number' ? point.latitude : Number(point.latitude)
-        const lng = typeof point.longitude === 'number' ? point.longitude : Number(point.longitude)
+        const rawLat = point.latitude
+        const rawLng = point.longitude
+        if (rawLat === null || rawLng === null) return null
+        if (typeof rawLat === 'string' && rawLat.trim() === '') return null
+        if (typeof rawLng === 'string' && rawLng.trim() === '') return null
+        const lat = typeof rawLat === 'number' ? rawLat : Number(rawLat)
+        const lng = typeof rawLng === 'number' ? rawLng : Number(rawLng)
         if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null
         return { id: point.id, name: point.identifier || point.id, lat, lng }
       })
