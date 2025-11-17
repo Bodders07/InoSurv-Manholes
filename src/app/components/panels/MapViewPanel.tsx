@@ -17,10 +17,27 @@ type ManholePoint = {
   cover_shape: string | null
 }
 
+const LABEL_COLORS = [
+  { name: 'Amber', value: 'rgba(140,72,0,0.95)' },
+  { name: 'Slate', value: 'rgba(47, 65, 86, 0.95)' },
+  { name: 'Forest', value: 'rgba(21, 83, 64, 0.95)' },
+  { name: 'Charcoal', value: 'rgba(10,10,10,0.9)' },
+]
+
+const ICON_COLORS = [
+  { name: 'Orange', value: '#a74c07' },
+  { name: 'Blue', value: '#1d4ed8' },
+  { name: 'Green', value: '#15803d' },
+  { name: 'Purple', value: '#6d28d9' },
+]
+
 export default function MapViewPanel() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [points, setPoints] = useState<ManholePoint[]>([])
+  const [activeTab, setActiveTab] = useState<'label' | 'icon'>('label')
+  const [labelColor, setLabelColor] = useState('rgba(140,72,0,0.95)')
+  const [iconColor, setIconColor] = useState('#a74c07')
 
   useEffect(() => {
     let active = true
@@ -101,7 +118,42 @@ export default function MapViewPanel() {
           Showing {mappedPoints.length} manhole{mappedPoints.length === 1 ? '' : 's'} with coordinates.
         </p>
       </div>
-      <LeafletMap points={mappedPoints} />
+      <div className="rounded-xl border border-gray-200 bg-white p-4">
+        <div className="flex gap-2 mb-3">
+          {(['label', 'icon'] as const).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-3 py-1.5 rounded-full text-sm font-medium ${
+                activeTab === tab ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'
+              }`}
+            >
+              {tab === 'label' ? 'Label' : 'Icon'}
+            </button>
+          ))}
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {(activeTab === 'label' ? LABEL_COLORS : ICON_COLORS).map((option) => {
+            const selected = activeTab === 'label' ? labelColor === option.value : iconColor === option.value
+            return (
+              <button
+                key={option.name}
+                onClick={() => (activeTab === 'label' ? setLabelColor(option.value) : setIconColor(option.value))}
+                className={`flex items-center gap-2 rounded border px-3 py-1 text-sm ${
+                  selected ? 'border-blue-600 bg-blue-50' : 'border-gray-200 bg-white hover:border-gray-400'
+                }`}
+              >
+                <span
+                  className="inline-block h-4 w-4 rounded-full border border-gray-300"
+                  style={{ backgroundColor: option.value }}
+                />
+                {option.name}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+      <LeafletMap points={mappedPoints} iconColor={iconColor} labelColor={labelColor} />
     </div>
   )
 }

@@ -27,11 +27,11 @@ const SHAPE_CLASS: Record<string, string> = {
 }
 
 // Fix Leaflet's default icon paths in Next.js bundles
-function createMarkerIcon(label: string, shape?: string) {
+function createMarkerIcon(label: string, shape = '', iconColor: string, labelColor: string) {
   const shapeClass = SHAPE_CLASS[shape || ''] || SHAPE_CLASS.default
   return L.divIcon({
     html: `
-      <div class="manhole-marker">
+      <div class="manhole-marker" style="--icon-color:${iconColor}; --label-bg:${labelColor};">
         <img src="${customMarker.src}" class="${shapeClass}" alt="Manhole marker" />
         <span>${label}</span>
       </div>
@@ -45,7 +45,15 @@ function createMarkerIcon(label: string, shape?: string) {
 
 const DEFAULT_CENTER: LatLngExpression = [54.5, -3.0] // UK-ish fallback
 
-export default function LeafletMap({ points }: { points: MapPoint[] }) {
+export default function LeafletMap({
+  points,
+  iconColor,
+  labelColor,
+}: {
+  points: MapPoint[]
+  iconColor: string
+  labelColor: string
+}) {
   const bounds = useMemo(() => {
     if (!points.length) return null
     const latLngs = points.map((p) => [p.lat, p.lng] as [number, number])
@@ -87,7 +95,7 @@ export default function LeafletMap({ points }: { points: MapPoint[] }) {
         <Marker
           key={point.id}
           position={[point.lat, point.lng]}
-          icon={createMarkerIcon(point.name || point.id, point.shape)}
+          icon={createMarkerIcon(point.name || point.id, point.shape, iconColor, labelColor)}
         >
           <Popup>
             <div className="space-y-1">
