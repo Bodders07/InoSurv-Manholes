@@ -37,6 +37,22 @@ function initialsFromName(value: string) {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
 }
 
+function nameFromEmail(email: string) {
+  if (!email) return ''
+  const local = email.split('@')[0] || ''
+  if (!local) return ''
+  const cleaned = local
+    .replace(/[._-]+/g, ' ')
+    .replace(/\d+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+  if (!cleaned) return ''
+  return cleaned
+    .split(' ')
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(' ')
+}
+
 export default function SidebarLayout({
   children,
 }: {
@@ -67,7 +83,7 @@ export default function SidebarLayout({
     const displayName =
       (user.user_metadata?.full_name as string) ||
       (user.user_metadata?.name as string) ||
-      user.email ||
+      nameFromEmail(user.email || '') ||
       ''
     setUserName(displayName || info.email || '')
     const label = info.isSuperAdmin
