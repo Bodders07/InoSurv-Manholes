@@ -51,10 +51,11 @@ export default function MapViewPanel() {
         const rawLat = point.latitude
         const rawLng = point.longitude
         if (rawLat === null || rawLng === null) return null
-        if (typeof rawLat === 'string' && rawLat.trim() === '') return null
-        if (typeof rawLng === 'string' && rawLng.trim() === '') return null
-        const lat = typeof rawLat === 'number' ? rawLat : Number(rawLat)
-        const lng = typeof rawLng === 'number' ? rawLng : Number(rawLng)
+        const latString = typeof rawLat === 'string' ? rawLat : String(rawLat)
+        const lngString = typeof rawLng === 'string' ? rawLng : String(rawLng)
+        if (latString.trim() === '' || lngString.trim() === '') return null
+        const lat = Number(latString)
+        const lng = Number(lngString)
         if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null
         return { id: point.id, name: point.identifier || point.id, lat, lng }
       })
