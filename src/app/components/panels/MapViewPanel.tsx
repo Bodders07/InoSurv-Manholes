@@ -14,6 +14,7 @@ type ManholePoint = {
   identifier: string | null
   latitude: number | null
   longitude: number | null
+  cover_shape: string | null
 }
 
 export default function MapViewPanel() {
@@ -28,7 +29,7 @@ export default function MapViewPanel() {
       setError(null)
       const { data, error } = await supabase
         .from('manholes')
-        .select('id, identifier, latitude, longitude')
+        .select('id, identifier, latitude, longitude, cover_shape')
 
       if (!active) return
       if (error) {
@@ -57,9 +58,15 @@ export default function MapViewPanel() {
         const lat = Number(latString)
         const lng = Number(lngString)
         if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null
-        return { id: point.id, name: point.identifier || point.id, lat, lng }
+        return {
+          id: point.id,
+          name: point.identifier || point.id,
+          lat,
+          lng,
+          shape: (point.cover_shape || '').toLowerCase(),
+        }
       })
-      .filter(Boolean) as { id: string; name: string; lat: number; lng: number }[]
+      .filter(Boolean) as { id: string; name: string; lat: number; lng: number; shape: string }[]
   }, [points])
 
   if (loading) {

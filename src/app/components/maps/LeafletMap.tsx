@@ -13,14 +13,26 @@ type MapPoint = {
   name: string
   lat: number
   lng: number
+  shape?: string
+}
+
+const SHAPE_CLASS: Record<string, string> = {
+  circle: 'shape-circle',
+  round: 'shape-circle',
+  triangle: 'shape-triangle',
+  square: 'shape-square',
+  rectangle: 'shape-square',
+  hexagon: 'shape-hexagon',
+  default: 'shape-circle',
 }
 
 // Fix Leaflet's default icon paths in Next.js bundles
-function createMarkerIcon(label: string) {
+function createMarkerIcon(label: string, shape?: string) {
+  const shapeClass = SHAPE_CLASS[shape || ''] || SHAPE_CLASS.default
   return L.divIcon({
     html: `
       <div class="manhole-marker">
-        <img src="${customMarker.src}" alt="Manhole marker" />
+        <img src="${customMarker.src}" class="${shapeClass}" alt="Manhole marker" />
         <span>${label}</span>
       </div>
     `,
@@ -59,7 +71,7 @@ export default function LeafletMap({ points }: { points: MapPoint[] }) {
         <Marker
           key={point.id}
           position={[point.lat, point.lng]}
-          icon={createMarkerIcon(point.name?.slice(0, 4) || point.id.slice(0, 4))}
+          icon={createMarkerIcon(point.name?.slice(0, 4) || point.id.slice(0, 4), point.shape)}
         >
           <Popup>
             <div className="space-y-1">
