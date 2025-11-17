@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
+import { MapContainer, TileLayer, LayersControl, Marker, Popup } from 'react-leaflet'
 import type { LatLngExpression } from 'leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
@@ -63,10 +63,26 @@ export default function LeafletMap({ points }: { points: MapPoint[] }) {
       style={{ height: '520px', width: '100%' }}
       scrollWheelZoom
     >
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
+      <LayersControl position="topright">
+        <LayersControl.BaseLayer checked name="Street">
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+        </LayersControl.BaseLayer>
+        <LayersControl.BaseLayer name="Satellite">
+          <TileLayer
+            attribution='Tiles &copy; Google'
+            url="https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}"
+          />
+        </LayersControl.BaseLayer>
+        <LayersControl.BaseLayer name="Terrain">
+          <TileLayer
+            attribution='Tiles &copy; Google'
+            url="https://mt1.google.com/vt/lyrs=p&x={x}&y={y}&z={z}"
+          />
+        </LayersControl.BaseLayer>
+      </LayersControl>
       {points.map((point) => (
         <Marker
           key={point.id}
