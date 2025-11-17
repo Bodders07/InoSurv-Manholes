@@ -5,7 +5,8 @@
   align-items: center;
 }
 
-.manhole-marker img.shape-circle {
+.manhole-marker img.shape-circle,
+.manhole-marker img.shape-default {
   width: 16px;
   height: 16px;
   border-radius: 50%;
@@ -31,4 +32,36 @@
   color: #fff;
   border: 1px solid rgba(0, 0, 0, 0.35);
   white-space: nowrap;
+}
+.manhole-marker img.shape-square {
+  width: 16px;
+  height: 16px;
+  background: #111;
+  border-radius: 3px;
+}
+
+.manhole-marker img.shape-hexagon {
+  position: relative;
+  width: 12px;
+  height: 16px;
+  background: #111;
+}
+.manhole-marker img.shape-hexagon::before,
+.manhole-marker img.shape-hexagon::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  width: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+}
+
+.manhole-marker img.shape-hexagon::before {
+  top: -6px;
+  border-bottom: 6px solid #111;
+}
+
+.manhole-marker img.shape-hexagon::after {
+  bottom: -6px;
+  border-top: 6px solid #111;
 }
