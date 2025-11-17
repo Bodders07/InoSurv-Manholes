@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 type ItemType = 'in' | 'out' | 'label'
 
@@ -24,6 +24,23 @@ export type SketchState = {
   items: SketchItem[]
 }
 
+const MAX_HISTORY = 50
+
+type SketchSnapshot = {
+  state: SketchState
+  labelNext: string
+  inletNext: string
+  outletNext: 'X' | 'Y' | 'Z'
+}
+
+function cloneSketchState(value: SketchState): SketchState {
+  return {
+    coverShape: value.coverShape,
+    chamberShape: value.chamberShape,
+    items: value.items.map((it) => ({ ...it })),
+  }
+}
+
 function uuid() {
   return Math.random().toString(36).slice(2)
 }
@@ -37,7 +54,7 @@ export default function ChamberSketch({
   onChange?: (s: SketchState) => void
   compact?: boolean
 }) {
-  const [state, setState] = useState<SketchState>(
+  const [state, setSketchState] = useState<SketchState>(
     value || { coverShape: 'Circle', chamberShape: 'Circle', items: [] }
   )
   const svgRef = useRef<SVGSVGElement | null>(null)
@@ -46,10 +63,42 @@ export default function ChamberSketch({
   const [inletNext, setInletNext] = useState('A')
   const [outletNext, setOutletNext] = useState<'X' | 'Y' | 'Z'>('X')
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  const historyRef = useRef<SketchSnapshot[]>([])
+  const [, forceHistoryVersion] = useState(0)
+  const dragSnapshotCaptured = useRef(false)
 
   useEffect(() => {
     onChange?.(state)
   }, [state, onChange])
+
+  const pushHistorySnapshot = useCallback(() => {
+    historyRef.current = [
+      ...historyRef.current,
+      {
+        state: cloneSketchState(state),
+        labelNext,
+        inletNext,
+        outletNext,
+      },
+    ]
+    if (historyRef.current.length > MAX_HISTORY) {
+      historyRef.current.shift()
+    }
+    forceHistoryVersion((v) => v + 1)
+  }, [state, labelNext, inletNext, outletNext])
+
+  const canUndo = historyRef.current.length > 0
+
+  const undo = () => {
+    const previous = historyRef.current.pop()
+    if (!previous) return
+    dragSnapshotCaptured.current = false
+    setSketchState(previous.state)
+    setLabelNext(previous.labelNext)
+    setInletNext(previous.inletNext)
+    setOutletNext(previous.outletNext)
+    forceHistoryVersion((v) => v + 1)
+  }
 
   function bumpLetter(l: string, start: string, end: string) {
     const code = l.charCodeAt(0)
@@ -60,6 +109,7 @@ export default function ChamberSketch({
   }
 
   function addItem(type: ItemType) {
+    pushHistorySnapshot()
     const base: SketchItem = { id: uuid(), type }
     // Defaults
     if (type === 'label') {
@@ -86,14 +136,18 @@ export default function ChamberSketch({
       const nextOutlet: 'X' | 'Y' | 'Z' = outletNext === 'X' ? 'Y' : outletNext === 'Y' ? 'Z' : 'X'
       setOutletNext(nextOutlet)
     }
-    setState((s) => ({ ...s, items: [...s.items, base] }))
+    setSketchState((s) => ({ ...s, items: [...s.items, base] }))
   }
 
   function setCover(shape: SketchState['coverShape']) {
-    setState((s) => ({ ...s, coverShape: shape }))
+    if (state.coverShape === shape) return
+    pushHistorySnapshot()
+    setSketchState((s) => ({ ...s, coverShape: shape }))
   }
   function setChamber(shape: SketchState['chamberShape']) {
-    setState((s) => ({ ...s, chamberShape: shape }))
+    if (state.chamberShape === shape) return
+    pushHistorySnapshot()
+    setSketchState((s) => ({ ...s, chamberShape: shape }))
   }
 
   function resetCounters() {
@@ -102,7 +156,18 @@ export default function ChamberSketch({
     setOutletNext('X')
   }
 
+  function handleClear() {
+    if (!state.items.length) return
+    pushHistorySnapshot()
+    setSketchState((s) => ({ ...s, items: [] }))
+    resetCounters()
+  }
+
   function onPointerDown(e: React.PointerEvent, id: string, handle: 'start' | 'end' | 'label') {
+    if (!dragSnapshotCaptured.current) {
+      pushHistorySnapshot()
+      dragSnapshotCaptured.current = true
+    }
     setSelectedId(id)
     dragging.current = { id, handle }
     ;(e.target as Element).setPointerCapture?.(e.pointerId)
@@ -118,7 +183,7 @@ export default function ChamberSketch({
     const p = pt.matrixTransform(ctm.inverse())
     const x = Math.max(20, Math.min(480, p.x))
     const y = Math.max(20, Math.min(480, p.y))
-    setState((s) => ({
+    setSketchState((s) => ({
       ...s,
       items: s.items.map((it) => {
         if (it.id !== dragging.current!.id) return it
@@ -136,6 +201,7 @@ export default function ChamberSketch({
   }
   function onPointerUp() {
     dragging.current = null
+    dragSnapshotCaptured.current = false
   }
 
   // Fallback: allow starting drag by tapping near a handle (mobile-friendly)
@@ -166,6 +232,10 @@ export default function ChamberSketch({
     }
     // If within 28px, start dragging that handle
     if (best && bestD <= 28) {
+      if (!dragSnapshotCaptured.current) {
+        pushHistorySnapshot()
+        dragSnapshotCaptured.current = true
+      }
       dragging.current = best
       ;(e.target as Element).setPointerCapture?.(e.pointerId)
       try { e.preventDefault() } catch {}
@@ -253,16 +323,21 @@ export default function ChamberSketch({
         <div className={`flex items-center ${compact ? 'gap-1 px-2 py-1' : 'gap-2 px-2 py-1'} border rounded sketch-group`}>
           <button type="button" className={`sketch-btn rounded border ${compact ? 'text-xs px-2 py-1' : 'px-2 py-1'}`} onClick={() => addItem('in')}>Add Inlet</button>
           <button type="button" className={`sketch-btn rounded border ${compact ? 'text-xs px-2 py-1' : 'px-2 py-1'}`} onClick={() => addItem('out')}>Add Outlet</button>
-          <button type="button" className={`sketch-btn rounded border ${compact ? 'text-xs px-2 py-1' : 'px-2 py-1'}`} onClick={() => addItem('label')}>Add Label</button>
           <button
             type="button"
-            className={`sketch-btn rounded border ${compact ? 'text-xs px-2 py-1' : 'px-2 py-1'}`}
-            onClick={() => {
-              setState((s) => ({ ...s, items: [] }))
-              resetCounters()
-            }}
+            className={`sketch-btn rounded border ${compact ? 'text-xs px-2 py-1' : 'px-2 py-1'} disabled:opacity-50 disabled:cursor-not-allowed`}
+            onClick={undo}
+            disabled={!canUndo}
           >
-            Clear
+            Undo
+          </button>
+          <button
+            type="button"
+            className={`sketch-btn rounded border ${compact ? 'text-xs px-2 py-1' : 'px-2 py-1'} disabled:opacity-50 disabled:cursor-not-allowed`}
+            onClick={handleClear}
+            disabled={!state.items.length}
+          >
+            Clear All
           </button>
         </div>
       </div>
