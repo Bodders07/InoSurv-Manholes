@@ -1,8 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
 import { deriveRoleInfo } from '@/lib/roles'
 
@@ -17,6 +16,7 @@ function applyTheme(choice: ThemeChoice) {
 }
 
 const TAB_IDS: TabKey[] = ['profile', 'security', 'appearance']
+const STORAGE_TAB_KEY = 'settingsActiveTab'
 
 export default function SettingsContent() {
   const router = useRouter()
@@ -88,8 +88,21 @@ export default function SettingsContent() {
     const requested = searchParams?.get('tab')
     if (requested && TAB_IDS.includes(requested as TabKey)) {
       setActiveTab(requested as TabKey)
+      return
+    }
+    if (typeof window !== 'undefined') {
+      const storedTab = localStorage.getItem(STORAGE_TAB_KEY)
+      if (storedTab && TAB_IDS.includes(storedTab as TabKey)) {
+        setActiveTab(storedTab as TabKey)
+      }
     }
   }, [searchParams])
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_TAB_KEY, activeTab)
+    } catch {}
+  }, [activeTab])
 
   function onChangeTheme(next: ThemeChoice) {
     setChoice(next)
