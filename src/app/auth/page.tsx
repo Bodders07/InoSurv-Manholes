@@ -47,10 +47,10 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
-      <div className="bg-gray-500 border border-gray-400 text-white p-8 rounded-xl shadow-md w-full max-w-sm">
+    <div className="min-h-screen w-full bg-[#111111] flex items-center justify-center p-4">
+      <div className="w-full max-w-sm rounded-2xl border border-[#1f2538] bg-[#10162b] px-6 py-7 text-white shadow-xl">
         <h1 className="text-2xl font-bold mb-2 text-center text-white">Surveyor Login</h1>
-        <p className="text-xs text-gray-200 mb-4 text-center">
+        <p className="text-xs text-gray-300 mb-6 text-center">
           Accounts are created by administrator invitation only.
         </p>
         <input
@@ -58,33 +58,31 @@ export default function AuthPage() {
           placeholder={defaultEmail}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full border border-gray-300 rounded p-2 mb-3 placeholder:text-gray-400 bg-white text-gray-900"
+          className="w-full border border-transparent rounded-lg p-3 mb-3 bg-white text-gray-900 placeholder:text-gray-500 shadow-inner"
         />
         <input
           type="password"
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full border border-gray-300 rounded p-2 mb-4 bg-white text-gray-900"
+          className="w-full border border-transparent rounded-lg p-3 mb-5 bg-white text-gray-900 placeholder:text-gray-500 shadow-inner"
         />
         <button
           onClick={signInWithPassword}
           disabled={!email || !password || loading}
-          className={`w-full p-2 rounded transition text-white ${!email || !password || loading ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
+          className={`w-full p-3 rounded-lg font-semibold transition text-white ${!email || !password || loading ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
         >
           {loading ? 'Signing in…' : 'Sign In'}
         </button>
 
-        <div className="mt-3 text-sm text-center">
-          <div>
-            <button
-              onClick={sendPasswordReset}
-              disabled={!email || resetting}
-              className={`underline ${!email || resetting ? 'text-gray-400 cursor-not-allowed' : 'text-blue-700 hover:text-blue-900'}`}
-            >
-              {resetting ? 'Sending reset…' : 'Forgot password?'}
-            </button>
-          </div>
+        <div className="mt-4 text-sm text-center">
+          <button
+            onClick={sendPasswordReset}
+            disabled={!email || resetting}
+            className={`underline ${!email || resetting ? 'text-gray-400 cursor-not-allowed' : 'text-blue-300 hover:text-blue-100'}`}
+          >
+            {resetting ? 'Sending reset…' : 'Forgot password?'}
+          </button>
         </div>
 
         {message && <p className="mt-4 text-center text-sm">{message}</p>}
