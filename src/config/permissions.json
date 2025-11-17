@@ -4,19 +4,23 @@
       { "key": "view-dashboard", "label": "View dashboard & lists", "allowed": true },
       { "key": "search", "label": "Use search & filters", "allowed": true },
       { "key": "view-activity", "label": "View activity feed", "allowed": true },
-      { "key": "edit-settings", "label": "Change site settings", "allowed": false }
+      { "key": "edit-settings", "label": "Change site settings", "allowed": false },
+      { "key": "manage-profile", "label": "Update own profile details", "allowed": true }
     ],
     "manholes": [
       { "key": "manhole-view", "label": "View manholes", "allowed": true },
       { "key": "manhole-create", "label": "Create manholes", "allowed": false },
       { "key": "manhole-edit", "label": "Edit manholes", "allowed": false },
-      { "key": "manhole-delete", "label": "Delete manholes", "allowed": false }
+      { "key": "manhole-delete", "label": "Delete manholes", "allowed": false },
+      { "key": "manhole-approve", "label": "Approve manhole records", "allowed": false },
+      { "key": "manhole-assign", "label": "Assign manholes to teammates", "allowed": false }
     ],
     "projects": [
       { "key": "project-view", "label": "View projects", "allowed": true },
       { "key": "project-create", "label": "Create projects", "allowed": false },
       { "key": "project-edit", "label": "Edit projects", "allowed": false },
-      { "key": "project-delete", "label": "Archive/Delete projects", "allowed": false }
+      { "key": "project-delete", "label": "Archive/Delete projects", "allowed": false },
+      { "key": "project-archive", "label": "Archive projects", "allowed": false }
     ],
     "media": [
       { "key": "upload-photo", "label": "Upload photos", "allowed": false },
@@ -26,13 +30,16 @@
     "exports": [
       { "key": "export-pdf", "label": "Generate PDF exports", "allowed": false },
       { "key": "export-csv", "label": "Export CSV/Sheets", "allowed": false },
-      { "key": "download-files", "label": "Download attachments", "allowed": true }
+      { "key": "download-files", "label": "Download attachments", "allowed": true },
+      { "key": "export-kml", "label": "Export GIS / KML files", "allowed": false }
     ],
     "adminTools": [
       { "key": "view-admin-panels", "label": "View admin panels", "allowed": false },
       { "key": "invite-users", "label": "Invite users", "allowed": false },
       { "key": "change-roles", "label": "Change user roles", "allowed": false },
-      { "key": "view-storage", "label": "View storage usage", "allowed": false }
+      { "key": "view-storage", "label": "View storage usage", "allowed": false },
+      { "key": "manage-permissions", "label": "Modify privilege matrix", "allowed": false },
+      { "key": "run-maintenance", "label": "Run maintenance/cleanup jobs", "allowed": false }
     ]
   },
   "editor": {
@@ -40,19 +47,23 @@
       { "key": "view-dashboard", "label": "View dashboard & lists", "allowed": true },
       { "key": "search", "label": "Use search & filters", "allowed": true },
       { "key": "view-activity", "label": "View activity feed", "allowed": true },
-      { "key": "edit-settings", "label": "Change site settings", "allowed": false }
+      { "key": "edit-settings", "label": "Change site settings", "allowed": false },
+      { "key": "manage-profile", "label": "Update own profile details", "allowed": true }
     ],
     "manholes": [
       { "key": "manhole-view", "label": "View manholes", "allowed": true },
       { "key": "manhole-create", "label": "Create manholes", "allowed": true },
       { "key": "manhole-edit", "label": "Edit manholes", "allowed": true },
-      { "key": "manhole-delete", "label": "Delete manholes", "allowed": false }
+      { "key": "manhole-delete", "label": "Delete manholes", "allowed": false },
+      { "key": "manhole-approve", "label": "Approve manhole records", "allowed": false },
+      { "key": "manhole-assign", "label": "Assign manholes to teammates", "allowed": true }
     ],
     "projects": [
       { "key": "project-view", "label": "View projects", "allowed": true },
       { "key": "project-create", "label": "Create projects", "allowed": true },
       { "key": "project-edit", "label": "Edit projects", "allowed": true },
-      { "key": "project-delete", "label": "Archive/Delete projects", "allowed": false }
+      { "key": "project-delete", "label": "Archive/Delete projects", "allowed": false },
+      { "key": "project-archive", "label": "Archive projects", "allowed": true }
     ],
     "media": [
       { "key": "upload-photo", "label": "Upload photos", "allowed": true },
@@ -62,13 +73,16 @@
     "exports": [
       { "key": "export-pdf", "label": "Generate PDF exports", "allowed": true },
       { "key": "export-csv", "label": "Export CSV/Sheets", "allowed": true },
-      { "key": "download-files", "label": "Download attachments", "allowed": true }
+      { "key": "download-files", "label": "Download attachments", "allowed": true },
+      { "key": "export-kml", "label": "Export GIS / KML files", "allowed": true }
     ],
     "adminTools": [
       { "key": "view-admin-panels", "label": "View admin panels", "allowed": false },
       { "key": "invite-users", "label": "Invite users", "allowed": false },
       { "key": "change-roles", "label": "Change user roles", "allowed": false },
-      { "key": "view-storage", "label": "View storage usage", "allowed": false }
+      { "key": "view-storage", "label": "View storage usage", "allowed": false },
+      { "key": "manage-permissions", "label": "Modify privilege matrix", "allowed": false },
+      { "key": "run-maintenance", "label": "Run maintenance/cleanup jobs", "allowed": false }
     ]
   },
   "admin": {
@@ -76,19 +90,23 @@
       { "key": "view-dashboard", "label": "View dashboard & lists", "allowed": true },
       { "key": "search", "label": "Use search & filters", "allowed": true },
       { "key": "view-activity", "label": "View activity feed", "allowed": true },
-      { "key": "edit-settings", "label": "Change site settings", "allowed": true }
+      { "key": "edit-settings", "label": "Change site settings", "allowed": true },
+      { "key": "manage-profile", "label": "Update own profile details", "allowed": true }
     ],
     "manholes": [
       { "key": "manhole-view", "label": "View manholes", "allowed": true },
       { "key": "manhole-create", "label": "Create manholes", "allowed": true },
       { "key": "manhole-edit", "label": "Edit manholes", "allowed": true },
-      { "key": "manhole-delete", "label": "Delete manholes", "allowed": true }
+      { "key": "manhole-delete", "label": "Delete manholes", "allowed": true },
+      { "key": "manhole-approve", "label": "Approve manhole records", "allowed": true },
+      { "key": "manhole-assign", "label": "Assign manholes to teammates", "allowed": true }
     ],
     "projects": [
       { "key": "project-view", "label": "View projects", "allowed": true },
       { "key": "project-create", "label": "Create projects", "allowed": true },
       { "key": "project-edit", "label": "Edit projects", "allowed": true },
-      { "key": "project-delete", "label": "Archive/Delete projects", "allowed": true }
+      { "key": "project-delete", "label": "Archive/Delete projects", "allowed": true },
+      { "key": "project-archive", "label": "Archive projects", "allowed": true }
     ],
     "media": [
       { "key": "upload-photo", "label": "Upload photos", "allowed": true },
@@ -98,13 +116,16 @@
     "exports": [
       { "key": "export-pdf", "label": "Generate PDF exports", "allowed": true },
       { "key": "export-csv", "label": "Export CSV/Sheets", "allowed": true },
-      { "key": "download-files", "label": "Download attachments", "allowed": true }
+      { "key": "download-files", "label": "Download attachments", "allowed": true },
+      { "key": "export-kml", "label": "Export GIS / KML files", "allowed": true }
     ],
     "adminTools": [
       { "key": "view-admin-panels", "label": "View admin panels", "allowed": true },
       { "key": "invite-users", "label": "Invite users", "allowed": true },
       { "key": "change-roles", "label": "Change user roles", "allowed": false },
-      { "key": "view-storage", "label": "View storage usage", "allowed": true }
+      { "key": "view-storage", "label": "View storage usage", "allowed": true },
+      { "key": "manage-permissions", "label": "Modify privilege matrix", "allowed": false },
+      { "key": "run-maintenance", "label": "Run maintenance/cleanup jobs", "allowed": false }
     ]
   },
   "superadmin": {
@@ -112,19 +133,23 @@
       { "key": "view-dashboard", "label": "View dashboard & lists", "allowed": true },
       { "key": "search", "label": "Use search & filters", "allowed": true },
       { "key": "view-activity", "label": "View activity feed", "allowed": true },
-      { "key": "edit-settings", "label": "Change site settings", "allowed": true }
+      { "key": "edit-settings", "label": "Change site settings", "allowed": true },
+      { "key": "manage-profile", "label": "Update own profile details", "allowed": true }
     ],
     "manholes": [
       { "key": "manhole-view", "label": "View manholes", "allowed": true },
       { "key": "manhole-create", "label": "Create manholes", "allowed": true },
       { "key": "manhole-edit", "label": "Edit manholes", "allowed": true },
-      { "key": "manhole-delete", "label": "Delete manholes", "allowed": true }
+      { "key": "manhole-delete", "label": "Delete manholes", "allowed": true },
+      { "key": "manhole-approve", "label": "Approve manhole records", "allowed": true },
+      { "key": "manhole-assign", "label": "Assign manholes to teammates", "allowed": true }
     ],
     "projects": [
       { "key": "project-view", "label": "View projects", "allowed": true },
       { "key": "project-create", "label": "Create projects", "allowed": true },
       { "key": "project-edit", "label": "Edit projects", "allowed": true },
-      { "key": "project-delete", "label": "Archive/Delete projects", "allowed": true }
+      { "key": "project-delete", "label": "Archive/Delete projects", "allowed": true },
+      { "key": "project-archive", "label": "Archive projects", "allowed": true }
     ],
     "media": [
       { "key": "upload-photo", "label": "Upload photos", "allowed": true },
@@ -134,13 +159,16 @@
     "exports": [
       { "key": "export-pdf", "label": "Generate PDF exports", "allowed": true },
       { "key": "export-csv", "label": "Export CSV/Sheets", "allowed": true },
-      { "key": "download-files", "label": "Download attachments", "allowed": true }
+      { "key": "download-files", "label": "Download attachments", "allowed": true },
+      { "key": "export-kml", "label": "Export GIS / KML files", "allowed": true }
     ],
     "adminTools": [
       { "key": "view-admin-panels", "label": "View admin panels", "allowed": true },
       { "key": "invite-users", "label": "Invite users", "allowed": true },
       { "key": "change-roles", "label": "Change user roles", "allowed": true },
-      { "key": "view-storage", "label": "View storage usage", "allowed": true }
+      { "key": "view-storage", "label": "View storage usage", "allowed": true },
+      { "key": "manage-permissions", "label": "Modify privilege matrix", "allowed": true },
+      { "key": "run-maintenance", "label": "Run maintenance/cleanup jobs", "allowed": true }
     ]
   }
 }
