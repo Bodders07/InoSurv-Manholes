@@ -18,12 +18,12 @@ export default function ThemeInit() {
     }
 
     // Default to dark on first load if user has not saved a preference
-    const saved = (localStorage.getItem('theme') as ThemeChoice) || 'dark'
+    const saved = (localStorage.getItem('theme') as ThemeChoice) || 'light'
     apply(saved)
 
     const mq = window.matchMedia('(prefers-color-scheme: dark)')
     const handler = () => {
-      const current = (localStorage.getItem('theme') as ThemeChoice) || 'dark'
+      const current = (localStorage.getItem('theme') as ThemeChoice) || 'light'
       if (current === 'system') apply('system')
     }
     mq.addEventListener?.('change', handler)

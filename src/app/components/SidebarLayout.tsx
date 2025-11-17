@@ -49,7 +49,7 @@ export default function SidebarLayout({
   const [isSmallScreen, setIsSmallScreen] = useState(false)
   const [adminOpen, setAdminOpen] = useState(false)
   const { has, loading: permissionsLoading } = usePermissions()
-  const [themeChoice, setThemeChoice] = useState<ThemeChoice>('dark')
+  const [themeChoice, setThemeChoice] = useState<ThemeChoice>('light')
   const [userName, setUserName] = useState('')
   const [userRoleLabel, setUserRoleLabel] = useState('')
   const [userInitials, setUserInitials] = useState('')
@@ -135,9 +135,9 @@ export default function SidebarLayout({
         setThemeChoice(fallback)
         applyDocumentTheme(fallback)
       } else {
-        localStorage.setItem('theme', 'dark')
-        setThemeChoice('dark')
-        applyDocumentTheme('dark')
+        localStorage.setItem('theme', 'light')
+        setThemeChoice('light')
+        applyDocumentTheme('light')
       }
     } catch {
       applyDocumentTheme(themeChoice)

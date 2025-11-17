@@ -22,8 +22,8 @@ export default function SettingsContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [choice, setChoice] = useState<ThemeChoice>(() => {
-    if (typeof window === 'undefined') return 'dark'
-    return (localStorage.getItem('theme') as ThemeChoice) || 'dark'
+    if (typeof window === 'undefined') return 'light'
+    return (localStorage.getItem('theme') as ThemeChoice) || 'light'
   })
   const [saved, setSaved] = useState<ThemeChoice>(choice)
   const [activeTab, setActiveTab] = useState<TabKey>('profile')
