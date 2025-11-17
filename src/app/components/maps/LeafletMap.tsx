@@ -6,6 +6,7 @@ import type { LatLngExpression } from 'leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import customMarker from '@/../public/icons/manhole-marker.svg'
+import '@/app/components/maps/leaflet-marker.css'
 
 type MapPoint = {
   id: string
@@ -15,13 +16,20 @@ type MapPoint = {
 }
 
 // Fix Leaflet's default icon paths in Next.js bundles
-const markerIcon = new L.Icon({
-  iconUrl: customMarker.src,
-  iconRetinaUrl: customMarker.src,
-  iconSize: [36, 48],
-  iconAnchor: [18, 42],
-  popupAnchor: [0, -36],
-})
+function createMarkerIcon(label: string) {
+  return L.divIcon({
+    html: `
+      <div class="manhole-marker">
+        <img src="${customMarker.src}" alt="Manhole marker" />
+        <span>${label}</span>
+      </div>
+    `,
+    className: '',
+    iconSize: [42, 54],
+    iconAnchor: [21, 50],
+    popupAnchor: [0, -46],
+  })
+}
 
 const DEFAULT_CENTER: LatLngExpression = [54.5, -3.0] // UK-ish fallback
 
@@ -48,7 +56,11 @@ export default function LeafletMap({ points }: { points: MapPoint[] }) {
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       {points.map((point) => (
-        <Marker key={point.id} position={[point.lat, point.lng]} icon={markerIcon}>
+        <Marker
+          key={point.id}
+          position={[point.lat, point.lng]}
+          icon={createMarkerIcon(point.name?.slice(0, 4) || point.id.slice(0, 4))}
+        >
           <Popup>
             <div className="space-y-1">
               <p className="font-semibold">{point.name || 'Unnamed Manhole'}</p>
