@@ -5,7 +5,6 @@ import { MapContainer, TileLayer, LayersControl, Marker, Popup } from 'react-lea
 import type { LatLngExpression } from 'leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import customMarker from '@/../public/icons/manhole-marker.svg'
 import '@/app/components/maps/leaflet-marker.css'
 
 type MapPoint = {
@@ -32,8 +31,8 @@ function createMarkerIcon(label: string, shape = '', iconColor: string, labelCol
   return L.divIcon({
     html: `
       <div class="manhole-marker" style="--icon-color:${iconColor}; --label-bg:${labelColor};">
-        <img src="${customMarker.src}" class="${shapeClass}" alt="Manhole marker" />
-        <span>${label}</span>
+        <span class="shape ${shapeClass}"></span>
+        <span class="marker-label">${label}</span>
       </div>
     `,
     className: '',
