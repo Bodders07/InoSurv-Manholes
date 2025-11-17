@@ -1,5 +1,5 @@
 export type RoleKey = 'viewer' | 'editor' | 'admin' | 'superadmin'
-export type CategoryKey = 'general' | 'manholes' | 'projects' | 'media' | 'exports' | 'adminTools'
+export type CategoryKey = 'general' | 'manholes' | 'projects' | 'media' | 'exports' | 'adminTools' | 'map'
 export type PermissionEntry = {
   key: string
   label: string

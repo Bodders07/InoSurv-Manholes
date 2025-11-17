@@ -16,6 +16,7 @@ const CATEGORY_ORDER: { id: CategoryKey; title: string }[] = [
   { id: 'projects', title: 'Projects' },
   { id: 'media', title: 'Photos & Sketches' },
   { id: 'exports', title: 'Exports & Documents' },
+  { id: 'map', title: 'Map Tools' },
   { id: 'adminTools', title: 'Admin Controls' },
 ]
 
