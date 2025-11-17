@@ -105,16 +105,12 @@ export default function LeafletMap({
               <div className="mt-2 flex gap-2">
                 <a
                   href={`/manholes/${point.id}/export`}
-                  target="_blank"
-                  rel="noreferrer"
                   className="rounded bg-blue-600 px-3 py-1 text-xs font-semibold text-white hover:bg-blue-700"
                 >
                   Preview
                 </a>
                 <a
                   href={`/manholes/${point.id}/edit`}
-                  target="_blank"
-                  rel="noreferrer"
                   className="rounded border border-gray-300 px-3 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-100"
                 >
                   Edit
