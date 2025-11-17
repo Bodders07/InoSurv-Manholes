@@ -5,9 +5,7 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
 import type { LatLngExpression } from 'leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png'
-import markerIcon from 'leaflet/dist/images/marker-icon.png'
-import markerShadow from 'leaflet/dist/images/marker-shadow.png'
+import customMarker from '@/../public/icons/manhole-marker.svg'
 
 type MapPoint = {
   id: string
@@ -17,10 +15,12 @@ type MapPoint = {
 }
 
 // Fix Leaflet's default icon paths in Next.js bundles
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: markerIcon2x.src,
-  iconUrl: markerIcon.src,
-  shadowUrl: markerShadow.src,
+const markerIcon = new L.Icon({
+  iconUrl: customMarker.src,
+  iconRetinaUrl: customMarker.src,
+  iconSize: [36, 48],
+  iconAnchor: [18, 42],
+  popupAnchor: [0, -36],
 })
 
 const DEFAULT_CENTER: LatLngExpression = [54.5, -3.0] // UK-ish fallback
@@ -48,7 +48,7 @@ export default function LeafletMap({ points }: { points: MapPoint[] }) {
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       {points.map((point) => (
-        <Marker key={point.id} position={[point.lat, point.lng]}>
+        <Marker key={point.id} position={[point.lat, point.lng]} icon={markerIcon}>
           <Popup>
             <div className="space-y-1">
               <p className="font-semibold">{point.name || 'Unnamed Manhole'}</p>
