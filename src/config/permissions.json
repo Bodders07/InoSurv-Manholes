@@ -5,7 +5,9 @@
       { "key": "search", "label": "Use search & filters", "allowed": true },
       { "key": "view-activity", "label": "View activity feed", "allowed": true },
       { "key": "edit-settings", "label": "Change site settings", "allowed": false },
-      { "key": "manage-profile", "label": "Update own profile details", "allowed": true }
+      { "key": "manage-profile", "label": "Update own profile details", "allowed": true },
+      { "key": "view-map", "label": "Access map view", "allowed": true },
+      { "key": "configure-map", "label": "Change map appearance", "allowed": false }
     ],
     "manholes": [
       { "key": "manhole-view", "label": "View manholes", "allowed": true },
@@ -48,7 +50,9 @@
       { "key": "search", "label": "Use search & filters", "allowed": true },
       { "key": "view-activity", "label": "View activity feed", "allowed": true },
       { "key": "edit-settings", "label": "Change site settings", "allowed": false },
-      { "key": "manage-profile", "label": "Update own profile details", "allowed": true }
+      { "key": "manage-profile", "label": "Update own profile details", "allowed": true },
+      { "key": "view-map", "label": "Access map view", "allowed": true },
+      { "key": "configure-map", "label": "Change map appearance", "allowed": true }
     ],
     "manholes": [
       { "key": "manhole-view", "label": "View manholes", "allowed": true },
@@ -91,7 +95,9 @@
       { "key": "search", "label": "Use search & filters", "allowed": true },
       { "key": "view-activity", "label": "View activity feed", "allowed": true },
       { "key": "edit-settings", "label": "Change site settings", "allowed": true },
-      { "key": "manage-profile", "label": "Update own profile details", "allowed": true }
+      { "key": "manage-profile", "label": "Update own profile details", "allowed": true },
+      { "key": "view-map", "label": "Access map view", "allowed": true },
+      { "key": "configure-map", "label": "Change map appearance", "allowed": true }
     ],
     "manholes": [
       { "key": "manhole-view", "label": "View manholes", "allowed": true },
@@ -134,7 +140,9 @@
       { "key": "search", "label": "Use search & filters", "allowed": true },
       { "key": "view-activity", "label": "View activity feed", "allowed": true },
       { "key": "edit-settings", "label": "Change site settings", "allowed": true },
-      { "key": "manage-profile", "label": "Update own profile details", "allowed": true }
+      { "key": "manage-profile", "label": "Update own profile details", "allowed": true },
+      { "key": "view-map", "label": "Access map view", "allowed": true },
+      { "key": "configure-map", "label": "Change map appearance", "allowed": true }
     ],
     "manholes": [
       { "key": "manhole-view", "label": "View manholes", "allowed": true },
