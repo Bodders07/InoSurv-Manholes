@@ -12,7 +12,7 @@ const ROLES = [
   { value: 'viewer', label: 'Viewer' },
 ]
 
-type UserRow = { id: string; email: string; role: string | null }
+type UserRow = { id: string; email: string; role: string | null; name: string | null }
 type UsersResponse = { users?: UserRow[]; error?: string }
 
 export default function UsersContent() {
@@ -25,8 +25,10 @@ export default function UsersContent() {
   const [users, setUsers] = useState<UserRow[]>([])
   const [loadingUsers, setLoadingUsers] = useState(true)
   const [savingRoleId, setSavingRoleId] = useState<string | null>(null)
+  const [nameSavingId, setNameSavingId] = useState<string | null>(null)
   const [deletingUserId, setDeletingUserId] = useState<string | null>(null)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+  const [nameEdits, setNameEdits] = useState<Record<string, string>>({})
 
   const [showAuthDebug, setShowAuthDebug] = useState(false)
   const [dbgEmail, setDbgEmail] = useState('')
@@ -69,7 +71,19 @@ export default function UsersContent() {
       })
       const payload = (await res.json()) as UsersResponse
       if (res.ok && payload.users) {
-        setUsers(payload.users.map((u) => ({ id: u.id, email: u.email, role: u.role ?? null })))
+        const normalized = payload.users.map((u) => ({
+          id: u.id,
+          email: u.email,
+          role: u.role ?? null,
+          name: u.name ?? null,
+        }))
+        setUsers(normalized)
+        setNameEdits(
+          normalized.reduce<Record<string, string>>((acc, user) => {
+            acc[user.id] = user.name || ''
+            return acc
+          }, {}),
+        )
       } else {
         setMessage('Error: ' + (payload.error || 'Failed to load users'))
       }
@@ -141,17 +155,18 @@ export default function UsersContent() {
     }
   }
 
-  async function saveUserRole(userId: string, newRole: string) {
+  async function updateUser(userId: string, payload: { role?: string; name?: string }) {
     if (!canChangeRoles) {
-      setMessage('Error: You do not have permission to change roles.')
+      setMessage('Error: You do not have permission to modify users.')
       return
     }
     if (!token) {
       setMessage('Error: Missing auth token.')
       return
     }
-    setSavingRoleId(userId)
     setMessage('')
+    if (payload.role) setSavingRoleId(userId)
+    if (payload.name !== undefined) setNameSavingId(userId)
     try {
       const res = await fetch('/api/admin/users', {
         method: 'PATCH',
@@ -159,18 +174,30 @@ export default function UsersContent() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ userId, role: newRole }),
+        body: JSON.stringify({ userId, ...payload }),
       })
-      const payload = (await res.json()) as { error?: string }
-      if (!res.ok) throw new Error(payload.error || 'Failed to update role')
-      setMessage('Success: Role updated')
+      const result = (await res.json()) as { error?: string }
+      if (!res.ok) throw new Error(result.error || 'Failed to update user')
+      setMessage('Success: User updated')
       await loadUsers(token)
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Failed to update role'
+      const msg = err instanceof Error ? err.message : 'Failed to update user'
       setMessage('Error: ' + msg)
     } finally {
-      setSavingRoleId(null)
+      if (payload.role) setSavingRoleId(null)
+      if (payload.name !== undefined) setNameSavingId(null)
     }
+  }
+
+  const saveUserRole = (userId: string, newRole: string) => updateUser(userId, { role: newRole })
+
+  const saveUserName = (userId: string) => {
+    const next = (nameEdits[userId] || '').trim()
+    if (!next) {
+      setMessage('Error: Name cannot be empty.')
+      return
+    }
+    updateUser(userId, { name: next })
   }
 
   async function deleteUser(userId: string) {
@@ -285,6 +312,7 @@ export default function UsersContent() {
                   <thead>
                     <tr className="bg-gray-50 text-left">
                       <th className="px-4 py-2 border-b">Email</th>
+                      <th className="px-4 py-2 border-b">Name</th>
                       <th className="px-4 py-2 border-b">Role</th>
                       <th className="px-4 py-2 border-b w-px">Actions</th>
                     </tr>
@@ -295,6 +323,30 @@ export default function UsersContent() {
                       return (
                         <tr key={u.id} className="hover:bg-gray-50">
                           <td className="px-4 py-2 border-b">{u.email}</td>
+                          <td className="px-4 py-2 border-b">
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="text"
+                                className="border rounded p-2 w-full"
+                                value={nameEdits[u.id] ?? ''}
+                                onChange={(e) => setNameEdits((prev) => ({ ...prev, [u.id]: e.target.value }))}
+                                placeholder="Full name"
+                                disabled={!canChangeRoles}
+                              />
+                              {canChangeRoles && (
+                                <button
+                                  onClick={() => saveUserName(u.id)}
+                                  disabled={
+                                    nameSavingId === u.id ||
+                                    (nameEdits[u.id] || '').trim() === (u.name || '')
+                                  }
+                                  className="px-3 py-1 rounded bg-blue-600 text-white disabled:bg-gray-400 disabled:cursor-not-allowed"
+                                >
+                                  {nameSavingId === u.id ? 'Saving...' : 'Save'}
+                                </button>
+                              )}
+                            </div>
+                          </td>
                           <td className="px-4 py-2 border-b">
                             <select
                               className="border rounded p-2"
@@ -310,7 +362,9 @@ export default function UsersContent() {
                           <td className="px-4 py-2 border-b">
                             <div className="flex items-center gap-3">
                               {!canChangeRoles && <span className="text-xs text-gray-500">Permission required</span>}
-                              {savingRoleId === u.id && <span className="text-xs text-gray-500">Saving...</span>}
+                              {(savingRoleId === u.id || nameSavingId === u.id) && (
+                                <span className="text-xs text-gray-500">Saving...</span>
+                              )}
                               {canChangeRoles && (
                                 <button
                                   onClick={() => deleteUser(u.id)}

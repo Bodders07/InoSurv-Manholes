@@ -155,12 +155,21 @@ export async function GET(req: NextRequest) {
     if (!admin) return NextResponse.json({ error: 'Server not configured' }, { status: 500 })
     const { data, error: listErr } = await admin.auth.admin.listUsers()
     if (listErr) return NextResponse.json({ error: listErr.message }, { status: 400 })
-    const users = (data?.users || []).map((user) => ({
-      id: user.id,
-      email: user.email,
-      role: (user.app_metadata?.role as string | undefined) || null,
-      roles: (user.app_metadata?.roles as string[] | undefined) || [],
-    }))
+    const users = (data?.users || []).map((user) => {
+      const meta = user.user_metadata || {}
+      const fullName =
+        (meta.full_name as string | undefined) ||
+        (meta.name as string | undefined) ||
+        `${meta.first_name ?? ''} ${meta.last_name ?? ''}`.trim() ||
+        null
+      return {
+        id: user.id,
+        email: user.email,
+        name: fullName,
+        role: (user.app_metadata?.role as string | undefined) || null,
+        roles: (user.app_metadata?.roles as string[] | undefined) || [],
+      }
+    })
     return NextResponse.json({ users })
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Unexpected error'
@@ -175,14 +184,25 @@ export async function PATCH(req: NextRequest) {
     if (!isSuperAdmin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     if (!admin) return NextResponse.json({ error: 'Server not configured' }, { status: 500 })
 
-    const body = (await req.json()) as { userId?: string; role?: string }
+    const body = (await req.json()) as { userId?: string; role?: string; name?: string }
     const userId = String(body?.userId || '')
     const desired = normalizeRole(String(body?.role || ''))
-    if (!userId || !desired) return NextResponse.json({ error: 'userId and valid role required' }, { status: 400 })
+    const nextName = typeof body?.name === 'string' ? body.name.trim() : undefined
+    if (!userId) return NextResponse.json({ error: 'userId required' }, { status: 400 })
+    if (!desired && (typeof nextName !== 'string' || nextName.length === 0)) {
+      return NextResponse.json({ error: 'Nothing to update' }, { status: 400 })
+    }
 
-    const { error: updErr } = await admin.auth.admin.updateUserById(userId, {
-      app_metadata: { role: desired, roles: [desired] },
-    })
+    const payload: {
+      app_metadata?: { role: Role; roles: Role[] }
+      user_metadata?: Record<string, unknown>
+    } = {}
+    if (desired) payload.app_metadata = { role: desired, roles: [desired] }
+    if (typeof nextName === 'string' && nextName.length > 0) {
+      payload.user_metadata = { full_name: nextName, name: nextName }
+    }
+
+    const { error: updErr } = await admin.auth.admin.updateUserById(userId, payload)
     if (updErr) return NextResponse.json({ error: updErr.message }, { status: 400 })
     return NextResponse.json({ ok: true })
   } catch (err: unknown) {
