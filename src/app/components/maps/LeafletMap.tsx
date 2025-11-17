@@ -71,7 +71,7 @@ export default function LeafletMap({ points }: { points: MapPoint[] }) {
         <Marker
           key={point.id}
           position={[point.lat, point.lng]}
-          icon={createMarkerIcon(point.name?.slice(0, 4) || point.id.slice(0, 4), point.shape)}
+          icon={createMarkerIcon(point.name || point.id, point.shape)}
         >
           <Popup>
             <div className="space-y-1">
