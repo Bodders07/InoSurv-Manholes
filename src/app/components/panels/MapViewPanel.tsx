@@ -164,7 +164,7 @@ export default function MapViewPanel() {
       />
 
       {previewUrl && (
-        <div className="fixed inset-0 z-50 bg-black/60 p-4 flex items-center justify-center" onClick={() => setPreviewUrl(null)}>
+        <div className="fixed inset-0 z-[1000] bg-black/60 p-4 flex items-center justify-center" onClick={() => setPreviewUrl(null)}>
           <div className="w-full max-w-4xl bg-white rounded-xl shadow-xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between px-4 py-2 border-b">
               <h3 className="font-semibold">Preview Manhole</h3>
@@ -178,7 +178,7 @@ export default function MapViewPanel() {
       )}
 
       {editUrl && (
-        <div className="fixed inset-0 z-50 bg-black/60 p-4 flex items-center justify-center" onClick={() => setEditUrl(null)}>
+        <div className="fixed inset-0 z-[1000] bg-black/60 p-4 flex items-center justify-center" onClick={() => setEditUrl(null)}>
           <div className="w-full max-w-5xl bg-white rounded-xl shadow-xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between px-4 py-2 border-b">
               <h3 className="font-semibold">Edit Manhole</h3>
