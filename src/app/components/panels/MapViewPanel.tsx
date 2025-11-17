@@ -38,6 +38,8 @@ export default function MapViewPanel() {
   const [activeTab, setActiveTab] = useState<'label' | 'icon'>('label')
   const [labelColor, setLabelColor] = useState('rgba(140,72,0,0.95)')
   const [iconColor, setIconColor] = useState('#a74c07')
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [editUrl, setEditUrl] = useState<string | null>(null)
 
   useEffect(() => {
     let active = true
@@ -153,7 +155,41 @@ export default function MapViewPanel() {
           })}
         </div>
       </div>
-      <LeafletMap points={mappedPoints} iconColor={iconColor} labelColor={labelColor} />
+      <LeafletMap
+        points={mappedPoints}
+        iconColor={iconColor}
+        labelColor={labelColor}
+        onPreview={(id) => setPreviewUrl(`/manholes/${id}/export?embed=1`)}
+        onEdit={(id) => setEditUrl(`/manholes/${id}/edit?embed=1`)}
+      />
+
+      {previewUrl && (
+        <div className="fixed inset-0 z-50 bg-black/60 p-4 flex items-center justify-center" onClick={() => setPreviewUrl(null)}>
+          <div className="w-full max-w-4xl bg-white rounded-xl shadow-xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-4 py-2 border-b">
+              <h3 className="font-semibold">Preview Manhole</h3>
+              <button className="text-sm text-gray-500 hover:text-gray-800" onClick={() => setPreviewUrl(null)}>Close</button>
+            </div>
+            <div className="h-[75vh]">
+              <iframe title="Preview Manhole" src={previewUrl} className="w-full h-full border-0" />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {editUrl && (
+        <div className="fixed inset-0 z-50 bg-black/60 p-4 flex items-center justify-center" onClick={() => setEditUrl(null)}>
+          <div className="w-full max-w-5xl bg-white rounded-xl shadow-xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-4 py-2 border-b">
+              <h3 className="font-semibold">Edit Manhole</h3>
+              <button className="text-sm text-gray-500 hover:text-gray-800" onClick={() => setEditUrl(null)}>Close</button>
+            </div>
+            <div className="h-[80vh]">
+              <iframe title="Edit Manhole" src={editUrl} className="w-full h-full border-0" />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
