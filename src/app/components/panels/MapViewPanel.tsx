@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import dynamic from 'next/dynamic'
 import { supabase } from '@/lib/supabaseClient'
 
@@ -41,29 +41,25 @@ export default function MapViewPanel() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [editUrl, setEditUrl] = useState<string | null>(null)
 
-  useEffect(() => {
-    let active = true
-    async function load() {
-      setLoading(true)
-      setError(null)
-      const { data, error } = await supabase
-        .from('manholes')
-        .select('id, identifier, latitude, longitude, cover_shape')
+  const fetchPoints = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    const { data, error } = await supabase
+      .from('manholes')
+      .select('id, identifier, latitude, longitude, cover_shape')
 
-      if (!active) return
-      if (error) {
-        setError(error.message)
-        setPoints([])
-      } else {
-        setPoints((data as ManholePoint[]) || [])
-      }
-      setLoading(false)
+    if (error) {
+      setError(error.message)
+      setPoints([])
+    } else {
+      setPoints((data as ManholePoint[]) || [])
     }
-    load()
-    return () => {
-      active = false
-    }
+    setLoading(false)
   }, [])
+
+  useEffect(() => {
+    fetchPoints()
+  }, [fetchPoints])
 
   const mappedPoints = useMemo(() => {
     return points
@@ -193,3 +189,16 @@ export default function MapViewPanel() {
     </div>
   )
 }
+  useEffect(() => {
+    function handleMessage(ev: MessageEvent) {
+      if (!ev.data || typeof ev.data !== 'object') return
+      if ((ev.data as { type?: string }).type === 'close-edit-modal') {
+        setEditUrl(null)
+        if ((ev.data as { refresh?: boolean }).refresh) {
+          fetchPoints()
+        }
+      }
+    }
+    window.addEventListener('message', handleMessage)
+    return () => window.removeEventListener('message', handleMessage)
+  }, [fetchPoints])
