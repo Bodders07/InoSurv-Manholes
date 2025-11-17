@@ -9,6 +9,7 @@ import UsersPanel from './components/panels/UsersPanel'
 import PrivilegesPanel from './components/panels/PrivilegesPanel'
 import SettingsPanel from './components/panels/SettingsPanel'
 import StoragePanel from './components/panels/StoragePanel'
+import MapViewPanel from './components/panels/MapViewPanel'
 
 export default function HomePage() {
   const { view } = useView()
@@ -29,10 +30,7 @@ export default function HomePage() {
       {view === 'privileges' && <PrivilegesPanel />}
       {view === 'settings' && <SettingsPanel />}
       {view === 'storage' && <StoragePanel />}
-
-      {view === 'inspections' && (
-        <div className="p-4 text-gray-600">Map view coming soon…</div>
-      )}
+      {view === 'inspections' && <MapViewPanel />}
     </SidebarLayout>
   )
 }
