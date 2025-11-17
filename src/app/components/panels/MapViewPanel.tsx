@@ -84,6 +84,20 @@ export default function MapViewPanel() {
       .filter(Boolean) as { id: string; name: string; lat: number; lng: number; shape: string }[]
   }, [points])
 
+  useEffect(() => {
+    function handleMessage(ev: MessageEvent) {
+      if (!ev.data || typeof ev.data !== 'object') return
+      if ((ev.data as { type?: string }).type === 'close-edit-modal') {
+        setEditUrl(null)
+        if ((ev.data as { refresh?: boolean }).refresh) {
+          fetchPoints()
+        }
+      }
+    }
+    window.addEventListener('message', handleMessage)
+    return () => window.removeEventListener('message', handleMessage)
+  }, [fetchPoints])
+
   if (loading) {
     return (
       <div className="rounded-xl border border-gray-200 bg-white p-6">
@@ -189,16 +203,3 @@ export default function MapViewPanel() {
     </div>
   )
 }
-  useEffect(() => {
-    function handleMessage(ev: MessageEvent) {
-      if (!ev.data || typeof ev.data !== 'object') return
-      if ((ev.data as { type?: string }).type === 'close-edit-modal') {
-        setEditUrl(null)
-        if ((ev.data as { refresh?: boolean }).refresh) {
-          fetchPoints()
-        }
-      }
-    }
-    window.addEventListener('message', handleMessage)
-    return () => window.removeEventListener('message', handleMessage)
-  }, [fetchPoints])
