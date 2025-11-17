@@ -22,6 +22,12 @@ const LABEL_COLORS = [
   { name: 'Slate', value: 'rgba(47, 65, 86, 0.95)' },
   { name: 'Forest', value: 'rgba(21, 83, 64, 0.95)' },
   { name: 'Charcoal', value: 'rgba(10,10,10,0.9)' },
+  { name: 'Sunset', value: 'rgba(217, 119, 6, 0.95)' },
+  { name: 'Ocean', value: 'rgba(14, 116, 144, 0.95)' },
+  { name: 'Rose', value: 'rgba(190, 24, 93, 0.95)' },
+  { name: 'Plum', value: 'rgba(107, 33, 168, 0.95)' },
+  { name: 'Arctic', value: 'rgba(15, 76, 117, 0.95)' },
+  { name: 'Moss', value: 'rgba(63, 98, 18, 0.95)' },
 ]
 
 const ICON_COLORS = [
@@ -29,6 +35,12 @@ const ICON_COLORS = [
   { name: 'Blue', value: '#1d4ed8' },
   { name: 'Green', value: '#15803d' },
   { name: 'Purple', value: '#6d28d9' },
+  { name: 'Red', value: '#dc2626' },
+  { name: 'Teal', value: '#0f766e' },
+  { name: 'Gold', value: '#d97706' },
+  { name: 'Pink', value: '#db2777' },
+  { name: 'Gray', value: '#4b5563' },
+  { name: 'Indigo', value: '#4338ca' },
 ]
 
 export default function MapViewPanel() {
