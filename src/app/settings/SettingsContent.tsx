@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
 import { deriveRoleInfo } from '@/lib/roles'
 
@@ -15,8 +16,11 @@ function applyTheme(choice: ThemeChoice) {
   root.classList.add(choice === 'dark' ? 'theme-dark' : 'theme-light')
 }
 
+const TAB_IDS: TabKey[] = ['profile', 'security', 'appearance']
+
 export default function SettingsContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [choice, setChoice] = useState<ThemeChoice>(() => {
     if (typeof window === 'undefined') return 'dark'
     return (localStorage.getItem('theme') as ThemeChoice) || 'dark'
@@ -79,6 +83,13 @@ export default function SettingsContent() {
     }
     loadProfile()
   }, [])
+
+  useEffect(() => {
+    const requested = searchParams?.get('tab')
+    if (requested && TAB_IDS.includes(requested as TabKey)) {
+      setActiveTab(requested as TabKey)
+    }
+  }, [searchParams])
 
   function onChangeTheme(next: ThemeChoice) {
     setChoice(next)
