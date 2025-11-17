@@ -25,9 +25,9 @@ function createMarkerIcon(label: string) {
       </div>
     `,
     className: '',
-    iconSize: [42, 54],
-    iconAnchor: [21, 50],
-    popupAnchor: [0, -46],
+    iconSize: [24, 24],
+    iconAnchor: [12, 12],
+    popupAnchor: [0, -16],
   })
 }
 

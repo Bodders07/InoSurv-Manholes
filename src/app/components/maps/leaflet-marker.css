@@ -6,19 +6,19 @@
 }
 
 .manhole-marker img {
-  width: 36px;
-  height: 36px;
+  width: 18px;
+  height: 18px;
 }
 
 .manhole-marker span {
   position: absolute;
-  bottom: 18px;
-  background-color: rgba(255, 255, 255, 0.95);
-  border-radius: 12px;
-  padding: 2px 6px;
-  font-size: 11px;
+  bottom: 20px;
+  background-color: rgba(17, 17, 17, 0.9);
+  border-radius: 16px;
+  padding: 2px 8px;
+  font-size: 10px;
   font-weight: 600;
-  color: #111;
-  border: 1px solid rgba(0, 0, 0, 0.2);
+  color: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.35);
   white-space: nowrap;
 }
