@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import dynamic from 'next/dynamic'
 import { supabase } from '@/lib/supabaseClient'
+import { usePermissions } from '@/app/components/PermissionsContext'
 
 const LeafletMap = dynamic(() => import('../maps/LeafletMap'), {
   ssr: false,
@@ -62,6 +63,10 @@ export default function MapViewPanel() {
   const [projectFilterOpen, setProjectFilterOpen] = useState(false)
   const [projects, setProjects] = useState<ProjectOption[]>([])
   const [selectedProjectIds, setSelectedProjectIds] = useState<string[]>([])
+  const { has } = usePermissions()
+
+  const canPreview = has('map-preview')
+  const canEdit = has('map-edit')
 
   const fetchPoints = useCallback(async () => {
     setLoading(true)
@@ -275,8 +280,10 @@ export default function MapViewPanel() {
         points={filteredPoints}
         iconColor={iconColor}
         labelColor={labelColor}
-        onPreview={(id) => setPreviewUrl(`/manholes/${id}/export?embed=1`)}
-        onEdit={(id) => setEditUrl(`/manholes/${id}/edit?embed=1`)}
+        canPreview={canPreview}
+        canEdit={canEdit}
+        onPreview={canPreview ? (id) => setPreviewUrl(`/manholes/${id}/export?embed=1`) : undefined}
+        onEdit={canEdit ? (id) => setEditUrl(`/manholes/${id}/edit?embed=1`) : undefined}
       />
 
       {previewUrl && (

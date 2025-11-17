@@ -5,9 +5,7 @@
       { "key": "search", "label": "Use search & filters", "allowed": true },
       { "key": "view-activity", "label": "View activity feed", "allowed": true },
       { "key": "edit-settings", "label": "Change site settings", "allowed": false },
-      { "key": "manage-profile", "label": "Update own profile details", "allowed": true },
-      { "key": "view-map", "label": "Access map view", "allowed": true },
-      { "key": "configure-map", "label": "Change map appearance", "allowed": false }
+      { "key": "manage-profile", "label": "Update own profile details", "allowed": true }
     ],
     "manholes": [
       { "key": "manhole-view", "label": "View manholes", "allowed": true },
@@ -35,6 +33,12 @@
       { "key": "download-files", "label": "Download attachments", "allowed": true },
       { "key": "export-kml", "label": "Export GIS / KML files", "allowed": false }
     ],
+    "map": [
+      { "key": "view-map", "label": "Access map view", "allowed": true },
+      { "key": "configure-map", "label": "Change map appearance", "allowed": false },
+      { "key": "map-preview", "label": "Open manhole preview from map", "allowed": false },
+      { "key": "map-edit", "label": "Open manhole editor from map", "allowed": false }
+    ],
     "adminTools": [
       { "key": "view-admin-panels", "label": "View admin panels", "allowed": false },
       { "key": "invite-users", "label": "Invite users", "allowed": false },
@@ -50,9 +54,7 @@
       { "key": "search", "label": "Use search & filters", "allowed": true },
       { "key": "view-activity", "label": "View activity feed", "allowed": true },
       { "key": "edit-settings", "label": "Change site settings", "allowed": false },
-      { "key": "manage-profile", "label": "Update own profile details", "allowed": true },
-      { "key": "view-map", "label": "Access map view", "allowed": true },
-      { "key": "configure-map", "label": "Change map appearance", "allowed": true }
+      { "key": "manage-profile", "label": "Update own profile details", "allowed": true }
     ],
     "manholes": [
       { "key": "manhole-view", "label": "View manholes", "allowed": true },
@@ -80,6 +82,12 @@
       { "key": "download-files", "label": "Download attachments", "allowed": true },
       { "key": "export-kml", "label": "Export GIS / KML files", "allowed": true }
     ],
+    "map": [
+      { "key": "view-map", "label": "Access map view", "allowed": true },
+      { "key": "configure-map", "label": "Change map appearance", "allowed": true },
+      { "key": "map-preview", "label": "Open manhole preview from map", "allowed": true },
+      { "key": "map-edit", "label": "Open manhole editor from map", "allowed": true }
+    ],
     "adminTools": [
       { "key": "view-admin-panels", "label": "View admin panels", "allowed": false },
       { "key": "invite-users", "label": "Invite users", "allowed": false },
@@ -95,9 +103,7 @@
       { "key": "search", "label": "Use search & filters", "allowed": true },
       { "key": "view-activity", "label": "View activity feed", "allowed": true },
       { "key": "edit-settings", "label": "Change site settings", "allowed": true },
-      { "key": "manage-profile", "label": "Update own profile details", "allowed": true },
-      { "key": "view-map", "label": "Access map view", "allowed": true },
-      { "key": "configure-map", "label": "Change map appearance", "allowed": true }
+      { "key": "manage-profile", "label": "Update own profile details", "allowed": true }
     ],
     "manholes": [
       { "key": "manhole-view", "label": "View manholes", "allowed": true },
@@ -124,6 +130,12 @@
       { "key": "export-csv", "label": "Export CSV/Sheets", "allowed": true },
       { "key": "download-files", "label": "Download attachments", "allowed": true },
       { "key": "export-kml", "label": "Export GIS / KML files", "allowed": true }
+    ],
+    "map": [
+      { "key": "view-map", "label": "Access map view", "allowed": true },
+      { "key": "configure-map", "label": "Change map appearance", "allowed": true },
+      { "key": "map-preview", "label": "Open manhole preview from map", "allowed": true },
+      { "key": "map-edit", "label": "Open manhole editor from map", "allowed": true }
     ],
     "adminTools": [
       { "key": "view-admin-panels", "label": "View admin panels", "allowed": true },
@@ -140,9 +152,7 @@
       { "key": "search", "label": "Use search & filters", "allowed": true },
       { "key": "view-activity", "label": "View activity feed", "allowed": true },
       { "key": "edit-settings", "label": "Change site settings", "allowed": true },
-      { "key": "manage-profile", "label": "Update own profile details", "allowed": true },
-      { "key": "view-map", "label": "Access map view", "allowed": true },
-      { "key": "configure-map", "label": "Change map appearance", "allowed": true }
+      { "key": "manage-profile", "label": "Update own profile details", "allowed": true }
     ],
     "manholes": [
       { "key": "manhole-view", "label": "View manholes", "allowed": true },
@@ -169,6 +179,12 @@
       { "key": "export-csv", "label": "Export CSV/Sheets", "allowed": true },
       { "key": "download-files", "label": "Download attachments", "allowed": true },
       { "key": "export-kml", "label": "Export GIS / KML files", "allowed": true }
+    ],
+    "map": [
+      { "key": "view-map", "label": "Access map view", "allowed": true },
+      { "key": "configure-map", "label": "Change map appearance", "allowed": true },
+      { "key": "map-preview", "label": "Open manhole preview from map", "allowed": true },
+      { "key": "map-edit", "label": "Open manhole editor from map", "allowed": true }
     ],
     "adminTools": [
       { "key": "view-admin-panels", "label": "View admin panels", "allowed": true },

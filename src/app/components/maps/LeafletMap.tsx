@@ -50,12 +50,16 @@ export default function LeafletMap({
   labelColor,
   onPreview,
   onEdit,
+  canPreview = true,
+  canEdit = true,
 }: {
   points: MapPoint[]
   iconColor: string
   labelColor: string
   onPreview?: (id: string) => void
   onEdit?: (id: string) => void
+  canPreview?: boolean
+  canEdit?: boolean
 }) {
   const bounds = useMemo(() => {
     if (!points.length) return null
@@ -106,22 +110,30 @@ export default function LeafletMap({
               <p className="text-xs text-gray-600">
                 {point.lat.toFixed(6)}, {point.lng.toFixed(6)}
               </p>
-              <div className="mt-2 flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => onPreview?.(point.id)}
-                  className="rounded bg-blue-600 px-3 py-1 text-xs font-semibold text-white hover:bg-blue-700"
-                >
-                  Preview
-                </button>
-                <button
-                  type="button"
-                  onClick={() => onEdit?.(point.id)}
-                  className="rounded border border-gray-300 px-3 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-100"
-                >
-                  Edit
-                </button>
-              </div>
+              {canPreview || canEdit ? (
+                <div className="mt-2 flex gap-2">
+                  {canPreview && (
+                    <button
+                      type="button"
+                      onClick={() => onPreview?.(point.id)}
+                      className="rounded bg-blue-600 px-3 py-1 text-xs font-semibold text-white hover:bg-blue-700"
+                    >
+                      Preview
+                    </button>
+                  )}
+                  {canEdit && (
+                    <button
+                      type="button"
+                      onClick={() => onEdit?.(point.id)}
+                      className="rounded border border-gray-300 px-3 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-100"
+                    >
+                      Edit
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <p className="mt-2 text-xs text-gray-500">Map quick actions unavailable for your role.</p>
+              )}
             </div>
           </Popup>
         </Marker>
