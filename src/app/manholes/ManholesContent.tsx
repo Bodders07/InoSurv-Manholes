@@ -303,8 +303,16 @@ function renderSketchToDataUrl(sketch?: SketchState | null) {
       const sy = scale(item.sy)
       const ex = scale(item.ex)
       const ey = scale(item.ey)
-      drawArrow(sx, sy, ex, ey, item.type === 'out' ? '#b91c1c' : '#2563eb')
-      if (item.label) ctx.fillText(item.label, ex + 4, ey + 4)
+      const isInlet = item.type === 'in'
+      const color = item.type === 'out' ? '#b91c1c' : '#2563eb'
+      const startX = isInlet ? ex : sx
+      const startY = isInlet ? ey : sy
+      const endX = isInlet ? sx : ex
+      const endY = isInlet ? sy : ey
+      drawArrow(startX, startY, endX, endY, color)
+      const labelX = isInlet ? startX : endX
+      const labelY = isInlet ? startY : endY
+      if (item.label) ctx.fillText(item.label, labelX + 4, labelY + 4)
     }
   })
   return canvas.toDataURL('image/png')
@@ -1309,5 +1317,8 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
     </>
   )
 }
+
+
+
 
 
