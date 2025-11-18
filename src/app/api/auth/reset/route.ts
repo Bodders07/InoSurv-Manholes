@@ -21,9 +21,9 @@ async function userExists(email: string) {
   const resp = await fetch(`${supabaseUrl}/auth/v1/admin/users?email=${encodeURIComponent(email)}`, {
     method: 'GET',
     headers: {
-      apiKey: serviceRoleKey,
+      apikey: serviceRoleKey as string,
       Authorization: `Bearer ${serviceRoleKey}`,
-    },
+    } as HeadersInit,
     cache: 'no-store',
   })
   if (!resp.ok) return false
