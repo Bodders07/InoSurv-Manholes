@@ -77,157 +77,130 @@ export default function ProjectDetailPage() {
     }
   }
 
-  const emptyState = useMemo(() => (
-    <p className="text-gray-600">No manholes yet for this project.</p>
-  ), [])
+  const emptyState = useMemo(
+    () => (
+      <div className="rounded-xl border border-dashed border-gray-300 bg-white px-6 py-10 text-center text-sm text-gray-600 shadow-sm">
+        <p>No manholes recorded for this project yet.</p>
+        {canCreateManhole && (
+          <button
+            onClick={() => router.push(`/manholes/add?project=${projectId}`)}
+            className="mt-4 inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-white shadow hover:bg-blue-700"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="h-4 w-4">
+              <path d="M12 5v14M5 12h14" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+            Add Manhole
+          </button>
+        )}
+      </div>
+    ),
+    [canCreateManhole, projectId, router],
+  )
+
+  const tableContent = (
+    <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+      <table className="min-w-full divide-y divide-gray-200">
+        <thead className="bg-gray-50 text-sm font-semibold text-gray-700">
+          <tr>
+            <th className="px-4 py-3 text-left">Identifier</th>
+            <th className="px-4 py-3 text-left">Service</th>
+            <th className="px-4 py-3 text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-100 text-sm text-gray-700">
+          {manholes.map((m) => (
+            <tr key={m.id} className="hover:bg-gray-50/70">
+              <td className="px-4 py-3 font-semibold text-gray-900">{m.identifier || '-'}</td>
+              <td className="px-4 py-3">{m.service_type || '-'}</td>
+              <td className="px-4 py-3">
+                <div className="flex justify-end gap-1.5">
+                  {canEditManhole && (
+                    <button
+                      onClick={() => router.push(`/manholes/${m.id}/edit`)}
+                      className="inline-flex items-center rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100"
+                      title="Edit"
+                      aria-label="Edit"
+                    >
+                      Edit
+                    </button>
+                  )}
+                  {canDeleteManhole && (
+                    <button
+                      onClick={() => deleteManhole(m.id)}
+                      disabled={deletingId === m.id}
+                      className={`inline-flex items-center rounded-lg px-3 py-1.5 text-sm font-medium text-white ${
+                        deletingId === m.id ? 'bg-gray-400 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'
+                      }`}
+                      title="Delete"
+                      aria-label="Delete"
+                    >
+                      {deletingId === m.id ? 'Deleting…' : 'Delete'}
+                    </button>
+                  )}
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+
+  const headerBlock = (
+    <div className="flex flex-col gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm md:flex-row md:items-center md:justify-between">
+      <div>
+        <p className="text-sm uppercase tracking-wide text-gray-500">Project Manholes</p>
+        <h1 className="text-2xl font-bold text-gray-900">{projectName || 'Untitled Project'}</h1>
+        <p className="text-sm text-gray-500">Track, edit, and manage manholes scoped to this project.</p>
+      </div>
+      {canCreateManhole && (
+        <button
+          onClick={() => router.push(`/manholes/add?project=${projectId}`)}
+          className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-blue-700"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="h-4 w-4">
+            <path d="M12 5v14M5 12h14" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+          Add Manhole
+        </button>
+      )}
+    </div>
+  )
+
+  const listView = loading ? (
+    <div className="rounded-xl border border-gray-200 bg-white px-4 py-6 text-sm text-gray-600 shadow-sm">Loading manholes…</div>
+  ) : manholes.length === 0 ? (
+    emptyState
+  ) : (
+    tableContent
+  )
 
   if (embed) {
     return (
-      <>
-        <div className="flex justify-end mb-2">
+      <div className="space-y-4 font-sans">
+        <div className="flex justify-end">
           <button
-            className="px-3 py-1 rounded bg-neutral-800 text-white hover:bg-neutral-700"
+            className="inline-flex items-center gap-1 rounded-full border border-gray-300 bg-white px-3 py-1 text-sm text-gray-700 shadow-sm hover:bg-gray-100"
             onClick={() => window.parent?.postMessage({ type: 'close-project-view' }, '*')}
           >
             Close
           </button>
         </div>
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold">Project Manholes{projectName ? ` - ${projectName}` : ''}</h1>
-          {canCreateManhole && (
-            <button
-              onClick={() => router.push(`/manholes/add?project=${projectId}`)}
-              className="bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700"
-            >
-              Add Manhole
-            </button>
-          )}
-        </div>
-
-        {message && <p className="mb-4 text-red-600">{message}</p>}
-
-        {loading ? (
-          <p>Loading...</p>
-        ) : manholes.length === 0 ? (
-          emptyState
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full bg-white border border-gray-200 rounded-lg">
-              <thead>
-                <tr className="bg-gray-50 text-left">
-                  <th className="px-4 py-2 border-b">Identifier</th>
-                  <th className="px-4 py-2 border-b w-px text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {manholes.map((m) => (
-                  <tr key={m.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-2 border-b font-medium">{m.identifier || '-'}</td>
-                    <td className="px-4 py-2 border-b text-right">
-                      <div className="flex justify-end gap-2">
-                        {canEditManhole && (
-                          <button
-                            onClick={() => router.push(`/manholes/${m.id}/edit`)}
-                            className="px-3 py-1 rounded border border-gray-300 hover:bg-gray-50"
-                          >
-                            Edit
-                          </button>
-                        )}
-                        {canDeleteManhole && (
-                          <button
-                            onClick={() => deleteManhole(m.id)}
-                            disabled={deletingId === m.id}
-                            className={`px-3 py-1 rounded text-white ${
-                              deletingId === m.id ? 'bg-gray-400 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'
-                            }`}
-                          >
-                            {deletingId === m.id ? 'Deleting...' : 'Delete'}
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </>
+        {headerBlock}
+        {message && <p className="text-sm text-red-600">{message}</p>}
+        {listView}
+      </div>
     )
   }
 
   return (
     <SidebarLayout>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Project Manholes{projectName ? ` - ${projectName}` : ''}</h1>
-        {canCreateManhole && (
-          <button
-            onClick={() => router.push(`/manholes/add?project=${projectId}`)}
-            className="bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700"
-          >
-            Add Manhole
-          </button>
-        )}
+      <div className="space-y-6">
+        {headerBlock}
+        {message && <p className="text-sm text-red-600">{message}</p>}
+        {listView}
       </div>
-
-      {message && <p className="mb-4 text-red-600">{message}</p>}
-
-      {loading ? (
-        <p>Loading...</p>
-      ) : manholes.length === 0 ? (
-        emptyState
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full bg-white border border-gray-200 rounded-lg">
-            <thead>
-              <tr className="bg-gray-50 text-left">
-                <th className="px-4 py-2 border-b">Identifier</th>
-                <th className="px-4 py-2 border-b">Service</th>
-                <th className="px-4 py-2 border-b w-px text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {manholes.map((m) => (
-                <tr key={m.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-2 border-b font-medium">{m.identifier || '-'}</td>
-                  <td className="px-4 py-2 border-b">{m.service_type || '-'}</td>
-                  <td className="px-4 py-2 border-b text-right">
-                    <div className="flex justify-end gap-2">
-                      {canEditManhole && (
-                        <button
-                          onClick={() => router.push(`/manholes/${m.id}/edit`)}
-                          className="p-1.5 rounded hover:bg-gray-200 text-gray-700"
-                          title="Edit"
-                          aria-label="Edit"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
-                            <path d="M16.862 3.487a1.75 1.75 0 0 1 2.476 2.476l-10 10a1.75 1.75 0 0 1-.72.438l-4 1.25a.75.75 0 0 1-.938-.938l1.25-4a.75.75 0 0 1 .438-.72l10-10Z" />
-                            <path d="M15 5 19 9" stroke="currentColor" strokeWidth="1.5" />
-                          </svg>
-                        </button>
-                      )}
-                      {canDeleteManhole && (
-                        <button
-                          onClick={() => deleteManhole(m.id)}
-                          disabled={deletingId === m.id}
-                          className="p-1.5 rounded text-red-600 hover:bg-red-50"
-                          title="Delete"
-                          aria-label="Delete"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
-                            <path d="M9 3.75A1.75 1.75 0 0 1 10.75 2h2.5A1.75 1.75 0 0 1 15 3.75V5h4.25a.75.75 0 0 1 0 1.5H4.75a.75.75 0 0 1 0-1.5H9V3.75Z" />
-                            <path d="M6.5 7h11l-.7 11.2a2 2 0 0 1-2 1.8H9.2a2 2 0 0 1-2-1.8L6.5 7Z" />
-                          </svg>
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
     </SidebarLayout>
   )
 }
+
