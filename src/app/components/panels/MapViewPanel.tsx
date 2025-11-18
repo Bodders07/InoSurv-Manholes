@@ -304,11 +304,11 @@ export default function MapViewPanel() {
         <div className="fixed inset-0 z-[1000] bg-black/60 p-4 flex items-center justify-center" onClick={() => setEditUrl(null)}>
           <div className="w-full max-w-5xl bg-white rounded-xl shadow-xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between px-4 py-2 border-b">
-              <h3 className="font-semibold">Edit Manhole</h3>
+              <h3 className="font-semibold">Edit Chamber</h3>
               <button className="text-sm text-gray-500 hover:text-gray-800" onClick={() => setEditUrl(null)}>Close</button>
             </div>
             <div className="h-[80vh]">
-              <iframe title="Edit Manhole" src={editUrl} className="w-full h-full border-0" />
+              <iframe title="Edit Chamber" src={editUrl} className="w-full h-full border-0" />
             </div>
           </div>
         </div>

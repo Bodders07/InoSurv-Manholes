@@ -7,7 +7,7 @@ export default function AddManholePanel() {
         src="/manholes/add?embed=1"
         allow="camera; microphone; display-capture; clipboard-read; clipboard-write"
         className="w-full h-[calc(100vh-140px)] border-0 rounded"
-        title="Add Manhole"
+        title="Add Chamber"
       />
     </div>
   )

@@ -1278,12 +1278,12 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-2" onClick={() => setEditOpen(false)}>
           <div className="bg-white theme-dark:bg-[#0b0b0b] border border-gray-200 theme-dark:border-gray-700 rounded-lg shadow-xl w-full max-w-4xl max-h-[92vh] flex flex-col" onClick={(e)=>e.stopPropagation()}>
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 theme-dark:border-gray-700">
-              <h3 className="text-lg font-semibold">Edit Manhole</h3>
+              <h3 className="text-lg font-semibold">Edit Chamber</h3>
               <button type="button" onClick={() => setEditOpen(false)} className="px-3 py-1.5 rounded border border-gray-300 hover:bg-gray-50">Close</button>
             </div>
             <div className="p-0 overflow-hidden">
               <iframe
-                title="Edit Manhole"
+                title="Edit Chamber"
                 src={`/manholes/${editId}/edit?embed=1`}
                 loading="lazy"
                 className="w-full"
@@ -1301,7 +1301,7 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
               <button type="button" onClick={() => setCreateOpen(false)} className="px-3 py-1.5 rounded border border-gray-300 hover:bg-gray-50">Close</button>
             </div>
             <div className="p-0 overflow-hidden">
-              <iframe title="Add Manhole" src={`/manholes/add?embed=1`} loading="lazy" className="w-full" style={{ height: '80vh', border: 'none', background: 'transparent' }} />
+              <iframe title="Add Chamber" src={`/manholes/add?embed=1`} loading="lazy" className="w-full" style={{ height: '80vh', border: 'none', background: 'transparent' }} />
             </div>
           </div>
         </div>

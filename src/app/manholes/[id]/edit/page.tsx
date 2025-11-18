@@ -288,7 +288,7 @@ export default function EditManholePage() {
 
   const content = (
       <div className="p-8 max-w-4xl mx-auto">
-        <h1 className="text-2xl font-bold mb-4">Edit Manhole</h1>
+        <h1 className="text-2xl font-bold mb-4">Edit Chamber</h1>
         {message && <p className={`mb-4 ${message.startsWith('Error') ? 'text-red-600' : 'text-green-700'}`}>{message}</p>}
         {loading ? (
           <p>Loading…</p>
