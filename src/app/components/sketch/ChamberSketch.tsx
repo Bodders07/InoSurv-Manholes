@@ -396,7 +396,7 @@ export default function ChamberSketch({
                     <path
                       d={arrowPath}
                       stroke={color}
-                      strokeWidth={2.5}
+                      strokeWidth={compact ? 3.5 : 4}
                       fill="none"
                       markerEnd="url(#arrow)"
                       onPointerDown={(evt) => {
