@@ -31,6 +31,7 @@ type SketchSnapshot = {
   labelNext: string
   inletNext: string
   outletNext: 'X' | 'Y' | 'Z'
+  numericNext: number
 }
 
 function cloneSketchState(value: SketchState): SketchState {
@@ -43,6 +44,18 @@ function cloneSketchState(value: SketchState): SketchState {
 
 function uuid() {
   return Math.random().toString(36).slice(2)
+}
+
+function computeNextNumeric(items?: SketchItem[]) {
+  if (!items?.length) return 1
+  const maxFound = items.reduce((max, item) => {
+    if (!item.label) return max
+    const match = item.label.match(/(\d+)/)
+    if (!match) return max
+    const value = Number(match[1])
+    return Number.isNaN(value) ? max : Math.max(max, value)
+  }, 0)
+  return maxFound > 0 ? maxFound + 1 : 1
 }
 
 export default function ChamberSketch({
@@ -62,6 +75,7 @@ export default function ChamberSketch({
   const [labelNext, setLabelNext] = useState('A')
   const [inletNext, setInletNext] = useState('A')
   const [outletNext, setOutletNext] = useState<'X' | 'Y' | 'Z'>('X')
+  const [numericNext, setNumericNext] = useState(() => computeNextNumeric(value?.items))
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const historyRef = useRef<SketchSnapshot[]>([])
   const [, forceHistoryVersion] = useState(0)
@@ -71,6 +85,10 @@ export default function ChamberSketch({
     onChange?.(state)
   }, [state, onChange])
 
+  useEffect(() => {
+    setNumericNext(computeNextNumeric(value?.items))
+  }, [value])
+
   const pushHistorySnapshot = useCallback(() => {
     historyRef.current = [
       ...historyRef.current,
@@ -79,13 +97,14 @@ export default function ChamberSketch({
         labelNext,
         inletNext,
         outletNext,
+        numericNext,
       },
     ]
     if (historyRef.current.length > MAX_HISTORY) {
       historyRef.current.shift()
     }
     forceHistoryVersion((v) => v + 1)
-  }, [state, labelNext, inletNext, outletNext])
+  }, [state, labelNext, inletNext, outletNext, numericNext])
 
   const canUndo = historyRef.current.length > 0
 
@@ -97,6 +116,7 @@ export default function ChamberSketch({
     setLabelNext(previous.labelNext)
     setInletNext(previous.inletNext)
     setOutletNext(previous.outletNext)
+    setNumericNext(previous.numericNext)
     forceHistoryVersion((v) => v + 1)
   }
 
@@ -136,6 +156,10 @@ export default function ChamberSketch({
       const nextOutlet: 'X' | 'Y' | 'Z' = outletNext === 'X' ? 'Y' : outletNext === 'Y' ? 'Z' : 'X'
       setOutletNext(nextOutlet)
     }
+    if (type === 'numeric-known' || type === 'numeric-unknown') {
+      base.label = `Pipe ${numericNext}`
+      setNumericNext((n) => n + 1)
+    }
     setSketchState((s) => ({ ...s, items: [...s.items, base] }))
   }
 
@@ -154,6 +178,7 @@ export default function ChamberSketch({
     setLabelNext('A')
     setInletNext('A')
     setOutletNext('X')
+    setNumericNext(1)
   }
 
   function handleClear() {
