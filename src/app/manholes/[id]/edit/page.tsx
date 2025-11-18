@@ -20,6 +20,33 @@ type Pipe = {
   notes: string
 }
 
+type PipeLabelMode = 'letters' | 'numbers'
+
+const PIPE_NUMBER_REGEX = /^Pipe\s+(\d+)/i
+
+function createEmptyPipe(label: string): Pipe {
+  return {
+    label,
+    func: '',
+    shape: '',
+    material: '',
+    invert_depth_m: '',
+    width_mm: '',
+    height_mm: '',
+    diameter_mm: '',
+    notes: '',
+  }
+}
+
+function letterForIndex(startCode: number, offset: number) {
+  return String.fromCharCode(Math.min(90, startCode + offset))
+}
+
+function nextLabel(current: string) {
+  const code = current.charCodeAt(0)
+  return String.fromCharCode(Math.min(90, code + 1))
+}
+
 const SERVICE_TYPES = [
   'Water','Foul Water','Surface Water','Combined','Soakaway','Interceptor','Storm Water Overflow','Electric','BT','Telecom',
   'Traffic Sig','CATV','SV','FH','AV','WO','CCTV','Comms','Fuel Tank','Fuel Vent','Fuel Filler','WM','Empty','GV','Other',
@@ -107,6 +134,7 @@ export default function EditManholePage() {
   const [serviceType, setServiceType] = useState('')
   const [type, setType] = useState('')
   const [typeOther, setTypeOther] = useState('')
+  const [pipeLabelMode, setPipeLabelMode] = useState<PipeLabelMode>('letters')
   const [coverLifted, setCoverLifted] = useState('')
   const [coverNotReason, setCoverNotReason] = useState('')
 
@@ -140,8 +168,51 @@ export default function EditManholePage() {
   const [sketchDraft, setSketchDraft] = useState<SketchState | null>(null)
 
   // pipes
-  const [incoming, setIncoming] = useState<Pipe[]>([])
-  const [outgoing, setOutgoing] = useState<Pipe[]>([])
+  const [incoming, setIncoming] = useState<Pipe[]>([createEmptyPipe('Pipe A')])
+  const [outgoing, setOutgoing] = useState<Pipe[]>([createEmptyPipe('Pipe X')])
+
+  const getNextLetterLabel = (list: Pipe[], fallback: string) => {
+    const last = list[list.length - 1]?.label.replace('Pipe ', '') || fallback
+    return `Pipe ${nextLabel(last)}`
+  }
+
+  const getNextNumericLabel = () => {
+    const numbers = [...incoming, ...outgoing]
+      .map(pipe => {
+        const match = pipe.label.match(PIPE_NUMBER_REGEX)
+        return match ? Number(match[1]) : Number.NaN
+      })
+      .filter(value => !Number.isNaN(value))
+    const nextNumber = numbers.length ? Math.max(...numbers) + 1 : 1
+    return `Pipe ${nextNumber}`
+  }
+
+  const relabelPipesToNumbers = () => {
+    let counter = 1
+    setIncoming(prev => prev.map(pipe => ({ ...pipe, label: `Pipe ${counter++}` })))
+    setOutgoing(prev => prev.map(pipe => ({ ...pipe, label: `Pipe ${counter++}` })))
+  }
+
+  const relabelPipesToLetters = () => {
+    setIncoming(prev => prev.map((pipe, idx) => ({ ...pipe, label: `Pipe ${letterForIndex(65, idx)}` })))
+    setOutgoing(prev => prev.map((pipe, idx) => ({ ...pipe, label: `Pipe ${letterForIndex(88, idx)}` })))
+  }
+
+  const handlePipeModeChange = (mode: PipeLabelMode) => {
+    setPipeLabelMode(mode)
+    if (mode === 'numbers') {
+      relabelPipesToNumbers()
+    } else {
+      relabelPipesToLetters()
+    }
+  }
+
+  useEffect(() => {
+    if (type !== 'Catchpit' && pipeLabelMode !== 'letters') {
+      setPipeLabelMode('letters')
+      relabelPipesToLetters()
+    }
+  }, [type, pipeLabelMode])
 
   useEffect(() => {
     async function load() {
@@ -188,36 +259,34 @@ export default function EditManholePage() {
         setSketch(row.sketch_json || null)
         const incomingPipes = Array.isArray(row.incoming_pipes) && row.incoming_pipes.length ? (row.incoming_pipes as Pipe[]) : null
         const outgoingPipes = Array.isArray(row.outgoing_pipes) && row.outgoing_pipes.length ? (row.outgoing_pipes as Pipe[]) : null
-        setIncoming(
-          incomingPipes ??
-            [{ label: 'Pipe A', func: '', shape: '', material: '', invert_depth_m: '', width_mm: '', height_mm: '', diameter_mm: '', notes: '' }]
-        )
-        setOutgoing(
-          outgoingPipes ??
-            [{ label: 'Pipe X', func: '', shape: '', material: '', invert_depth_m: '', width_mm: '', height_mm: '', diameter_mm: '', notes: '' }]
-        )
+        const incomingList = incomingPipes ?? [createEmptyPipe('Pipe A')]
+        const outgoingList = outgoingPipes ?? [createEmptyPipe('Pipe X')]
+        setIncoming(incomingList)
+        setOutgoing(outgoingList)
+        const hasNumericLabels = [...incomingList, ...outgoingList].some(pipe => PIPE_NUMBER_REGEX.test(pipe.label ?? ''))
+        setPipeLabelMode(row.type === 'Catchpit' && hasNumericLabels ? 'numbers' : 'letters')
       }
       setLoading(false)
     }
     load()
   }, [manholeId])
 
-  function nextLabel(current: string) {
-    const code = current.charCodeAt(0)
-    return String.fromCharCode(Math.min(90, code + 1))
-  }
   function addIncomingPipe() {
-    const last = incoming[incoming.length - 1]?.label || 'Pipe A'
-    const next = nextLabel(last.replace('Pipe ', '') || 'A')
-    setIncoming([...incoming, { label: `Pipe ${next}`, func: '', shape: '', material: '', invert_depth_m: '', width_mm: '', height_mm: '', diameter_mm: '', notes: '' }])
+    const label = pipeLabelMode === 'numbers' ? getNextNumericLabel() : getNextLetterLabel(incoming, 'A')
+    setIncoming([...incoming, createEmptyPipe(label)])
   }
-  function removeIncomingPipe(index: number) { if (index === 0) return; setIncoming((arr)=>arr.filter((_,i)=>i!==index)) }
+  function removeIncomingPipe(index: number) {
+    if (index === 0) return
+    setIncoming((arr)=>arr.filter((_,i)=>i!==index))
+  }
   function addOutgoingPipe() {
-    const last = outgoing[outgoing.length - 1]?.label || 'Pipe X'
-    const next = nextLabel(last.replace('Pipe ', '') || 'X')
-    setOutgoing([...outgoing, { label: `Pipe ${next}`, func: '', shape: '', material: '', invert_depth_m: '', width_mm: '', height_mm: '', diameter_mm: '', notes: '' }])
+    const label = pipeLabelMode === 'numbers' ? getNextNumericLabel() : getNextLetterLabel(outgoing, 'X')
+    setOutgoing([...outgoing, createEmptyPipe(label)])
   }
-  function removeOutgoingPipe(index: number) { if (index === 0) return; setOutgoing((arr)=>arr.filter((_,i)=>i!==index)) }
+  function removeOutgoingPipe(index: number) {
+    if (index === 0) return
+    setOutgoing((arr)=>arr.filter((_,i)=>i!==index))
+  }
 
   async function save() {
     setMessage('')
@@ -363,14 +432,27 @@ export default function EditManholePage() {
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Type</label>
-                <select className="w-full border p-2 rounded" value={type} onChange={(e)=>setType(e.target.value)}>
-                  <option value="">Select type</option>
-                  {TYPE_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
-                </select>
-                {type === 'Other' && (
-                  <input className="mt-2 w-full border p-2 rounded" placeholder="If Other, specify" value={typeOther} onChange={(e)=>setTypeOther(e.target.value)} />
-                )}
-              </div>
+              <select className="w-full border p-2 rounded" value={type} onChange={(e)=>setType(e.target.value)}>
+                <option value="">Select type</option>
+                {TYPE_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
+              </select>
+              {type === 'Other' && (
+                <input className="mt-2 w-full border p-2 rounded" placeholder="If Other, specify" value={typeOther} onChange={(e)=>setTypeOther(e.target.value)} />
+              )}
+              {type === 'Catchpit' && (
+                <div className="mt-2">
+                  <label className="block text-xs font-semibold text-gray-600 tracking-wide uppercase mb-1">Pipe labels</label>
+                  <select
+                    className="w-full border p-2 rounded"
+                    value={pipeLabelMode}
+                    onChange={(e) => handlePipeModeChange(e.target.value as PipeLabelMode)}
+                  >
+                    <option value="letters">X-ABC (letters)</option>
+                    <option value="numbers">1-9 (numbers)</option>
+                  </select>
+                </div>
+              )}
+            </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Cover Lifted</label>
                 <select className="w-full border p-2 rounded" value={coverLifted} onChange={(e)=>setCoverLifted(e.target.value)}>

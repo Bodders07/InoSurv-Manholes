@@ -24,6 +24,8 @@ type Pipe = {
   notes: string
 }
 
+type PipeLabelMode = 'letters' | 'numbers'
+
 const SERVICE_TYPES = [
   'Water','Foul Water','Surface Water','Combined','Soakaway','Interceptor','Storm Water Overflow','Electric','BT','Telecom',
   'Traffic Sig','CATV','SV','FH','AV','WO','CCTV','Comms','Fuel Tank','Fuel Vent','Fuel Filler','WM','Empty','GV','Other',
@@ -54,6 +56,23 @@ function nextLabel(current: string) {
   return String.fromCharCode(Math.min(90, code + 1)) // up to 'Z'
 }
 
+function createEmptyPipe(label: string): Pipe {
+  return {
+    label,
+    shape: '',
+    material: '',
+    invert_depth_m: '',
+    width_mm: '',
+    height_mm: '',
+    diameter_mm: '',
+    notes: '',
+  }
+}
+
+function letterForIndex(startCode: number, offset: number) {
+  return String.fromCharCode(Math.min(90, startCode + offset))
+}
+
 function AddManholeForm({ standaloneLayout = true }: { standaloneLayout?: boolean }) {
   const params = useSearchParams()
   const [projects, setProjects] = useState<Project[]>([])
@@ -75,18 +94,15 @@ function AddManholeForm({ standaloneLayout = true }: { standaloneLayout?: boolea
   const [serviceType, setServiceType] = useState('')
   const [type, setType] = useState('')
   const [typeOther, setTypeOther] = useState('')
+  const [pipeLabelMode, setPipeLabelMode] = useState<PipeLabelMode>('letters')
 
   // Cover lifted
   const [coverLifted, setCoverLifted] = useState('')
   const [coverNotReason, setCoverNotReason] = useState('')
 
   // Pipes
-  const [incoming, setIncoming] = useState<Pipe[]>(() =>
-    ['A'].map(l => ({ label: `Pipe ${l}`, shape: '', material: '', invert_depth_m: '', width_mm: '', height_mm: '', diameter_mm: '', notes: '' }))
-  )
-  const [outgoing, setOutgoing] = useState<Pipe[]>(() =>
-    ['X'].map(l => ({ label: `Pipe ${l}`, shape: '', material: '', invert_depth_m: '', width_mm: '', height_mm: '', diameter_mm: '', notes: '' }))
-  )
+  const [incoming, setIncoming] = useState<Pipe[]>(() => [createEmptyPipe('Pipe A')])
+  const [outgoing, setOutgoing] = useState<Pipe[]>(() => [createEmptyPipe('Pipe X')])
 
   const [message, setMessage] = useState('')
   const [copyList, setCopyList] = useState(false)
@@ -126,6 +142,51 @@ function AddManholeForm({ standaloneLayout = true }: { standaloneLayout?: boolea
   const [externalPhoto, setExternalPhoto] = useState<File | null>(null)
   const [externalPreview, setExternalPreview] = useState('')
 
+  const numericLabelRegex = /^Pipe\s+(\d+)/i
+
+  const getNextLetterLabel = (list: Pipe[], fallback: string) => {
+    const last = list[list.length - 1]?.label.replace('Pipe ', '') || fallback
+    return `Pipe ${nextLabel(last)}`
+  }
+
+  const getNextNumericLabel = () => {
+    const numbers = [...incoming, ...outgoing]
+      .map(pipe => {
+        const match = pipe.label.match(numericLabelRegex)
+        return match ? Number(match[1]) : Number.NaN
+      })
+      .filter(value => !Number.isNaN(value))
+    const nextNumber = numbers.length ? Math.max(...numbers) + 1 : 1
+    return `Pipe ${nextNumber}`
+  }
+
+  const relabelPipesToNumbers = () => {
+    let counter = 1
+    setIncoming(prev => prev.map(pipe => ({ ...pipe, label: `Pipe ${counter++}` })))
+    setOutgoing(prev => prev.map(pipe => ({ ...pipe, label: `Pipe ${counter++}` })))
+  }
+
+  const relabelPipesToLetters = () => {
+    setIncoming(prev => prev.map((pipe, idx) => ({ ...pipe, label: `Pipe ${letterForIndex(65, idx)}` })))
+    setOutgoing(prev => prev.map((pipe, idx) => ({ ...pipe, label: `Pipe ${letterForIndex(88, idx)}` })))
+  }
+
+  const handlePipeModeChange = (mode: PipeLabelMode) => {
+    setPipeLabelMode(mode)
+    if (mode === 'numbers') {
+      relabelPipesToNumbers()
+    } else {
+      relabelPipesToLetters()
+    }
+  }
+
+  useEffect(() => {
+    if (type !== 'Catchpit' && pipeLabelMode !== 'letters') {
+      setPipeLabelMode('letters')
+      relabelPipesToLetters()
+    }
+  }, [type, pipeLabelMode])
+
   useEffect(() => {
     async function fetchProjects() {
       const { data, error } = await supabase.from('projects').select('id, name')
@@ -135,21 +196,19 @@ function AddManholeForm({ standaloneLayout = true }: { standaloneLayout?: boolea
   }, [])
 
   function addIncomingPipe() {
-    const last = incoming[incoming.length - 1]?.label || 'Pipe A'
-    const next = nextLabel(last.replace('Pipe ', '') || 'A')
-    setIncoming([...incoming, { label: `Pipe ${next}`, shape: '', material: '', invert_depth_m: '', width_mm: '', height_mm: '', diameter_mm: '', notes: '' }])
+    const label = pipeLabelMode === 'numbers' ? getNextNumericLabel() : getNextLetterLabel(incoming, 'A')
+    setIncoming([...incoming, createEmptyPipe(label)])
   }
   function removeIncomingPipe(index: number) {
-    if (index === 0) return // keep Pipe A as default
+    if (index === 0) return // keep a default pipe entry
     setIncoming((arr) => arr.filter((_, i) => i !== index))
   }
   function addOutgoingPipe() {
-    const last = outgoing[outgoing.length - 1]?.label || 'Pipe X'
-    const next = nextLabel(last.replace('Pipe ', '') || 'X')
-    setOutgoing([...outgoing, { label: `Pipe ${next}`, shape: '', material: '', invert_depth_m: '', width_mm: '', height_mm: '', diameter_mm: '', notes: '' }])
+    const label = pipeLabelMode === 'numbers' ? getNextNumericLabel() : getNextLetterLabel(outgoing, 'X')
+    setOutgoing([...outgoing, createEmptyPipe(label)])
   }
   function removeOutgoingPipe(index: number) {
-    if (index === 0) return // keep Pipe X as default
+    if (index === 0) return // keep a default pipe entry
     setOutgoing((arr) => arr.filter((_, i) => i !== index))
   }
 
@@ -301,8 +360,9 @@ ALTER TABLE public.manholes
       setExternalPreview('')
       setChamberMaterial('')
       setChamberMaterialOther('')
-      setIncoming([{ label: 'Pipe A', shape: '', material: '', invert_depth_m: '', width_mm: '', height_mm: '', diameter_mm: '', notes: '' }])
-      setOutgoing([{ label: 'Pipe X', shape: '', material: '', invert_depth_m: '', width_mm: '', height_mm: '', diameter_mm: '', notes: '' }])
+      setPipeLabelMode('letters')
+      setIncoming([createEmptyPipe('Pipe A')])
+      setOutgoing([createEmptyPipe('Pipe X')])
     }
   }
 
@@ -395,6 +455,19 @@ ALTER TABLE public.manholes
             </select>
             {type === 'Other' && (
               <input className="mt-2 w-full border p-2 rounded" placeholder="If Other, specify" value={typeOther} onChange={(e)=>setTypeOther(e.target.value)} />
+            )}
+            {type === 'Catchpit' && (
+              <div className="mt-2">
+                <label className="block text-xs font-semibold text-gray-600 tracking-wide uppercase mb-1">Pipe labels</label>
+                <select
+                  className="w-full border p-2 rounded"
+                  value={pipeLabelMode}
+                  onChange={(e) => handlePipeModeChange(e.target.value as PipeLabelMode)}
+                >
+                  <option value="letters">X-ABC (letters)</option>
+                  <option value="numbers">1-9 (numbers)</option>
+                </select>
+              </div>
             )}
           </div>
 
