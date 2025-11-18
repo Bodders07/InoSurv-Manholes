@@ -789,9 +789,15 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
         return rowY
       }
       const incomingEntries = summarizePipes(record.incoming_pipes, record.cover_level as number | null, 6)
-      currentY = drawPipeTable('Incoming Pipes', incomingEntries, currentY + 4, Math.max(incomingEntries.length, 1)) + 6
       const outgoingEntries = summarizePipes(record.outgoing_pipes, record.cover_level as number | null, 2)
-      currentY = drawPipeTable('Outgoing Pipes', outgoingEntries, currentY, Math.max(outgoingEntries.length, 1)) + 6
+      const allPipeEntries = [...incomingEntries, ...outgoingEntries]
+      const hasNumericLabels = allPipeEntries.some((entry) => /^\s*Pipe\s*\d+/i.test(entry.label || ''))
+      if (hasNumericLabels) {
+        currentY = drawPipeTable('Pipe Information', allPipeEntries, currentY + 4, Math.max(allPipeEntries.length, 1)) + 6
+      } else {
+        currentY = drawPipeTable('Incoming Pipes', incomingEntries, currentY + 4, Math.max(incomingEntries.length, 1)) + 6
+        currentY = drawPipeTable('Outgoing Pipes', outgoingEntries, currentY, Math.max(outgoingEntries.length, 1)) + 6
+      }
 
       const bottomHeight = 60
       const boxWidth = (jobBoxWidth - 8) / 3
