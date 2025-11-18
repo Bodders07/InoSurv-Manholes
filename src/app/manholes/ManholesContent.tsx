@@ -807,6 +807,7 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
         { label: 'Internal Photo', dataUrl: null, url: record.internal_photo_url },
         { label: 'External Photo', dataUrl: null, url: record.external_photo_url },
       ]
+      const measuredArrowLabel = record.sketch_json?.measuredTo === 'hm' ? 'HM' : 'N'
       for (let i = 0; i < boxes.length; i++) {
         const x = jobBoxX + i * (boxWidth + 4)
         doc.rect(x, boxY, boxWidth, bottomHeight)
@@ -869,7 +870,7 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
               doc.triangle(arrowX, arrowBaseY - 4, arrowX + 2.5, arrowBaseY, arrowX - 2.5, arrowBaseY, 'F')
               doc.setTextColor(17, 24, 39)
               doc.setFontSize(6)
-              doc.text('N', arrowX, arrowBaseY + 1.6, { align: 'center' })
+              doc.text(measuredArrowLabel, arrowX, arrowBaseY + 1.6, { align: 'center' })
               doc.setTextColor(0, 0, 0)
             }
           } catch {
