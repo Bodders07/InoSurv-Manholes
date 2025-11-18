@@ -465,10 +465,12 @@ export default function ChamberSketch({
             const sy = it.sy ?? center.y
             const ex = it.ex ?? it.x ?? center.x
             const ey = it.ey ?? it.y ?? center.y
-            // Determine arrow orientation and marker usage based on type
             const isInlet = it.type === 'in'
             const hasArrowHead = it.type === 'in' || it.type === 'out' || it.type === 'numeric-known'
             const arrowPath = isInlet ? `M ${ex},${ey} L ${sx},${sy}` : `M ${sx},${sy} L ${ex},${ey}`
+            const startPoint = isInlet ? { x: ex, y: ey } : { x: sx, y: sy }
+            const endPoint = isInlet ? { x: sx, y: sy } : { x: ex, y: ey }
+            const labelPoint = (it.type === 'in') ? startPoint : endPoint
             const handleSize = compact ? 20 : 24
             const hh = handleSize / 2
             return (
@@ -511,7 +513,9 @@ export default function ChamberSketch({
                     )}
                     {/* Labels sit at the handle end (ex,ey) for both types */}
                     {it.label && (
-                      <text x={ex + 8} y={ey - 8} fontSize="12" fill={color} fontWeight={600}>{it.label}</text>
+                      <text x={labelPoint.x + 8} y={labelPoint.y - 8} fontSize="12" fill={color} fontWeight={600}>
+                        {it.label}
+                      </text>
                     )}
                   </>
                 )}
