@@ -50,7 +50,12 @@ export default function AuthPage() {
         body: JSON.stringify({ email: targetEmail }),
       })
       const json = await res.json()
-      if (!res.ok) throw new Error(json.error || 'Failed to send reset email.')
+      if (!res.ok) {
+        if (res.status === 404) {
+          throw new Error('Email account not registered.')
+        }
+        throw new Error(json.error || 'Failed to send reset email.')
+      }
       setMessage('Success: Password reset email sent.')
     } catch (err) {
       setMessage(err instanceof Error ? `Error: ${err.message}` : 'Unable to send reset email.')
