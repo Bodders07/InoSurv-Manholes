@@ -309,7 +309,7 @@ ALTER TABLE public.manholes
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Manhole Identifier</label>
+            <label className="block text-sm font-medium mb-1">Chamber Identifier</label>
             <input className="w-full border p-2 rounded" value={identifier} onChange={(e)=>setIdentifier(e.target.value)} placeholder="e.g., MH-001" />
           </div>
 
