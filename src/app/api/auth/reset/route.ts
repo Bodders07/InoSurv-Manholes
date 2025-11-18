@@ -18,19 +18,14 @@ function isValidEmail(value: string) {
 }
 
 async function userExists(email: string) {
-  const resp = await fetch(`${supabaseUrl}/auth/v1/admin/users?email=${encodeURIComponent(email)}`, {
-    method: 'GET',
-    headers: {
-      apikey: serviceRoleKey as string,
-      Authorization: `Bearer ${serviceRoleKey}`,
-    } as HeadersInit,
-    cache: 'no-store',
+  const { data, error } = await supabaseAdmin.auth.admin.listUsers({
+    page: 1,
+    perPage: 1,
+    email,
   })
-  if (!resp.ok) return false
-  const data = await resp.json()
-  if (Array.isArray(data)) return data.length > 0
-  if (data && Array.isArray(data.users)) return data.users.length > 0
-  return false
+  if (error) return false
+  const list = data?.users || []
+  return list.some((user) => (user.email || '').toLowerCase() === email.toLowerCase())
 }
 
 export async function POST(request: Request) {
