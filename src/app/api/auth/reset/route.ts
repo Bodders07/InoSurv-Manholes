@@ -46,7 +46,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Email not found.' }, { status: 404 })
     }
 
-    const origin = headers().get('origin')
+    const originHeader = await headers()
+    const origin = originHeader.get('origin')
     const redirectTo =
       process.env.NEXT_PUBLIC_AUTH_RESET_URL || (origin ? `${origin}/auth/reset` : undefined)
 
