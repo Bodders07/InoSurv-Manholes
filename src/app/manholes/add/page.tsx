@@ -31,7 +31,18 @@ const SERVICE_TYPES = [
 ]
 
 const TYPE_OPTIONS = [
-  'Manhole','Hatchbox','Lamphole','Dual','Junction','Rodding Eye','Outfall','CSO Chamber','Pumping Station','Inlet','Other'
+  'Manhole',
+  'Catchpit',
+  'Hatchbox',
+  'Lamphole',
+  'Dual',
+  'Junction',
+  'Rodding Eye',
+  'Outfall',
+  'CSO Chamber',
+  'Pumping Station',
+  'Inlet',
+  'Other',
 ]
 
 const MEASURING_TOOLS = ['Tape','Staff','Laser Level']

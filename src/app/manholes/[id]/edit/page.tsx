@@ -25,7 +25,20 @@ const SERVICE_TYPES = [
   'Traffic Sig','CATV','SV','FH','AV','WO','CCTV','Comms','Fuel Tank','Fuel Vent','Fuel Filler','WM','Empty','GV','Other',
   'Cables','Ducts','Fibre','FWS','Gas','Heating Pipes','Pipes','CWS','SWS','Unidentified'
 ]
-const TYPE_OPTIONS = ['Manhole','Hatchbox','Lamphole','Dual','Junction','Rodding Eye','Outfall','CSO Chamber','Pumping Station','Inlet','Other']
+const TYPE_OPTIONS = [
+  'Manhole',
+  'Catchpit',
+  'Hatchbox',
+  'Lamphole',
+  'Dual',
+  'Junction',
+  'Rodding Eye',
+  'Outfall',
+  'CSO Chamber',
+  'Pumping Station',
+  'Inlet',
+  'Other',
+]
 const MEASURING_TOOLS = ['Tape','Staff','Laser Level']
 const PIPE_FUNCTIONS = ['Sewer','Watercourse','Combined','Highway','Gulley','Outlet','Inlet','Overflow','Backdrop','Vent Pipe','Foul Water Pipe','Surface Water Pipe','Duct','MH','OS','UTT','UTS','RWP','GU','BLD','Post','Empty']
 const PIPE_SHAPES = ['Circular','Egg','Rectangular','Trapezoidal','Square','Brick Arch','Unknown','Other']
