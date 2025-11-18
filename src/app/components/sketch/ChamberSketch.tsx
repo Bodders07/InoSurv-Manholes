@@ -22,6 +22,7 @@ export type SketchState = {
   coverShape: 'Circle' | 'Square' | 'Rectangle' | 'Triangle'
   chamberShape: 'Circle' | 'Square' | 'Rectangle' | 'Hexagon'
   items: SketchItem[]
+  measuredTo?: 'north' | 'hm'
 }
 
 const MAX_HISTORY = 50
@@ -39,6 +40,7 @@ function cloneSketchState(value: SketchState): SketchState {
     coverShape: value.coverShape,
     chamberShape: value.chamberShape,
     items: value.items.map((it) => ({ ...it })),
+    measuredTo: value.measuredTo ?? 'north',
   }
 }
 
@@ -67,9 +69,12 @@ export default function ChamberSketch({
   onChange?: (s: SketchState) => void
   compact?: boolean
 }) {
-  const [state, setSketchState] = useState<SketchState>(
-    value || { coverShape: 'Circle', chamberShape: 'Circle', items: [] }
-  )
+  const [state, setSketchState] = useState<SketchState>(() => {
+    if (value) {
+      return { ...value, measuredTo: value.measuredTo ?? 'north' }
+    }
+    return { coverShape: 'Circle', chamberShape: 'Circle', items: [], measuredTo: 'north' }
+  })
   const svgRef = useRef<SVGSVGElement | null>(null)
   const dragging = useRef<{ id: string; handle: 'start' | 'end' | 'label' } | null>(null)
   const [labelNext, setLabelNext] = useState('A')
@@ -172,6 +177,11 @@ export default function ChamberSketch({
     if (state.chamberShape === shape) return
     pushHistorySnapshot()
     setSketchState((s) => ({ ...s, chamberShape: shape }))
+  }
+  function setMeasuredTarget(target: 'north' | 'hm') {
+    if ((state.measuredTo ?? 'north') === target) return
+    pushHistorySnapshot()
+    setSketchState((s) => ({ ...s, measuredTo: target }))
   }
 
   function resetCounters() {
@@ -399,6 +409,19 @@ export default function ChamberSketch({
             Clear All
           </button>
         </div>
+        <div className={`flex items-center ${compact ? 'gap-1 px-2 py-1' : 'gap-2 px-2 py-1'} border rounded sketch-group`}>
+          <span className={`${compact ? 'text-xs' : 'text-sm'} font-semibold sketch-group__label`}>Measured to</span>
+          {(['north', 'hm'] as const).map((opt) => (
+            <button
+              key={opt}
+              type="button"
+              onClick={() => setMeasuredTarget(opt)}
+              className={`sketch-btn rounded border ${compact ? 'text-xs px-2 py-1' : 'px-2 py-1'} ${ (state.measuredTo ?? 'north') === opt ? 'sketch-btn--active' : ''}`}
+            >
+              {opt === 'north' ? 'North' : 'High Miles'}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Canvas */}
@@ -424,10 +447,12 @@ export default function ChamberSketch({
             <text x={compact ? 30 : 38} y={compact ? 29 : 35} fontSize={compact ? 10 : 12} fill="var(--sketch-text, #374151)">Chamber (solid)</text>
           </g>
 
-          {/* north arrow */}
+          {/* north/high-miles arrow */}
           <g transform="translate(40,420)">
             <polygon points="10,0 20,30 0,30" fill="#e11" />
-            <text x="8" y="44" fontSize="12" fill="var(--sketch-text, #333)">N</text>
+            <text x="8" y="44" fontSize="12" fill="var(--sketch-text, #333)">
+              {(state.measuredTo ?? 'north') === 'north' ? 'N' : 'HM'}
+            </text>
           </g>
 
           {coverPath}
