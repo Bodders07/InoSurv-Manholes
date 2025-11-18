@@ -186,7 +186,7 @@ function AddManholeForm({ standaloneLayout = true }: { standaloneLayout?: boolea
       sketch_json: sketch ? sketch : null,
     }
 
-    const insertRes = await supabase.from('manholes').insert([payload]).select('id').single()
+    const insertRes = await supabase.from('chambers').insert([payload]).select('id').single()
     if (insertRes.error) {
       const hint = `
 To support these fields, add columns in Supabase (run once):
@@ -243,7 +243,7 @@ ALTER TABLE public.manholes
           const pub = bucket.getPublicUrl(path)
           const url = pub.data.publicUrl
           const upRow = await supabase
-            .from('manholes')
+            .from('chambers')
             .update(kind === 'internal' ? { internal_photo_url: url } : { external_photo_url: url })
             .eq('id', newId)
           if (upRow.error) {
@@ -737,3 +737,4 @@ function AddManholePageInner() {
   const embed = params?.get('embed') === '1'
   return <AddManholeForm standaloneLayout={!embed} />
 }
+

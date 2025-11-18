@@ -333,7 +333,7 @@ const clientOptions = useMemo(() => {
     }
 
     const rel = await supabase
-      .from('manholes')
+      .from('chambers')
       .select('id', { count: 'exact', head: true })
       .eq('project_id', id)
     const relatedCount = rel.count ?? 0
@@ -714,3 +714,4 @@ const clientOptions = useMemo(() => {
     </>
   )
 }
+

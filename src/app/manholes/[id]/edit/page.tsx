@@ -134,7 +134,7 @@ export default function EditManholePage() {
     async function load() {
       setLoading(true)
       const { data, error } = await supabase
-        .from('manholes')
+        .from('chambers')
         .select('*')
         .eq('id', manholeId)
         .maybeSingle()
@@ -244,7 +244,7 @@ export default function EditManholePage() {
     update.chamber_material_other = chamberMaterial === 'Other' ? (chamberMaterialOther || null) : null
     update.sketch_json = sketch || null
 
-    const { error } = await supabase.from('manholes').update(update).eq('id', manholeId)
+    const { error } = await supabase.from('chambers').update(update).eq('id', manholeId)
     if (error) {
       setMessage('Error: ' + error.message)
       return
@@ -268,7 +268,7 @@ export default function EditManholePage() {
       const pub = bucket.getPublicUrl(path)
       const url = pub.data.publicUrl
       const upRow = await supabase
-        .from('manholes')
+        .from('chambers')
         .update(kind === 'internal' ? { internal_photo_url: url } : { external_photo_url: url })
         .eq('id', manholeId)
       if (upRow.error) {
@@ -730,3 +730,4 @@ export default function EditManholePage() {
     </SidebarLayout>
   )
 }
+

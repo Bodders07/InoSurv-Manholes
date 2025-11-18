@@ -72,7 +72,7 @@ export default function MapViewPanel() {
     setLoading(true)
     setError(null)
     const { data, error } = await supabase
-      .from('manholes')
+      .from('chambers')
       .select('id, identifier, latitude, longitude, cover_shape, project_id')
 
     if (error) {
@@ -316,3 +316,4 @@ export default function MapViewPanel() {
     </div>
   )
 }
+

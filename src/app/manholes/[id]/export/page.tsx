@@ -79,7 +79,7 @@ export default function ExportManholePage() {
       setMessage(null)
       try {
         const { data: mhRow, error: mhError } = await supabase
-          .from('manholes')
+          .from('chambers')
           .select('*')
           .eq('id', manholeId)
           .maybeSingle()
@@ -301,3 +301,4 @@ function formatValue(value: string | number | null) {
   }
   return value
 }
+
