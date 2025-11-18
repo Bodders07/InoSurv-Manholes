@@ -201,7 +201,7 @@ export default function SidebarLayout({
   const publicNav: { id: AppView; label: string; icon: ReactNode }[] = [
     { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={16} /> },
     { id: 'projects', label: 'Projects', icon: <FolderKanban size={16} /> },
-    { id: 'manholes', label: 'Manholes', icon: <ClipboardList size={16} /> },
+    { id: 'manholes', label: 'Chambers', icon: <ClipboardList size={16} /> },
     { id: 'inspections', label: 'Map View', icon: <Map size={16} /> },
     { id: 'settings', label: 'Settings', icon: <Settings size={16} /> },
   ]
