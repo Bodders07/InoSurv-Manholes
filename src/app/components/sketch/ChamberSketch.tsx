@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
-type ItemType = 'in' | 'out' | 'label'
+type ItemType = 'in' | 'out' | 'label' | 'numeric-known' | 'numeric-unknown'
 
 type SketchItem = {
   id: string
@@ -341,6 +341,39 @@ export default function ChamberSketch({
             Clear All
           </button>
         </div>
+        <div className={`flex items-center ${compact ? 'gap-1 px-2 py-1' : 'gap-2 px-2 py-1'} border rounded sketch-group`}>
+          <span className={`${compact ? 'text-xs' : 'text-sm'} font-semibold sketch-group__label`}>1-9</span>
+          <button
+            type="button"
+            className={`sketch-btn rounded border ${compact ? 'text-xs px-2 py-1' : 'px-2 py-1'}`}
+            onClick={() => addItem('numeric-known')}
+          >
+            Add Pipe (Known Direction)
+          </button>
+          <button
+            type="button"
+            className={`sketch-btn rounded border ${compact ? 'text-xs px-2 py-1' : 'px-2 py-1'}`}
+            onClick={() => addItem('numeric-unknown')}
+          >
+            Add Pipe (Unknown Direction)
+          </button>
+          <button
+            type="button"
+            className={`sketch-btn rounded border ${compact ? 'text-xs px-2 py-1' : 'px-2 py-1'} disabled:opacity-50 disabled:cursor-not-allowed`}
+            onClick={undo}
+            disabled={!canUndo}
+          >
+            Undo
+          </button>
+          <button
+            type="button"
+            className={`sketch-btn rounded border ${compact ? 'text-xs px-2 py-1' : 'px-2 py-1'} disabled:opacity-50 disabled:cursor-not-allowed`}
+            onClick={handleClear}
+            disabled={!state.items.length}
+          >
+            Clear All
+          </button>
+        </div>
       </div>
 
       {/* Canvas */}
@@ -382,12 +415,10 @@ export default function ChamberSketch({
             const sy = it.sy ?? center.y
             const ex = it.ex ?? it.x ?? center.x
             const ey = it.ey ?? it.y ?? center.y
-            // Keep previous direction semantics:
-            // - inlet: arrow head at the 'center' end (sx,sy), so path starts at (ex,ey)
-            // - outlet: arrow head at the handle (ex,ey), so path starts at (sx,sy)
-            const arrowPath = it.type === 'in'
-              ? `M ${ex},${ey} L ${sx},${sy}`
-              : `M ${sx},${sy} L ${ex},${ey}`
+            // Determine arrow orientation and marker usage based on type
+            const isInlet = it.type === 'in'
+            const hasArrowHead = it.type === 'in' || it.type === 'out' || it.type === 'numeric-known'
+            const arrowPath = isInlet ? `M ${ex},${ey} L ${sx},${sy}` : `M ${sx},${sy} L ${ex},${ey}`
             const handleSize = compact ? 20 : 24
             const hh = handleSize / 2
             return (
@@ -399,7 +430,7 @@ export default function ChamberSketch({
                       stroke={color}
                       strokeWidth={compact ? 3.5 : 4}
                       fill="none"
-                      markerEnd="url(#arrow)"
+                      markerEnd={hasArrowHead ? 'url(#arrow)' : undefined}
                       onPointerDown={(evt) => {
                         evt.stopPropagation()
                         setSelectedId(it.id)
