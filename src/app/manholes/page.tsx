@@ -1,12 +1,13 @@
 'use client'
 
 import SidebarLayout from '@/app/components/SidebarLayout'
-import ManholesContent from './ManholesContent'
+import ChambersContent from './ChambersContent'
 
-export default function ManholesPage() {
+export default function ChambersPage() {
   return (
     <SidebarLayout>
-      <ManholesContent />
+      <ChambersContent />
     </SidebarLayout>
   )
 }
+

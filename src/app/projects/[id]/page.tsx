@@ -21,7 +21,7 @@ export default function ProjectDetailPage() {
   const params = useParams() as { id?: string }
   const projectId = params?.id ?? ''
 
-  const [manholes, setManholes] = useState<Manhole[]>([])
+  const [Chambers, setChambers] = useState<Manhole[]>([])
   const [projectName, setProjectName] = useState<string>('')
   const [loading, setLoading] = useState(true)
   const [message, setMessage] = useState('')
@@ -48,15 +48,15 @@ export default function ProjectDetailPage() {
       const [{ data: proj, error: projErr }, { data: mhs, error: mhErr }] = await Promise.all([
         supabase.from('projects').select('name').eq('id', projectId).maybeSingle(),
         supabase
-          .from('manholes')
+          .from('Chambers')
           .select('id, identifier, project_id, service_type, location_type, lid_material, chamber_construction')
           .eq('project_id', projectId)
           .order('identifier', { ascending: true }),
       ])
       if (projErr) setMessage('Error loading project: ' + projErr.message)
       else setProjectName(proj?.name || '')
-      if (mhErr) setMessage((prev) => prev || 'Error loading manholes: ' + mhErr.message)
-      else setManholes(mhs || [])
+      if (mhErr) setMessage((prev) => prev || 'Error loading Chambers: ' + mhErr.message)
+      else setChambers(mhs || [])
       setLoading(false)
     }
     load()
@@ -68,22 +68,22 @@ export default function ProjectDetailPage() {
     if (!proceed) return
     setMessage('')
     setDeletingId(id)
-    const { error } = await supabase.from('manholes').delete().eq('id', id)
+    const { error } = await supabase.from('Chambers').delete().eq('id', id)
     setDeletingId(null)
     if (error) {
       setMessage('Error: ' + error.message)
     } else {
-      setManholes((list) => list.filter((m) => m.id !== id))
+      setChambers((list) => list.filter((m) => m.id !== id))
     }
   }
 
   const emptyState = useMemo(
     () => (
       <div className="rounded-xl border border-dashed border-gray-300 bg-white px-6 py-10 text-center text-sm text-gray-600 shadow-sm">
-        <p>No manholes recorded for this project yet.</p>
+        <p>No Chambers recorded for this project yet.</p>
         {canCreateManhole && (
           <button
-            onClick={() => router.push(`/manholes/add?project=${projectId}`)}
+            onClick={() => router.push(`/Chambers/add?project=${projectId}`)}
             className="mt-4 inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-white shadow hover:bg-blue-700"
           >
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="h-4 w-4">
@@ -108,7 +108,7 @@ export default function ProjectDetailPage() {
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100 text-sm text-gray-700">
-          {manholes.map((m) => (
+          {Chambers.map((m) => (
             <tr key={m.id} className="hover:bg-gray-50/70">
               <td className="px-4 py-3 font-semibold text-gray-900">{m.identifier || '-'}</td>
               <td className="px-4 py-3">{m.service_type || '-'}</td>
@@ -116,7 +116,7 @@ export default function ProjectDetailPage() {
                 <div className="flex justify-end gap-1.5">
                   {canEditManhole && (
                     <button
-                      onClick={() => router.push(`/manholes/${m.id}/edit`)}
+                      onClick={() => router.push(`/Chambers/${m.id}/edit`)}
                       className="inline-flex items-center rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100"
                       title="Edit"
                       aria-label="Edit"
@@ -149,13 +149,13 @@ export default function ProjectDetailPage() {
   const headerBlock = (
     <div className="flex flex-col gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm md:flex-row md:items-center md:justify-between">
       <div>
-        <p className="text-sm uppercase tracking-wide text-gray-500">Project Manholes</p>
+        <p className="text-sm uppercase tracking-wide text-gray-500">Project Chambers</p>
         <h1 className="text-2xl font-bold text-gray-900">{projectName || 'Untitled Project'}</h1>
-        <p className="text-sm text-gray-500">Track, edit, and manage manholes scoped to this project.</p>
+        <p className="text-sm text-gray-500">Track, edit, and manage Chambers scoped to this project.</p>
       </div>
       {canCreateManhole && (
         <button
-          onClick={() => router.push(`/manholes/add?project=${projectId}`)}
+          onClick={() => router.push(`/Chambers/add?project=${projectId}`)}
           className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-blue-700"
         >
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="h-4 w-4">
@@ -168,8 +168,8 @@ export default function ProjectDetailPage() {
   )
 
   const listView = loading ? (
-    <div className="rounded-xl border border-gray-200 bg-white px-4 py-6 text-sm text-gray-600 shadow-sm">Loading manholes…</div>
-  ) : manholes.length === 0 ? (
+    <div className="rounded-xl border border-gray-200 bg-white px-4 py-6 text-sm text-gray-600 shadow-sm">Loading Chambers…</div>
+  ) : Chambers.length === 0 ? (
     emptyState
   ) : (
     tableContent
@@ -203,4 +203,5 @@ export default function ProjectDetailPage() {
     </SidebarLayout>
   )
 }
+
 

@@ -354,13 +354,13 @@ function safeFileSegment(value: string) {
   return value.replace(/[^a-z0-9_-]+/gi, '_') || 'manhole'
 }
 
-export default function ManholesContent() {
+export default function ChambersContent() {
   const [editId, setEditId] = useState<string | null>(null)
   const [editOpen, setEditOpen] = useState(false)
   const [message, setMessage] = useState('')
   const [hydrated, setHydrated] = useState(false)
   const [projects, setProjects] = useState<Project[]>([])
-  const [manholes, setManholes] = useState<Manhole[]>([])
+  const [Chambers, setChambers] = useState<Manhole[]>([])
   const [loading, setLoading] = useState(true)
   const [sortKey, setSortKey] = useState<SortKey>('project_number')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
@@ -386,7 +386,7 @@ export default function ManholesContent() {
   const canCreateManhole = has('manhole-create')
   const canEditManhole = has('manhole-edit')
   const canDeleteManhole = has('manhole-delete')
-  const canExportManholes = has('export-pdf') || has('export-csv')
+  const canExportChambers = has('export-pdf') || has('export-csv')
 
   useEffect(() => {
     async function loadData() {
@@ -394,12 +394,12 @@ export default function ManholesContent() {
       setMessage('')
       const [projRes, mhRes] = await Promise.all([
         supabase.from('projects').select('id, name, project_number, client'),
-        supabase.from('manholes').select('id, identifier, project_id'),
+        supabase.from('Chambers').select('id, identifier, project_id'),
       ])
       if (projRes.error) setMessage('Error loading projects: ' + projRes.error.message)
       else setProjects((projRes.data as Project[]) || [])
-      if (mhRes.error) setMessage((prev) => prev || 'Error loading manholes: ' + mhRes.error!.message)
-      else setManholes(mhRes.data || [])
+      if (mhRes.error) setMessage((prev) => prev || 'Error loading Chambers: ' + mhRes.error!.message)
+      else setChambers(mhRes.data || [])
       setLoading(false)
     }
     loadData()
@@ -413,10 +413,10 @@ export default function ManholesContent() {
     setLoading(true)
     const [projRes, mhRes] = await Promise.all([
       supabase.from('projects').select('id, name, project_number, client'),
-      supabase.from('manholes').select('id, identifier, project_id'),
+      supabase.from('Chambers').select('id, identifier, project_id'),
     ])
     if (!projRes.error && projRes.data) setProjects(projRes.data as Project[])
-    if (!mhRes.error && mhRes.data) setManholes(mhRes.data)
+    if (!mhRes.error && mhRes.data) setChambers(mhRes.data)
     setLoading(false)
   }
 
@@ -457,7 +457,7 @@ export default function ManholesContent() {
   }, [projects])
 
   const rows = useMemo(() => {
-    let data = manholes.map((m) => {
+    let data = Chambers.map((m) => {
       const p = projectById.get(m.project_id) || { name: '', project_number: '', client: '' }
       return {
         id: m.id,
@@ -488,7 +488,7 @@ export default function ManholesContent() {
       if (av > bv) return 1 * dir
       return 0
     })
-  }, [manholes, projectById, sortKey, sortDir, filterProjectNo, filterClient, filterProjectName, deferredQuery])
+  }, [Chambers, projectById, sortKey, sortDir, filterProjectNo, filterClient, filterProjectName, deferredQuery])
 
   const exportCandidates = useMemo(() => {
     const list = rows.filter((r) => !exportProject || r.project_number === exportProject)
@@ -514,7 +514,7 @@ export default function ManholesContent() {
   }, [rows])
 
   function handleExportOpen() {
-    if (!canExportManholes) return
+    if (!canExportChambers) return
     setExportProject('')
     setExportSelectAll(true)
     setExportSelected(rows.map((r) => r.id))
@@ -522,11 +522,11 @@ export default function ManholesContent() {
     setExportOpen(true)
   }
 
-  const fetchDetailedManholes = useCallback(
+  const fetchDetailedChambers = useCallback(
     async (ids: string[]) => {
       if (!ids.length) return []
       const { data, error } = await supabase
-        .from('manholes')
+        .from('Chambers')
         .select('*')
         .in('id', ids)
       if (error) throw new Error(error.message)
@@ -577,7 +577,7 @@ export default function ManholesContent() {
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
-    link.download = `manholes-${new Date().toISOString().replace(/[:.]/g, '-')}.csv`
+    link.download = `Chambers-${new Date().toISOString().replace(/[:.]/g, '-')}.csv`
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
@@ -887,9 +887,9 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
     const segments = [
       base.project_number || 'Project',
       base.project_client || 'Client',
-      base.project_name || 'Manholes',
+      base.project_name || 'Chambers',
     ].map((segment, idx) => {
-      const fallback = idx === 0 ? 'Project' : idx === 1 ? 'Client' : 'Manholes'
+      const fallback = idx === 0 ? 'Project' : idx === 1 ? 'Client' : 'Chambers'
       return safeFileSegment(String(segment || fallback))
     })
     doc.save(`${segments.join(' - ')}.pdf`)
@@ -899,8 +899,8 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
     if (exportSelected.length === 0 || exportBusy) return
     setExportBusy(true)
     try {
-      const records = await fetchDetailedManholes(exportSelected)
-      if (!records.length) throw new Error('No data found for the selected manholes.')
+      const records = await fetchDetailedChambers(exportSelected)
+      if (!records.length) throw new Error('No data found for the selected Chambers.')
       if (exportFormat === 'csv') {
         downloadCsvFile(records)
       } else if (exportFormat === 'jpeg') {
@@ -944,7 +944,7 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
       return null
     })
     try {
-      const records = await fetchDetailedManholes([id])
+      const records = await fetchDetailedChambers([id])
       if (!records.length) throw new Error('Unable to load manhole for preview.')
       const logo = await getLogoAsset()
       const doc = await createPdfDoc(records[0], logo || null)
@@ -973,16 +973,16 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
     if (!proceed) return
     setMessage('')
     setDeletingId(id)
-    const { error } = await supabase.from('manholes').delete().eq('id', id)
+    const { error } = await supabase.from('Chambers').delete().eq('id', id)
     setDeletingId(null)
     if (error) setMessage('Error: ' + error.message)
-    else setManholes((list) => list.filter((m) => m.id !== id))
+    else setChambers((list) => list.filter((m) => m.id !== id))
   }
 
   if (!hydrated) {
     return (
       <div className="p-8 text-sm text-gray-500">
-        Loading manholes...
+        Loading Chambers...
       </div>
     )
   }
@@ -990,7 +990,7 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
   return (
     <>
       <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <h1 className="text-2xl font-bold">Manholes</h1>
+        <h1 className="text-2xl font-bold">Chambers</h1>
         <div className="flex w-full flex-wrap items-center gap-2 md:w-auto md:justify-end">
           <div className="relative flex-1 min-w-[160px] md:min-w-[220px]">
             <span className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-gray-400">
@@ -999,7 +999,7 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search manholes..."
+              placeholder="Search Chambers..."
               className="w-full min-w-0 pl-7 pr-3 py-2 rounded-lg border border-gray-300 bg-transparent placeholder-gray-400"
             />
           </div>
@@ -1012,7 +1012,7 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
               Filter
             </span>
           </button>
-          {canExportManholes && (
+          {canExportChambers && (
             <button
               onClick={handleExportOpen}
               className="flex-shrink-0 px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-50"
@@ -1113,7 +1113,7 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-2" onClick={() => setExportOpen(false)}>
           <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-neutral-800">
-              <h3 className="text-lg font-semibold">Export Manholes</h3>
+              <h3 className="text-lg font-semibold">Export Chambers</h3>
               <button className="px-3 py-1.5 rounded border border-gray-300 hover:bg-gray-50" onClick={() => setExportOpen(false)}>Close</button>
             </div>
             <div className="p-4 space-y-4 overflow-y-auto">
@@ -1136,7 +1136,7 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
                         if (checked) setExportSelected(exportCandidates.map((row) => row.id))
                       }}
                     />
-                    Select all manholes in this list
+                    Select all Chambers in this list
                   </label>
                 </div>
                 <div className="flex flex-col gap-2">
@@ -1145,7 +1145,7 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
                     type="text"
                     value={exportSearch}
                     onChange={(e) => setExportSearch(e.target.value)}
-                    placeholder="Search manholes..."
+                    placeholder="Search Chambers..."
                     className="w-full border rounded p-2 bg-white dark:bg-neutral-800"
                   />
                 </div>
@@ -1154,7 +1154,7 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
               {!exportSelectAll && (
                 <div className="border rounded p-3 max-h-64 overflow-y-auto bg-white dark:bg-neutral-800">
                   {exportCandidates.length === 0 ? (
-                    <p className="text-sm text-gray-500">No manholes found for the selected project.</p>
+                    <p className="text-sm text-gray-500">No Chambers found for the selected project.</p>
                   ) : (
                     exportCandidates.map((row) => (
                       <label key={row.id} className="flex items-center gap-2 py-1 text-sm">
@@ -1222,7 +1222,7 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
       {loading ? (
         <p>Loading...</p>
       ) : rows.length === 0 ? (
-        <p className="text-gray-600">No manholes yet. Add your first one.</p>
+        <p className="text-gray-600">No Chambers yet. Add your first one.</p>
       ) : (
         <div className="overflow-x-auto">
           <table className="min-w-full bg-white border border-gray-200 rounded-lg">
@@ -1284,7 +1284,7 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
             <div className="p-0 overflow-hidden">
               <iframe
                 title="Edit Chamber"
-                src={`/manholes/${editId}/edit?embed=1`}
+                src={`/Chambers/${editId}/edit?embed=1`}
                 loading="lazy"
                 className="w-full"
                 style={{ height: '80vh', border: 'none', background: 'transparent' }}
@@ -1301,7 +1301,7 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
               <button type="button" onClick={() => setCreateOpen(false)} className="px-3 py-1.5 rounded border border-gray-300 hover:bg-gray-50">Close</button>
             </div>
             <div className="p-0 overflow-hidden">
-              <iframe title="Add Chamber" src={`/manholes/add?embed=1`} loading="lazy" className="w-full" style={{ height: '80vh', border: 'none', background: 'transparent' }} />
+              <iframe title="Add Chamber" src={`/Chambers/add?embed=1`} loading="lazy" className="w-full" style={{ height: '80vh', border: 'none', background: 'transparent' }} />
             </div>
           </div>
         </div>
@@ -1309,3 +1309,4 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
     </>
   )
 }
+
