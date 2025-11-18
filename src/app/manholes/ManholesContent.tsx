@@ -394,7 +394,7 @@ export default function ChambersContent() {
       setMessage('')
       const [projRes, mhRes] = await Promise.all([
         supabase.from('projects').select('id, name, project_number, client'),
-        supabase.from('Chambers').select('id, identifier, project_id'),
+        supabase.from('chambers').select('id, identifier, project_id'),
       ])
       if (projRes.error) setMessage('Error loading projects: ' + projRes.error.message)
       else setProjects((projRes.data as Project[]) || [])
@@ -413,7 +413,7 @@ export default function ChambersContent() {
     setLoading(true)
     const [projRes, mhRes] = await Promise.all([
       supabase.from('projects').select('id, name, project_number, client'),
-      supabase.from('Chambers').select('id, identifier, project_id'),
+      supabase.from('chambers').select('id, identifier, project_id'),
     ])
     if (!projRes.error && projRes.data) setProjects(projRes.data as Project[])
     if (!mhRes.error && mhRes.data) setChambers(mhRes.data)
@@ -526,7 +526,7 @@ export default function ChambersContent() {
     async (ids: string[]) => {
       if (!ids.length) return []
       const { data, error } = await supabase
-        .from('Chambers')
+        .from('chambers')
         .select('*')
         .in('id', ids)
       if (error) throw new Error(error.message)
@@ -973,7 +973,7 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
     if (!proceed) return
     setMessage('')
     setDeletingId(id)
-    const { error } = await supabase.from('Chambers').delete().eq('id', id)
+    const { error } = await supabase.from('chambers').delete().eq('id', id)
     setDeletingId(null)
     if (error) setMessage('Error: ' + error.message)
     else setChambers((list) => list.filter((m) => m.id !== id))
@@ -1284,7 +1284,7 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
             <div className="p-0 overflow-hidden">
               <iframe
                 title="Edit Chamber"
-                src={`/Chambers/${editId}/edit?embed=1`}
+                src={`/chambers/${editId}/edit?embed=1`}
                 loading="lazy"
                 className="w-full"
                 style={{ height: '80vh', border: 'none', background: 'transparent' }}
@@ -1301,7 +1301,7 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
               <button type="button" onClick={() => setCreateOpen(false)} className="px-3 py-1.5 rounded border border-gray-300 hover:bg-gray-50">Close</button>
             </div>
             <div className="p-0 overflow-hidden">
-              <iframe title="Add Chamber" src={`/Chambers/add?embed=1`} loading="lazy" className="w-full" style={{ height: '80vh', border: 'none', background: 'transparent' }} />
+              <iframe title="Add Chamber" src={`/chambers/add?embed=1`} loading="lazy" className="w-full" style={{ height: '80vh', border: 'none', background: 'transparent' }} />
             </div>
           </div>
         </div>

@@ -48,7 +48,7 @@ export default function ProjectDetailPage() {
       const [{ data: proj, error: projErr }, { data: mhs, error: mhErr }] = await Promise.all([
         supabase.from('projects').select('name').eq('id', projectId).maybeSingle(),
         supabase
-          .from('Chambers')
+          .from('chambers')
           .select('id, identifier, project_id, service_type, location_type, lid_material, chamber_construction')
           .eq('project_id', projectId)
           .order('identifier', { ascending: true }),
@@ -68,7 +68,7 @@ export default function ProjectDetailPage() {
     if (!proceed) return
     setMessage('')
     setDeletingId(id)
-    const { error } = await supabase.from('Chambers').delete().eq('id', id)
+    const { error } = await supabase.from('chambers').delete().eq('id', id)
     setDeletingId(null)
     if (error) {
       setMessage('Error: ' + error.message)
@@ -83,7 +83,7 @@ export default function ProjectDetailPage() {
         <p>No Chambers recorded for this project yet.</p>
         {canCreateManhole && (
           <button
-            onClick={() => router.push(`/Chambers/add?project=${projectId}`)}
+            onClick={() => router.push(`/chambers/add?project=${projectId}`)}
             className="mt-4 inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-white shadow hover:bg-blue-700"
           >
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="h-4 w-4">
@@ -116,7 +116,7 @@ export default function ProjectDetailPage() {
                 <div className="flex justify-end gap-1.5">
                   {canEditManhole && (
                     <button
-                      onClick={() => router.push(`/Chambers/${m.id}/edit`)}
+          onClick={() => router.push(`/chambers/${m.id}/edit`)}
                       className="inline-flex items-center rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100"
                       title="Edit"
                       aria-label="Edit"
@@ -155,7 +155,7 @@ export default function ProjectDetailPage() {
       </div>
       {canCreateManhole && (
         <button
-          onClick={() => router.push(`/Chambers/add?project=${projectId}`)}
+          onClick={() => router.push(`/chambers/add?project=${projectId}`)}
           className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-blue-700"
         >
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="h-4 w-4">
