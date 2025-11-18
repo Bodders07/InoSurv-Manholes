@@ -321,6 +321,7 @@ export default function ChamberSketch({
           ))}
         </div>
         <div className={`flex items-center ${compact ? 'gap-1 px-2 py-1' : 'gap-2 px-2 py-1'} border rounded sketch-group`}>
+          <span className={`${compact ? 'text-xs' : 'text-sm'} font-semibold sketch-group__label`}>X-ABC</span>
           <button type="button" className={`sketch-btn rounded border ${compact ? 'text-xs px-2 py-1' : 'px-2 py-1'}`} onClick={() => addItem('in')}>Add Inlet</button>
           <button type="button" className={`sketch-btn rounded border ${compact ? 'text-xs px-2 py-1' : 'px-2 py-1'}`} onClick={() => addItem('out')}>Add Outlet</button>
           <button
