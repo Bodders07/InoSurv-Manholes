@@ -26,6 +26,7 @@ body {
   color: var(--foreground);
   /* Site-wide font family */
   font-family: 'Angsana New', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  overflow-x: hidden;
 }
 
 /* Reduce the root font size slightly to make all text one step smaller */

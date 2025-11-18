@@ -175,13 +175,13 @@ export default function SettingsContent() {
     <>
       <h1 className="text-2xl font-bold mb-6">Settings</h1>
 
-      <div className="flex gap-6">
-        <aside className="w-48 space-y-2">
+      <div className="flex flex-col gap-4 lg:flex-row lg:gap-6">
+        <aside className="flex w-full gap-2 overflow-x-auto lg:w-48 lg:flex-col lg:space-y-2 lg:overflow-visible">
           {tabOptions.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`w-full text-left px-3 py-2 rounded-md border transition ${
+              className={`flex-1 lg:flex-none whitespace-nowrap px-3 py-2 text-center lg:text-left rounded-md border transition ${
                 activeTab === tab.id
                   ? 'bg-orange-100 border-orange-300 text-orange-700 font-semibold'
                   : 'border-transparent text-gray-600 hover:bg-gray-100'
@@ -192,9 +192,9 @@ export default function SettingsContent() {
           ))}
         </aside>
 
-        <section className="flex-1 space-y-6">
+        <section className="flex-1 w-full space-y-6">
           {activeTab === 'profile' && (
-            <div className="bg-white border border-gray-200 rounded shadow-sm p-6 max-w-2xl">
+            <div className="bg-white border border-gray-200 rounded shadow-sm p-6 w-full max-w-2xl">
               <h2 className="text-lg font-semibold mb-4">Profile Information</h2>
               {profileLoading ? (
                 <p className="text-sm text-gray-500">Loading profile...</p>
@@ -219,7 +219,7 @@ export default function SettingsContent() {
           )}
 
           {activeTab === 'security' && (
-            <div className="bg-white border border-gray-200 rounded shadow-sm p-6 max-w-2xl">
+            <div className="bg-white border border-gray-200 rounded shadow-sm p-6 w-full max-w-2xl">
               <h2 className="text-lg font-semibold mb-3">Change Password</h2>
               <div className="space-y-3">
                 <div>
@@ -269,7 +269,7 @@ export default function SettingsContent() {
           )}
 
           {activeTab === 'appearance' && (
-            <div className="bg-white border border-gray-200 rounded shadow-sm p-6 max-w-2xl">
+            <div className="bg-white border border-gray-200 rounded shadow-sm p-6 w-full max-w-2xl">
               <h2 className="text-lg font-semibold mb-3">Appearance</h2>
               <p className="text-sm text-gray-600 mb-4">Choose the color mode for this browser.</p>
               <div className="flex gap-4 items-center">

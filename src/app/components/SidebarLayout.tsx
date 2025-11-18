@@ -334,8 +334,8 @@ export default function SidebarLayout({
       </button>
 
       {/* Main content area */}
-      <main className="flex-1 p-4 md:p-8 overflow-auto" style={{ opacity: pageOpacity, transition: 'opacity 220ms ease' }}>
-        <div className="sticky top-0 z-20 mb-6 -mx-4 md:-mx-8 flex flex-wrap items-center justify-end gap-3 border-b border-gray-200 bg-white px-4 py-3 shadow-sm md:px-8">
+      <main className="flex-1 w-full min-w-0 px-4 py-5 md:px-8 md:py-8 overflow-y-auto overflow-x-hidden" style={{ opacity: pageOpacity, transition: 'opacity 220ms ease' }}>
+        <div className="sticky top-0 z-20 mb-6 flex w-full flex-wrap items-center justify-end gap-3 border-b border-gray-200 bg-white px-3 py-3 shadow-sm sm:rounded-md sm:px-4 md:px-8">
           <button
             type="button"
             onClick={refreshPage}
