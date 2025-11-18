@@ -19,7 +19,6 @@ import {
   Moon,
   Sun,
   ChevronDown,
-  ArrowLeft,
 } from 'lucide-react'
 
 type ThemeChoice = 'light' | 'dark'
@@ -232,12 +231,6 @@ export default function SidebarLayout({
     window.location.reload()
   }
 
-  const goBack = () => {
-    if (typeof window !== 'undefined') {
-      window.history.back()
-    }
-  }
-
   const sidebarWidth = isSmallScreen ? (collapsed ? 'w-0' : 'w-64') : (collapsed ? 'w-14' : 'w-64')
   return (
     <div className="flex min-h-screen">
@@ -343,15 +336,6 @@ export default function SidebarLayout({
       {/* Main content area */}
       <main className="flex-1 p-4 md:p-8 overflow-auto" style={{ opacity: pageOpacity, transition: 'opacity 220ms ease' }}>
         <div className="sticky top-0 z-20 mb-6 -mx-4 md:-mx-8 flex flex-wrap items-center justify-end gap-3 border-b border-gray-200 bg-white px-4 py-3 shadow-sm md:px-8">
-          <button
-            type="button"
-            onClick={goBack}
-            className="rounded-full border border-gray-200 bg-white p-2 text-gray-600 hover:bg-gray-100"
-            title="Go back"
-            aria-label="Go back"
-          >
-            <ArrowLeft size={16} />
-          </button>
           <button
             type="button"
             onClick={refreshPage}
