@@ -29,7 +29,15 @@ export default function AuthPage() {
   // Account creation is disabled; users are invited via admin only.
 
   async function sendPasswordReset() {
-    if (!email) {
+    let targetEmail = email.trim()
+    if (!targetEmail && typeof window !== 'undefined') {
+      const entered = window.prompt('Enter the email for your Drainage Inspection account:')
+      targetEmail = (entered || '').trim()
+      if (targetEmail) {
+        setEmail(targetEmail)
+      }
+    }
+    if (!targetEmail) {
       setMessage('Please enter your email to reset your password.')
       return
     }
@@ -38,7 +46,7 @@ export default function AuthPage() {
     const redirectTo =
       process.env.NEXT_PUBLIC_AUTH_RESET_URL ||
       (typeof window !== 'undefined' ? `${window.location.origin}/auth/reset` : undefined)
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    const { error } = await supabase.auth.resetPasswordForEmail(targetEmail, {
       redirectTo,
     })
     setResetting(false)
