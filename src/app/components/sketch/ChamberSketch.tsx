@@ -250,8 +250,8 @@ export default function ChamberSketch({
         // Bigger square chamber
         return <rect x={140} y={140} width={220} height={220} rx={3} ry={3} stroke="var(--sketch-chamber, #777)" fill="none" strokeWidth={3} />
       case 'Rectangle':
-        // Bigger rectangle chamber
-        return <rect x={100} y={170} width={300} height={160} rx={3} ry={3} stroke="var(--sketch-chamber, #777)" fill="none" strokeWidth={3} />
+        // Bigger rectangle chamber (taller than wide)
+        return <rect x={170} y={100} width={160} height={300} rx={3} ry={3} stroke="var(--sketch-chamber, #777)" fill="none" strokeWidth={3} />
       case 'Hexagon':
         // Bigger hexagon chamber
         return (
@@ -277,8 +277,8 @@ export default function ChamberSketch({
         // Smaller, inside the chamber
         return <rect x={190} y={190} width={120} height={120} strokeDasharray="6 6" stroke="var(--sketch-cover, #333)" fill="none" strokeWidth={2} />
       case 'Rectangle':
-        // Smaller, inside the chamber
-        return <rect x={190} y={210} width={120} height={80} strokeDasharray="6 6" stroke="var(--sketch-cover, #333)" fill="none" strokeWidth={2} />
+        // Smaller, inside the chamber (taller than wide)
+        return <rect x={210} y={190} width={80} height={120} strokeDasharray="6 6" stroke="var(--sketch-cover, #333)" fill="none" strokeWidth={2} />
       case 'Triangle':
         // Smaller, centered triangle
         return (
