@@ -43,15 +43,20 @@ export default function AuthPage() {
     }
     setMessage('')
     setResetting(true)
-    const redirectTo =
-      process.env.NEXT_PUBLIC_AUTH_RESET_URL ||
-      (typeof window !== 'undefined' ? `${window.location.origin}/auth/reset` : undefined)
-    const { error } = await supabase.auth.resetPasswordForEmail(targetEmail, {
-      redirectTo,
-    })
-    setResetting(false)
-    if (error) setMessage('Error: ' + error.message)
-    else setMessage('Success: Password reset email sent.')
+    try {
+      const res = await fetch('/api/auth/reset', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: targetEmail }),
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error || 'Failed to send reset email.')
+      setMessage('Success: Password reset email sent.')
+    } catch (err) {
+      setMessage(err instanceof Error ? `Error: ${err.message}` : 'Unable to send reset email.')
+    } finally {
+      setResetting(false)
+    }
   }
 
   return (
