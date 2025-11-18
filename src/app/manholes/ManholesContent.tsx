@@ -972,10 +972,10 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
 
   return (
     <>
-      <div className="flex items-center justify-between mb-6">
+      <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <h1 className="text-2xl font-bold">Manholes</h1>
-        <div className="flex items-center gap-2">
-          <div className="relative">
+        <div className="flex w-full flex-wrap items-center gap-2 md:w-auto md:justify-end">
+          <div className="relative flex-1 min-w-[160px] md:min-w-[220px]">
             <span className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-gray-400">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M10 3.75a6.25 6.25 0 1 1 0 12.5 6.25 6.25 0 0 1 0-12.5Zm8.53 13.72-2.91-2.91a7.75 7.75 0 1 0-1.06 1.06l2.91 2.91a.75.75 0 1 0 1.06-1.06Z"/></svg>
             </span>
@@ -983,12 +983,12 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search manholes..."
-              className="pl-7 pr-3 py-2 rounded-lg border border-gray-300 bg-transparent placeholder-gray-400 min-w-[220px]"
+              className="w-full min-w-0 pl-7 pr-3 py-2 rounded-lg border border-gray-300 bg-transparent placeholder-gray-400"
             />
           </div>
           <button
             onClick={() => setShowFilter((v) => !v)}
-            className="px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-50"
+            className="flex-shrink-0 px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-50"
           >
             <span className="inline-flex items-center gap-2">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M3.75 5.5a.75.75 0 0 1 .75-.75h15a.75.75 0 0 1 .55 1.25l-5.3 5.96v4.29a.75.75 0 0 1-1.06.69l-3-1.2a.75.75 0 0 1-.47-.69v-3.09L3.2 6a.75.75 0 0 1 .55-1.25Z"/></svg>
@@ -998,7 +998,7 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
           {canExportManholes && (
             <button
               onClick={handleExportOpen}
-              className="px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-50"
+              className="flex-shrink-0 px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-50"
             >
               <span className="inline-flex items-center gap-2">Export</span>
             </button>
@@ -1006,7 +1006,7 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
           {canCreateManhole && (
             <button
               onClick={() => setCreateOpen(true)}
-              className="px-3 py-2 rounded-lg bg-orange-600 text-white hover:bg-orange-700"
+              className="flex-shrink-0 px-3 py-2 rounded-lg bg-orange-600 text-white hover:bg-orange-700"
             >
               <span className="inline-flex items-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M12 4.75a.75.75 0 0 1 .75.75v5.75H18.5a.75.75 0 0 1 0 1.5h-5.75V18.5a.75.75 0 0 1-1.5 0v-5.75H5.5a.75.75 0 0 1 0-1.5h5.75V5.5a.75.75 0 0 1 .75-.75Z"/></svg>
