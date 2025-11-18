@@ -644,7 +644,7 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
   }))
 }
 
-  function renderPdfPage(doc: jsPDF, record: DetailedManholeRecord, logo: ImageAsset | null, addPage = false) {
+  async function renderPdfPage(doc: jsPDF, record: DetailedManholeRecord, logo: ImageAsset | null, addPage = false) {
     if (addPage) doc.addPage()
     const pageWidth = doc.internal.pageSize.getWidth()
     const pageHeight = doc.internal.pageSize.getHeight()
@@ -869,9 +869,9 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
     return doc
   }
 
-  function createPdfDoc(record: DetailedManholeRecord, logo: ImageAsset | null) {
+  async function createPdfDoc(record: DetailedManholeRecord, logo: ImageAsset | null) {
     const doc = new jsPDF({ unit: 'mm', format: 'a4' })
-    renderPdfPage(doc, record, logo, false)
+    await renderPdfPage(doc, record, logo, false)
     return doc
   }
 
@@ -879,8 +879,10 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
     if (!records.length) return
     const logo = await getLogoAsset()
     const [first, ...rest] = records
-    const doc = createPdfDoc(first, logo || null)
-    rest.forEach((record) => renderPdfPage(doc, record, logo || null, true))
+    const doc = await createPdfDoc(first, logo || null)
+    for (const record of rest) {
+      await renderPdfPage(doc, record, logo || null, true)
+    }
     const base = first
     const segments = [
       base.project_number || 'Project',
