@@ -644,23 +644,23 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
   }))
 }
 
-  async function createPdfDoc(record: DetailedManholeRecord, logo: ImageAsset | null) {
-    const doc = new jsPDF({ unit: 'mm', format: 'a4' })
-      const pageWidth = doc.internal.pageSize.getWidth()
-      const pageHeight = doc.internal.pageSize.getHeight()
-      const margin = 10
-      const innerWidth = pageWidth - margin * 2
-      const startX = margin
-      doc.setDrawColor(60)
-      doc.rect(startX, margin, innerWidth, pageHeight - margin * 2)
-      if (logo) {
-        const logoWidth = 44
-        const logoHeight = logoWidth * (logo.height && logo.width ? logo.height / logo.width : 0.35)
-        doc.addImage(logo.dataUrl, logo.format, startX + 4, margin + 4, logoWidth, logoHeight, undefined, 'FAST')
-      } else {
-        doc.setFontSize(18)
-        doc.text('InoRail', startX + 24, margin + 12, { align: 'left' })
-      }
+  function renderPdfPage(doc: jsPDF, record: DetailedManholeRecord, logo: ImageAsset | null, addPage = false) {
+    if (addPage) doc.addPage()
+    const pageWidth = doc.internal.pageSize.getWidth()
+    const pageHeight = doc.internal.pageSize.getHeight()
+    const margin = 10
+    const innerWidth = pageWidth - margin * 2
+    const startX = margin
+    doc.setDrawColor(60)
+    doc.rect(startX, margin, innerWidth, pageHeight - margin * 2)
+    if (logo) {
+      const logoWidth = 44
+      const logoHeight = logoWidth * (logo.height && logo.width ? logo.height / logo.width : 0.35)
+      doc.addImage(logo.dataUrl, logo.format, startX + 4, margin + 4, logoWidth, logoHeight, undefined, 'FAST')
+    } else {
+      doc.setFontSize(18)
+      doc.text('InoRail', startX + 24, margin + 12, { align: 'left' })
+    }
       doc.setFontSize(10)
       const jobBoxY = margin + 18
       const jobBoxWidth = innerWidth - 4
@@ -869,13 +869,28 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
     return doc
   }
 
+  function createPdfDoc(record: DetailedManholeRecord, logo: ImageAsset | null) {
+    const doc = new jsPDF({ unit: 'mm', format: 'a4' })
+    renderPdfPage(doc, record, logo, false)
+    return doc
+  }
+
   async function downloadPdfFiles(records: DetailedManholeRecord[]) {
+    if (!records.length) return
     const logo = await getLogoAsset()
-    for (const record of records) {
-      const doc = await createPdfDoc(record, logo || null)
-      const safeName = safeFileSegment(String(record.identifier || record.id || 'manhole'))
-      doc.save(`${safeName}.pdf`)
-    }
+    const [first, ...rest] = records
+    const doc = createPdfDoc(first, logo || null)
+    rest.forEach((record) => renderPdfPage(doc, record, logo || null, true))
+    const base = first
+    const segments = [
+      base.project_number || 'Project',
+      base.project_client || 'Client',
+      base.project_name || 'Manholes',
+    ].map((segment, idx) => {
+      const fallback = idx === 0 ? 'Project' : idx === 1 ? 'Client' : 'Manholes'
+      return safeFileSegment(String(segment || fallback))
+    })
+    doc.save(`${segments.join(' - ')}.pdf`)
   }
 
   async function handleExportSelected() {
