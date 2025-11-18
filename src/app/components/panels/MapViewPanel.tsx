@@ -194,7 +194,7 @@ export default function MapViewPanel() {
       <div className="flex flex-col gap-1">
         <h2 className="text-2xl font-semibold">Map View</h2>
         <p className="text-sm text-gray-600">
-          Showing {filteredPoints.length} manhole{filteredPoints.length === 1 ? '' : 's'} with coordinates
+          Showing {filteredPoints.length} chamber{filteredPoints.length === 1 ? '' : 's'} with coordinates
           {selectedProjectIds.length ? ` in ${selectedProjectIds.length} project${selectedProjectIds.length === 1 ? '' : 's'}` : ''}.
         </p>
       </div>
