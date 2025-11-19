@@ -680,9 +680,9 @@ export default function EditManholePage() {
 
         {pipeLabelMode !== 'numbers' && (
           <>
-        {/* Outgoing Pipes */}
-        {pipeLabelMode !== 'numbers' && <h2 className="text-xl font-semibold mt-8 mb-3">Outgoing Pipes</h2>}
-        <div className="space-y-4">
+            {/* Outgoing Pipes */}
+            <h2 className="text-xl font-semibold mt-8 mb-3">Outgoing Pipes</h2>
+            <div className="space-y-4">
               {outgoing.map((p, idx) => (
                 <div key={idx} className="border rounded p-4 bg-white">
                   <div className="font-medium mb-3">{p.label}</div>
@@ -741,8 +741,8 @@ export default function EditManholePage() {
                   )}
                 </div>
               ))}
-          <button onClick={addOutgoingPipe} className="px-3 py-2 rounded border border-gray-300 hover:bg-gray-50">Add pipe</button>
-        </div>
+              <button onClick={addOutgoingPipe} className="px-3 py-2 rounded border border-gray-300 hover:bg-gray-50">Add pipe</button>
+            </div>
           </>
         )}
 
