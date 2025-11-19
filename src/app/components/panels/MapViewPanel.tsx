@@ -63,6 +63,13 @@ export default function MapViewPanel() {
   const [projectFilterOpen, setProjectFilterOpen] = useState(false)
   const [projects, setProjects] = useState<ProjectOption[]>([])
   const [selectedProjectIds, setSelectedProjectIds] = useState<string[]>([])
+  const [exportOpen, setExportOpen] = useState(false)
+  const [exportMode, setExportMode] = useState<'project' | 'manual'>('project')
+  const [exportProjectIds, setExportProjectIds] = useState<string[]>([])
+  const [exportSelectedIds, setExportSelectedIds] = useState<string[]>([])
+  const [exportFormat, setExportFormat] = useState<'kml' | 'kmz'>('kml')
+  const [exportBusy, setExportBusy] = useState(false)
+  const [exportError, setExportError] = useState<string | null>(null)
   const { has } = usePermissions()
 
   const canPreview = has('map-preview')
@@ -130,6 +137,12 @@ export default function MapViewPanel() {
     const selectedSet = new Set(selectedProjectIds)
     return mappedPoints.filter((point) => (point.projectId ? selectedSet.has(point.projectId) : false))
   }, [mappedPoints, selectedProjectIds])
+
+  const projectLookup = useMemo(() => {
+    const map = new Map<string, ProjectOption>()
+    projects.forEach((project) => map.set(project.id, project))
+    return map
+  }, [projects])
 
   const toggleProjectSelection = (projectId: string) => {
     setSelectedProjectIds((prev) => {
@@ -212,6 +225,20 @@ export default function MapViewPanel() {
               {selectedProjectIds.length} project{selectedProjectIds.length === 1 ? '' : 's'} selected
             </span>
           )}
+          <button
+            type="button"
+            onClick={() => {
+              setExportMode('project')
+              setExportProjectIds(selectedProjectIds)
+              setExportSelectedIds(filteredPoints.map((point) => point.id))
+              setExportFormat('kml')
+              setExportError(null)
+              setExportOpen(true)
+            }}
+            className="px-3 py-1.5 rounded border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          >
+            Export KML / KMZ
+          </button>
         </div>
         {projectFilterOpen && (
           <div className="rounded-lg border border-gray-200 bg-gray-50 p-3">
@@ -313,7 +340,374 @@ export default function MapViewPanel() {
           </div>
         </div>
       )}
+
+      {exportOpen && (
+        <div className="fixed inset-0 z-[1100] flex items-center justify-center bg-black/60 p-3" onClick={() => setExportOpen(false)}>
+          <div className="w-full max-w-4xl rounded-xl bg-white shadow-xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b px-4 py-3">
+              <h3 className="text-lg font-semibold">Export Chambers</h3>
+              <button className="text-sm text-gray-500 hover:text-gray-800" onClick={() => setExportOpen(false)}>
+                Close
+              </button>
+            </div>
+            <div className="p-4 space-y-4 max-h-[80vh] overflow-y-auto">
+              <div>
+                <p className="text-sm font-medium text-gray-700 mb-2">Choose what to export</p>
+                <div className="inline-flex rounded-full border border-gray-200 bg-gray-50">
+                  {(['project', 'manual'] as const).map((mode) => (
+                    <button
+                      key={mode}
+                      type="button"
+                      onClick={() => {
+                        setExportMode(mode)
+                        setExportError(null)
+                      }}
+                      className={`px-3 py-1.5 text-sm font-medium rounded-full ${
+                        exportMode === mode ? 'bg-blue-600 text-white' : 'text-gray-600'
+                      }`}
+                    >
+                      {mode === 'project' ? 'By Project' : 'Individual Chambers'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {exportMode === 'project' ? (
+                <div>
+                  <div className="mb-2 flex items-center justify-between">
+                    <p className="text-sm font-medium text-gray-700">Projects</p>
+                    <button type="button" className="text-sm text-blue-600 hover:underline" onClick={() => setExportProjectIds([])}>
+                      Clear selection
+                    </button>
+                  </div>
+                  <div className="max-h-64 overflow-y-auto divide-y divide-gray-200 rounded border border-gray-200">
+                    {projects.length === 0 ? (
+                      <div className="px-3 py-2 text-sm text-gray-500">No projects available.</div>
+                    ) : (
+                      projects.map((project) => (
+                        <label key={project.id} className="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                          <input
+                            type="checkbox"
+                            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                            checked={exportProjectIds.includes(project.id)}
+                            onChange={() =>
+                              setExportProjectIds((prev) =>
+                                prev.includes(project.id) ? prev.filter((id) => id !== project.id) : [...prev, project.id]
+                              )
+                            }
+                          />
+                          <span>{formatProjectLabel(project)}</span>
+                        </label>
+                      ))
+                    )}
+                  </div>
+                  <p className="mt-2 text-xs text-gray-500">If no projects are selected, the current map selection will be used.</p>
+                </div>
+              ) : (
+                <div>
+                  <div className="mb-2 flex items-center justify-between">
+                    <p className="text-sm font-medium text-gray-700">Chambers</p>
+                    <button
+                      type="button"
+                      className="text-sm text-blue-600 hover:underline"
+                      onClick={() => setExportSelectedIds(filteredPoints.map((point) => point.id))}
+                    >
+                      Select all shown
+                    </button>
+                  </div>
+                  <div className="max-h-64 overflow-y-auto divide-y divide-gray-200 rounded border border-gray-200">
+                    {filteredPoints.length === 0 ? (
+                      <div className="px-3 py-2 text-sm text-gray-500">No chambers available with the current filters.</div>
+                    ) : (
+                      filteredPoints.map((point) => (
+                        <label key={point.id} className="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                          <input
+                            type="checkbox"
+                            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                            checked={exportSelectedIds.includes(point.id)}
+                            onChange={() =>
+                              setExportSelectedIds((prev) =>
+                                prev.includes(point.id) ? prev.filter((id) => id !== point.id) : [...prev, point.id]
+                              )
+                            }
+                          />
+                          <span>
+                            {point.name}{' '}
+                            <span className="text-gray-500">
+                              ({point.lat.toFixed(5)}, {point.lng.toFixed(5)})
+                            </span>
+                          </span>
+                        </label>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <p className="text-sm font-medium text-gray-700 mb-2">Format</p>
+                <div className="flex items-center gap-4 text-sm">
+                  {(['kml', 'kmz'] as const).map((fmt) => (
+                    <label key={fmt} className="inline-flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="map-export-format"
+                        value={fmt}
+                        checked={exportFormat === fmt}
+                        onChange={() => setExportFormat(fmt)}
+                      />
+                      {fmt.toUpperCase()}
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {exportError && <p className="text-sm text-red-600">{exportError}</p>}
+
+              <div className="flex justify-end gap-2">
+                <button
+                  type="button"
+                  className="px-3 py-1.5 rounded border border-gray-300 hover:bg-gray-50 text-sm"
+                  onClick={() => setExportOpen(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled={exportBusy}
+                  className="px-4 py-1.5 rounded bg-blue-600 text-white text-sm hover:bg-blue-700 disabled:opacity-60"
+                  onClick={async () => {
+                    setExportError(null)
+                    const targetPoints =
+                      exportMode === 'project'
+                        ? getPointsByProjects(mappedPoints, exportProjectIds.length ? exportProjectIds : selectedProjectIds, filteredPoints)
+                        : getPointsByIds(mappedPoints, exportSelectedIds.length ? exportSelectedIds : filteredPoints.map((point) => point.id))
+
+                    if (!targetPoints.length) {
+                      setExportError('No chambers selected for export.')
+                      return
+                    }
+
+                    setExportBusy(true)
+                    try {
+                      const kml = buildKmlDocument(targetPoints, projectLookup)
+                      const baseName = buildFileBase(targetPoints, projectLookup)
+                      if (exportFormat === 'kml') {
+                        const blob = new Blob([kml], { type: 'application/vnd.google-earth.kml+xml' })
+                        triggerDownload(blob, `${baseName}.kml`)
+                      } else {
+                        const blob = createKmzBlob(kml)
+                        triggerDownload(blob, `${baseName}.kmz`)
+                      }
+                      setExportOpen(false)
+                    } catch (err) {
+                      const messageText = err instanceof Error ? err.message : String(err)
+                      setExportError(messageText)
+                    } finally {
+                      setExportBusy(false)
+                    }
+                  }}
+                >
+                  {exportBusy ? 'Preparing…' : 'Download'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
+}
+
+type ExportPoint = { id: string; name: string; lat: number; lng: number; shape: string; projectId: string | null }
+
+function getPointsByProjects(allPoints: ExportPoint[], projectIds: string[], fallback: ExportPoint[]) {
+  if (!projectIds.length) return fallback
+  const set = new Set(projectIds)
+  return allPoints.filter((point) => point.projectId && set.has(point.projectId))
+}
+
+function getPointsByIds(allPoints: ExportPoint[], ids: string[]) {
+  if (!ids.length) return []
+  const set = new Set(ids)
+  return allPoints.filter((point) => set.has(point.id))
+}
+
+function escapeXml(input: string) {
+  return input.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;')
+}
+
+function buildKmlDocument(points: ExportPoint[], projects: Map<string, ProjectOption>) {
+  const placemarks = points
+    .map((point) => {
+      const project = point.projectId ? projects.get(point.projectId) : null
+      const projectName = project?.name || project?.project_number || 'Project'
+      return `
+        <Placemark>
+          <name>${escapeXml(point.name)}</name>
+          <description>Project: ${escapeXml(projectName || 'Project')}</description>
+          <Point><coordinates>${point.lng},${point.lat},0</coordinates></Point>
+        </Placemark>`
+    })
+    .join('\n')
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>Chamber Export</name>
+    ${placemarks}
+  </Document>
+</kml>`
+}
+
+function buildFileBase(points: ExportPoint[], projects: Map<string, ProjectOption>) {
+  if (!points.length) return 'chambers'
+  const first = points[0]
+  const project = first.projectId ? projects.get(first.projectId) : null
+  const raw = project?.project_number || project?.name || (points.length === 1 ? first.name : `chambers-${points.length}`)
+  return raw.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+}
+
+function triggerDownload(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob)
+  const anchor = document.createElement('a')
+  anchor.href = url
+  anchor.download = filename
+  anchor.click()
+  URL.revokeObjectURL(url)
+}
+
+const CRC_TABLE = (() => {
+  const table = new Uint32Array(256)
+  for (let i = 0; i < 256; i++) {
+    let c = i
+    for (let k = 0; k < 8; k++) {
+      c = (c & 1) !== 0 ? 0xedb88320 ^ (c >>> 1) : c >>> 1
+    }
+    table[i] = c >>> 0
+  }
+  return table
+})()
+
+function crc32(bytes: Uint8Array) {
+  let crc = 0 ^ -1
+  for (let i = 0; i < bytes.length; i++) {
+    crc = CRC_TABLE[(crc ^ bytes[i]) & 0xff] ^ (crc >>> 8)
+  }
+  return (crc ^ -1) >>> 0
+}
+
+function getDosDateTime(date = new Date()) {
+  const year = date.getFullYear()
+  const month = date.getMonth() + 1
+  const day = date.getDate()
+  const hours = date.getHours()
+  const minutes = date.getMinutes()
+  const seconds = Math.floor(date.getSeconds() / 2)
+  const dosDate = ((year - 1980) << 9) | (month << 5) | day
+  const dosTime = (hours << 11) | (minutes << 5) | seconds
+  return { dosDate, dosTime }
+}
+
+function createKmzBlob(kml: string) {
+  const encoder = new TextEncoder()
+  const kmlBytes = encoder.encode(kml)
+  const nameBytes = encoder.encode('doc.kml')
+  const { dosDate, dosTime } = getDosDateTime()
+  const crc = crc32(kmlBytes)
+
+  const localHeaderSize = 30 + nameBytes.length
+  const centralHeaderSize = 46 + nameBytes.length
+  const endSize = 22
+  const total = localHeaderSize + kmlBytes.length + centralHeaderSize + endSize
+
+  const buffer = new ArrayBuffer(total)
+  const view = new DataView(buffer)
+  let offset = 0
+
+  view.setUint32(offset, 0x04034b50, true)
+  offset += 4
+  view.setUint16(offset, 20, true)
+  offset += 2
+  view.setUint16(offset, 0, true)
+  offset += 2
+  view.setUint16(offset, 0, true)
+  offset += 2
+  view.setUint16(offset, dosTime, true)
+  offset += 2
+  view.setUint16(offset, dosDate, true)
+  offset += 2
+  view.setUint32(offset, crc, true)
+  offset += 4
+  view.setUint32(offset, kmlBytes.length, true)
+  offset += 4
+  view.setUint32(offset, kmlBytes.length, true)
+  offset += 4
+  view.setUint16(offset, nameBytes.length, true)
+  offset += 2
+  view.setUint16(offset, 0, true)
+  offset += 2
+  new Uint8Array(buffer, offset, nameBytes.length).set(nameBytes)
+  offset += nameBytes.length
+  new Uint8Array(buffer, offset, kmlBytes.length).set(kmlBytes)
+  offset += kmlBytes.length
+
+  const centralStart = offset
+
+  view.setUint32(offset, 0x02014b50, true)
+  offset += 4
+  view.setUint16(offset, 0x0014, true)
+  offset += 2
+  view.setUint16(offset, 20, true)
+  offset += 2
+  view.setUint16(offset, 0, true)
+  offset += 2
+  view.setUint16(offset, 0, true)
+  offset += 2
+  view.setUint16(offset, dosTime, true)
+  offset += 2
+  view.setUint16(offset, dosDate, true)
+  offset += 2
+  view.setUint32(offset, crc, true)
+  offset += 4
+  view.setUint32(offset, kmlBytes.length, true)
+  offset += 4
+  view.setUint32(offset, kmlBytes.length, true)
+  offset += 4
+  view.setUint16(offset, nameBytes.length, true)
+  offset += 2
+  view.setUint16(offset, 0, true)
+  offset += 2
+  view.setUint16(offset, 0, true)
+  offset += 2
+  view.setUint16(offset, 0, true)
+  offset += 2
+  view.setUint16(offset, 0, true)
+  offset += 2
+  view.setUint32(offset, 0, true)
+  offset += 4
+  view.setUint32(offset, 0, true)
+  offset += 4
+  new Uint8Array(buffer, offset, nameBytes.length).set(nameBytes)
+  offset += nameBytes.length
+
+  const centralSize = offset - centralStart
+
+  view.setUint32(offset, 0x06054b50, true)
+  offset += 4
+  view.setUint16(offset, 0, true)
+  offset += 2
+  view.setUint16(offset, 0, true)
+  offset += 2
+  view.setUint16(offset, 1, true)
+  offset += 2
+  view.setUint16(offset, 1, true)
+  offset += 2
+  view.setUint32(offset, centralSize, true)
+  offset += 4
+  view.setUint32(offset, centralStart, true)
+  offset += 4
+  view.setUint16(offset, 0, true)
+
+  return new Blob([buffer], { type: 'application/vnd.google-earth.kmz' })
 }
 
