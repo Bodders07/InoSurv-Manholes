@@ -224,7 +224,7 @@ function renderSketchToDataUrl(sketch?: SketchState | null) {
         ctx.strokeRect(cx - 110, cy - 110, 220, 220)
         break
       case 'Rectangle':
-        ctx.strokeRect(cx - 150, cy - 90, 300, 180)
+        ctx.strokeRect(cx - 90, cy - 150, 180, 300)
         break
       case 'Hexagon': {
         ctx.beginPath()
@@ -258,7 +258,7 @@ function renderSketchToDataUrl(sketch?: SketchState | null) {
         ctx.strokeRect(cx - 80, cy - 80, 160, 160)
         break
       case 'Rectangle':
-        ctx.strokeRect(cx - 80, cy - 60, 160, 120)
+        ctx.strokeRect(cx - 60, cy - 80, 120, 160)
         break
       case 'Triangle':
         ctx.beginPath()
