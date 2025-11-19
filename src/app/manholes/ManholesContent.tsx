@@ -932,40 +932,20 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
     }
   }
 
-  useEffect(() => {
-    return () => {
-      if (previewPdf?.startsWith('blob:')) {
-        try { URL.revokeObjectURL(previewPdf) } catch {}
-      }
-    }
-  }, [previewPdf])
-
   function closePreview() {
-    setPreviewPdf((prev) => {
-      if (prev?.startsWith('blob:')) {
-        try { URL.revokeObjectURL(prev) } catch {}
-      }
-      return null
-    })
+    setPreviewPdf(null)
     setPreviewTitle('')
   }
 
   async function previewManhole(id: string) {
     setPreviewLoadingId(id)
-    setPreviewPdf((prev) => {
-      if (prev?.startsWith('blob:')) {
-        try { URL.revokeObjectURL(prev) } catch {}
-      }
-      return null
-    })
     try {
       const records = await fetchDetailedChambers([id])
       if (!records.length) throw new Error('Unable to load chamber for preview.')
       const logo = await getLogoAsset()
       const doc = await createPdfDoc(records[0], logo || null)
-      const blob = doc.output('blob') as Blob
-      const url = URL.createObjectURL(blob)
-      setPreviewPdf(url)
+      const dataUri = doc.output('datauristring')
+      setPreviewPdf(dataUri)
       setPreviewTitle(records[0].identifier || 'Chamber Preview')
     } catch (err) {
       const messageText = err instanceof Error ? err.message : String(err)
