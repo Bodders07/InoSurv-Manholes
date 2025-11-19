@@ -19,6 +19,7 @@ import {
   Moon,
   Sun,
   ChevronDown,
+  Menu,
 } from 'lucide-react'
 
 type ThemeChoice = 'light' | 'dark'
@@ -62,6 +63,7 @@ export default function SidebarLayout({
   const pageOpacity = 1
   const { view, setView } = useView()
   const [collapsed, setCollapsed] = useState(false)
+  const [preferredCollapsed, setPreferredCollapsed] = useState(false)
   const [isSmallScreen, setIsSmallScreen] = useState(false)
   const [adminOpen, setAdminOpen] = useState(false)
   const { has, loading: permissionsLoading } = usePermissions()
@@ -166,7 +168,8 @@ export default function SidebarLayout({
     try {
       const saved = localStorage.getItem('sidebarCollapsed')
       if (saved != null) {
-        raf = requestAnimationFrame(() => setCollapsed(saved === '1'))
+        const initial = saved === '1'
+        raf = requestAnimationFrame(() => setPreferredCollapsed(initial))
       }
     } catch {}
     const applySize = () => setIsSmallScreen(window.innerWidth < 768)
@@ -190,9 +193,21 @@ export default function SidebarLayout({
     return () => document.removeEventListener('mousedown', handleClick)
   }, [])
 
+  useEffect(() => {
+    if (isSmallScreen) {
+      setCollapsed(true)
+    } else {
+      setCollapsed(preferredCollapsed)
+    }
+  }, [isSmallScreen, preferredCollapsed])
+
   function toggleCollapsed() {
-    setCollapsed((c) => {
-      const next = !c
+    if (isSmallScreen) {
+      setCollapsed((c) => !c)
+      return
+    }
+    setPreferredCollapsed((prev) => {
+      const next = !prev
       try { localStorage.setItem('sidebarCollapsed', next ? '1' : '0') } catch {}
       return next
     })
@@ -236,16 +251,7 @@ export default function SidebarLayout({
     <div className="flex min-h-screen">
       {/* Sidebar */}
       <div className={`app-sidebar ${sidebarWidth} bg-gray-500 border-r border-gray-400 shadow-sm flex flex-col transition-all duration-200 ease-in-out overflow-hidden`}>
-        <div className="p-3 border-b border-gray-400 flex items-center justify-between gap-2">
-          <button
-            type="button"
-            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            className="px-2 py-1 rounded text-white bg-gray-600 hover:bg-gray-700"
-            onClick={toggleCollapsed}
-            title={collapsed ? 'Expand' : 'Collapse'}
-          >
-            {collapsed ? '›' : '‹'}
-          </button>
+        <div className="p-3 border-b border-gray-400 flex items-center justify-center gap-2">
           <Link href="/" className="inline-flex items-center justify-center flex-1">
             <Image
               src="/inorail-logo.png"
@@ -323,75 +329,78 @@ export default function SidebarLayout({
         </div>
       </div>
 
-      {/* Mobile hamburger */}
-      <button
-        type="button"
-        aria-label="Open menu"
-        onClick={() => setCollapsed(false)}
-        className="fixed left-2 top-2 z-50 md:hidden px-3 py-2 rounded bg-gray-700 text-white shadow"
-      >
-        Menu
-      </button>
-
       {/* Main content area */}
       <main className="flex-1 w-full min-w-0 px-4 py-5 md:px-8 md:py-8 overflow-y-auto overflow-x-hidden" style={{ opacity: pageOpacity, transition: 'opacity 220ms ease' }}>
-        <div className="sticky top-0 z-20 mb-6 flex w-full flex-wrap items-center justify-end gap-3 border-b border-gray-200 bg-white px-3 py-3 shadow-sm sm:rounded-md sm:px-4 md:px-8">
-          <button
-            type="button"
-            onClick={refreshPage}
-            className="rounded-full border border-gray-200 bg-white p-2 text-gray-600 hover:bg-gray-100"
-            title="Refresh"
-            aria-label="Refresh"
-          >
-            <RefreshCw size={16} />
-          </button>
-          <button
-            type="button"
-            onClick={toggleTheme}
-            className="rounded-full border border-gray-200 bg-white p-2 text-gray-600 hover:bg-gray-100"
-            title="Toggle theme"
-            aria-label="Toggle theme"
-          >
-            {themeChoice === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
-          </button>
-          <div className="relative" ref={profileRef}>
+        <div className="sticky top-0 z-20 mb-6 flex w-full flex-wrap items-center justify-between gap-3 border-b border-gray-200 bg-white px-3 py-3 shadow-sm sm:rounded-md sm:px-4 md:px-8">
+          <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => setProfileOpen((v) => !v)}
-              className="flex items-center gap-3 rounded-full border border-gray-200 bg-white px-3 py-1 text-left shadow-sm hover:bg-gray-50"
+              onClick={toggleCollapsed}
+              className="rounded-full border border-gray-200 bg-white p-2 text-gray-600 hover:bg-gray-100"
+              title="Toggle sidebar"
+              aria-label="Toggle sidebar"
             >
-              <div className="hidden text-right md:flex md:flex-col">
-                <span className="text-sm font-semibold leading-tight">{userName || 'Account'}</span>
-                <span className="text-xs text-gray-500">{userRoleLabel || 'Role'}</span>
-              </div>
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-orange-500 text-sm font-semibold text-white">
-                {userInitials || '??'}
-              </div>
-              <ChevronDown size={16} className={`text-gray-500 transition-transform ${profileOpen ? 'rotate-180' : ''}`} />
+              <Menu size={18} />
             </button>
-            {profileOpen && (
-              <div className="absolute right-0 mt-2 w-56 rounded-lg border border-gray-200 bg-white py-2 shadow-lg">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setProfileOpen(false)
-                    try { localStorage.setItem('settingsActiveTab', 'profile') } catch {}
-                    setView('settings')
-                    router.push('/')
-                  }}
-                  className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
-                >
-                  Profile Settings
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setProfileOpen(false); handleSignOut() }}
-                  className="block w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-gray-100"
-                >
-                  Sign out
-                </button>
-              </div>
-            )}
+          </div>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={refreshPage}
+              className="rounded-full border border-gray-200 bg-white p-2 text-gray-600 hover:bg-gray-100"
+              title="Refresh"
+              aria-label="Refresh"
+            >
+              <RefreshCw size={16} />
+            </button>
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="rounded-full border border-gray-200 bg-white p-2 text-gray-600 hover:bg-gray-100"
+              title="Toggle theme"
+              aria-label="Toggle theme"
+            >
+              {themeChoice === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+            </button>
+            <div className="relative" ref={profileRef}>
+              <button
+                type="button"
+                onClick={() => setProfileOpen((v) => !v)}
+                className="flex items-center gap-3 rounded-full border border-gray-200 bg-white px-3 py-1 text-left shadow-sm hover:bg-gray-50"
+              >
+                <div className="hidden text-right md:flex md:flex-col">
+                  <span className="text-sm font-semibold leading-tight">{userName || 'Account'}</span>
+                  <span className="text-xs text-gray-500">{userRoleLabel || 'Role'}</span>
+                </div>
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-orange-500 text-sm font-semibold text-white">
+                  {userInitials || '??'}
+                </div>
+                <ChevronDown size={16} className={`text-gray-500 transition-transform ${profileOpen ? 'rotate-180' : ''}`} />
+              </button>
+              {profileOpen && (
+                <div className="absolute right-0 mt-2 w-56 rounded-lg border border-gray-200 bg-white py-2 shadow-lg">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setProfileOpen(false)
+                      try { localStorage.setItem('settingsActiveTab', 'profile') } catch {}
+                      setView('settings')
+                      router.push('/')
+                    }}
+                    className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    Profile Settings
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setProfileOpen(false); handleSignOut() }}
+                    className="block w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-gray-100"
+                  >
+                    Sign out
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
         {children}
