@@ -153,6 +153,7 @@ function AddManholeForm({ standaloneLayout = true }: { standaloneLayout?: boolea
   const [chamberLength, setChamberLength] = useState('')
   const [chamberMaterial, setChamberMaterial] = useState('')
   const [chamberMaterialOther, setChamberMaterialOther] = useState('')
+  const [chamberCondition, setChamberCondition] = useState('')
   // Photos
   const [internalPhoto, setInternalPhoto] = useState<File | null>(null)
   const [internalPreview, setInternalPreview] = useState('')
@@ -279,6 +280,7 @@ function AddManholeForm({ standaloneLayout = true }: { standaloneLayout?: boolea
       chamber_length_mm: (chamberShape === 'Square' || chamberShape === 'Rectangle') ? (chamberLength || null) : null,
       chamber_material: chamberMaterial || null,
       chamber_material_other: chamberMaterial === 'Other' ? (chamberMaterialOther || null) : null,
+      chamber_condition: chamberCondition || null,
       service_type: serviceType || null,
       type: type || null,
       type_other: type === 'Other' ? (typeOther || null) : null,
@@ -601,6 +603,18 @@ ALTER TABLE public.manholes
             </select>
             {chamberMaterial === 'Other' && (
               <input className="mt-2 w-full border p-2 rounded" placeholder="If Other, specify" value={chamberMaterialOther} onChange={(e)=>setChamberMaterialOther(e.target.value)} />
+            )}
+          </div>
+          <div>
+            <label className="block text-sm mb-1">Chamber Condition</label>
+            <select className="w-full border p-2 rounded" value={chamberCondition} onChange={(e)=>setChamberCondition(e.target.value)}>
+              <option value="">Select condition</option>
+              {['Poor','Poor/Fair','Fair','Fair/Good','Good','Unknown','Unsafe','OK','Needs Attention','Other'].map(opt => (
+                <option key={opt} value={opt}>{opt}</option>
+              ))}
+            </select>
+            {chamberCondition === 'Other' && (
+              <input className="mt-2 w-full border p-2 rounded" placeholder="If Other, specify" onChange={(e)=>setChamberCondition(`Other: ${e.target.value}`)} />
             )}
           </div>
           {(chamberShape === 'Circle' || chamberShape === 'Hexagon') ? (

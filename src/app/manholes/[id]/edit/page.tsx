@@ -155,6 +155,7 @@ export default function EditManholePage() {
   const [chamberLength, setChamberLength] = useState('')
   const [chamberMaterial, setChamberMaterial] = useState('')
   const [chamberMaterialOther, setChamberMaterialOther] = useState('')
+  const [chamberCondition, setChamberCondition] = useState('')
 
   // photos
   const [internalPhotoUrl, setInternalPhotoUrl] = useState('')
@@ -265,6 +266,7 @@ export default function EditManholePage() {
         setChamberLength((row.chamber_length_mm ?? '').toString())
         setChamberMaterial(row.chamber_material || '')
         setChamberMaterialOther(row.chamber_material_other || '')
+        setChamberCondition((row as { chamber_condition?: string | null }).chamber_condition || '')
         setServiceType(row.service_type || '')
         setType(row.type || '')
         setTypeOther(row.type_other || '')
@@ -332,6 +334,7 @@ export default function EditManholePage() {
       service_type: serviceType || null,
       type: type || null,
       type_other: type === 'Other' ? (typeOther || null) : null,
+      chamber_condition: chamberCondition || null,
       cover_lifted: coverLifted || null,
       cover_lifted_reason: coverLifted === 'No' ? (coverNotReason || null) : null,
       incoming_pipes: incoming,
@@ -552,11 +555,11 @@ export default function EditManholePage() {
 
           {/* Chamber Shape */}
           <h2 className="text-xl font-semibold mt-8 mb-3">Chamber</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <div>
-              <label className="block text-sm mb-1">Shape</label>
-              <select className="w-full border p-2 rounded" value={chamberShape} onChange={(e)=>setChamberShape(e.target.value)}>
-                <option value="">Select shape</option>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div>
+            <label className="block text-sm mb-1">Shape</label>
+            <select className="w-full border p-2 rounded" value={chamberShape} onChange={(e)=>setChamberShape(e.target.value)}>
+              <option value="">Select shape</option>
                 {['Circle','Square','Rectangle','Hexagon'].map(s => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>
@@ -577,6 +580,18 @@ export default function EditManholePage() {
                 </div>
               </>
             ) : null}
+          </div>
+          <div>
+            <label className="block text-sm mb-1">Condition</label>
+            <select className="w-full border p-2 rounded" value={chamberCondition} onChange={(e)=>setChamberCondition(e.target.value)}>
+              <option value="">Select condition</option>
+              {['Poor','Poor/Fair','Fair','Fair/Good','Good','Unknown','Unsafe','OK','Needs Attention','Other'].map(opt => (
+                <option key={opt} value={opt}>{opt}</option>
+              ))}
+            </select>
+            {chamberCondition === 'Other' && (
+              <input className="mt-2 w-full border p-2 rounded" placeholder="If Other, specify" onChange={(e)=>setChamberCondition(`Other: ${e.target.value}`)} />
+            )}
           </div>
 
           {/* Chamber Material */}
