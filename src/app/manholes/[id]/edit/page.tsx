@@ -194,8 +194,14 @@ export default function EditManholePage() {
   }
 
   const relabelPipesToLetters = () => {
-    setIncoming(prev => prev.map((pipe, idx) => ({ ...pipe, label: `Pipe ${letterForIndex(65, idx)}` })))
-    setOutgoing(prev => prev.map((pipe, idx) => ({ ...pipe, label: `Pipe ${letterForIndex(88, idx)}` })))
+    setIncoming(prev => {
+      const source = prev.length ? prev : [createEmptyPipe('Pipe A')]
+      return source.map((pipe, idx) => ({ ...pipe, label: `Pipe ${letterForIndex(65, idx)}` }))
+    })
+    setOutgoing(prev => {
+      const source = prev.length ? prev : [createEmptyPipe('Pipe X')]
+      return source.map((pipe, idx) => ({ ...pipe, label: `Pipe ${letterForIndex(88, idx)}` }))
+    })
   }
 
   const handlePipeModeChange = (mode: PipeLabelMode) => {
@@ -213,6 +219,16 @@ export default function EditManholePage() {
       relabelPipesToLetters()
     }
   }, [type, pipeLabelMode])
+
+  useEffect(() => {
+    if (pipeLabelMode !== 'numbers') return
+    if (!outgoing.length) return
+    setIncoming(prev => {
+      const combined = [...prev, ...outgoing]
+      return combined.map((pipe, idx) => ({ ...pipe, label: `Pipe ${idx + 1}` }))
+    })
+    setOutgoing([])
+  }, [pipeLabelMode, outgoing])
 
   useEffect(() => {
     async function load() {
@@ -595,7 +611,11 @@ export default function EditManholePage() {
           )}
 
         {/* Incoming Pipes */}
-        {pipeLabelMode !== 'numbers' && <h2 className="text-xl font-semibold mt-8 mb-3">Incoming Pipes</h2>}
+        {pipeLabelMode === 'numbers' ? (
+          <h2 className="text-xl font-semibold mt-8 mb-3">Pipe Information</h2>
+        ) : (
+          <h2 className="text-xl font-semibold mt-8 mb-3">Incoming Pipes</h2>
+        )}
             <div className="space-y-4">
               {incoming.map((p, idx) => (
                 <div key={idx} className="border rounded p-4 bg-white">
