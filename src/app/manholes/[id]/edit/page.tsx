@@ -874,20 +874,3 @@ export default function EditManholePage() {
   )
 }
 
-  const handleCurrentLocation = () => {
-    if (typeof navigator === 'undefined' || !navigator.geolocation) {
-      setMessage('Geolocation is not supported on this device.')
-      return
-    }
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const { latitude: lat, longitude: lng } = pos.coords
-        setLatitude(lat.toFixed(6))
-        setLongitude(lng.toFixed(6))
-      },
-      (err) => {
-        setMessage(`Unable to fetch location: ${err.message}`)
-      },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-    )
-  }
