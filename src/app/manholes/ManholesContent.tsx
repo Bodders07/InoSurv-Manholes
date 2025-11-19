@@ -381,7 +381,7 @@ export default function ChambersContent() {
   const [showFilter, setShowFilter] = useState(false)
   const [createOpen, setCreateOpen] = useState(false)
   const [exportOpen, setExportOpen] = useState(false)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [previewPdf, setPreviewPdf] = useState<string | null>(null)
   const [previewTitle, setPreviewTitle] = useState<string>('')
   const [previewLoadingId, setPreviewLoadingId] = useState<string | null>(null)
   const [exportProject, setExportProject] = useState('')
@@ -933,16 +933,26 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
   }
 
   function closePreview() {
-    setPreviewUrl(null)
+    setPreviewPdf(null)
     setPreviewTitle('')
   }
 
   async function previewManhole(id: string, identifier?: string | null) {
     setPreviewLoadingId(id)
-    const url = `/manholes/${id}/export?embed=1`
-    setPreviewUrl(url)
-    setPreviewTitle(identifier || 'Chamber Preview')
-    setPreviewLoadingId(null)
+    try {
+      const records = await fetchDetailedChambers([id])
+      if (!records.length) throw new Error('Unable to load chamber for preview.')
+      const logo = await getLogoAsset()
+      const doc = await createPdfDoc(records[0], logo || null)
+      const dataUri = doc.output('datauristring')
+      setPreviewPdf(dataUri)
+      setPreviewTitle(identifier || records[0].identifier || 'Chamber Preview')
+    } catch (err) {
+      const messageText = err instanceof Error ? err.message : String(err)
+      setMessage('Preview failed: ' + messageText)
+    } finally {
+      setPreviewLoadingId(null)
+    }
   }
 
   const SortButton = ({ label, keyName }: { label: string; keyName: SortKey }) => (
@@ -1078,7 +1088,7 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
           </div>
         </div>
       )}
-      {previewUrl && (
+      {previewPdf && (
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-0 sm:p-6">
           <div className="relative bg-white dark:bg-neutral-900 w-screen h-screen sm:w-[90vw] sm:h-[85vh] rounded-none sm:rounded-lg shadow-lg">
             <button
@@ -1089,7 +1099,17 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
               ✕
             </button>
             <div className="absolute top-2 left-4 text-sm font-semibold text-gray-200">{previewTitle}</div>
-            <iframe src={previewUrl} className="w-full h-full border-0 bg-white" />
+            <iframe src={previewPdf} className="w-full h-full border-0 bg-white" />
+            <div className="absolute bottom-2 left-4">
+              <a
+                href={previewPdf}
+                target="_blank"
+                rel="noreferrer"
+                className="text-xs text-blue-100 underline"
+              >
+                Open in new tab
+              </a>
+            </div>
           </div>
         </div>
       )}
