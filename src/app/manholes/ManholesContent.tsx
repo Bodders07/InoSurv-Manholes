@@ -841,26 +841,26 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
             const offsetY = boxY + 8 + (targetHeight - drawHeight) / 2
             doc.addImage(dataUrl, format, offsetX, offsetY, drawWidth, drawHeight, undefined, 'FAST')
             if (boxes[i].label === 'Chamber Sketch') {
-              // Legend (top-right)
-              const legendWidth = 22
-              const legendHeight = 10
-              const legendX = x + boxWidth - legendWidth - 2
-              const legendY = boxY + 2
-              const sampleStartX = legendX + 2.5
+              // Legend (top-left, compact)
+              const legendWidth = 18
+              const legendHeight = 8
+              const legendX = x + 4
+              const legendY = boxY + 4
+              const sampleStartX = legendX + 2
               doc.setDrawColor(200)
               doc.rect(legendX, legendY, legendWidth, legendHeight)
-              doc.setFontSize(5.5)
+              doc.setFontSize(5)
               // Cover sample (dashed effect using short segments)
               doc.setDrawColor(51)
-              const dashY = legendY + 3.5
-              doc.line(sampleStartX, dashY, sampleStartX + 2.8, dashY)
-              doc.line(sampleStartX + 4.6, dashY, sampleStartX + 7.4, dashY)
-              doc.text('Cover', sampleStartX + 8.8, dashY + 1)
+              const dashY = legendY + 3
+              doc.line(sampleStartX, dashY, sampleStartX + 2.2, dashY)
+              doc.line(sampleStartX + 3.6, dashY, sampleStartX + 5.8, dashY)
+              doc.text('Cov', sampleStartX + 6.6, dashY + 1)
               // Chamber sample (solid)
               doc.setDrawColor(119)
-              const chamberY = legendY + 7
-              doc.line(sampleStartX, chamberY, sampleStartX + 7.4, chamberY)
-              doc.text('Chamber', sampleStartX + 8.8, chamberY + 1)
+              const chamberY = legendY + 6.4
+              doc.line(sampleStartX, chamberY, sampleStartX + 5.8, chamberY)
+              doc.text('Cham', sampleStartX + 6.6, chamberY + 1)
               doc.setDrawColor(60)
 
               // North arrow (bottom-right, smaller)
