@@ -841,28 +841,6 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
             const offsetY = boxY + 8 + (targetHeight - drawHeight) / 2
             doc.addImage(dataUrl, format, offsetX, offsetY, drawWidth, drawHeight, undefined, 'FAST')
             if (boxes[i].label === 'Chamber Sketch') {
-              // Legend (top-left, compact)
-              const legendWidth = 18
-              const legendHeight = 8
-              const legendX = x + 4
-              const legendY = boxY + 4
-              const sampleStartX = legendX + 2
-              doc.setDrawColor(200)
-              doc.rect(legendX, legendY, legendWidth, legendHeight)
-              doc.setFontSize(5)
-              // Cover sample (dashed effect using short segments)
-              doc.setDrawColor(51)
-              const dashY = legendY + 3
-              doc.line(sampleStartX, dashY, sampleStartX + 2.2, dashY)
-              doc.line(sampleStartX + 3.6, dashY, sampleStartX + 5.8, dashY)
-              doc.text('Cov', sampleStartX + 6.6, dashY + 1)
-              // Chamber sample (solid)
-              doc.setDrawColor(119)
-              const chamberY = legendY + 6.4
-              doc.line(sampleStartX, chamberY, sampleStartX + 5.8, chamberY)
-              doc.text('Cham', sampleStartX + 6.6, chamberY + 1)
-              doc.setDrawColor(60)
-
               // North arrow (bottom-right, smaller)
               const arrowBaseY = boxY + bottomHeight - 4
               const arrowX = x + boxWidth - 6
