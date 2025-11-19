@@ -381,7 +381,7 @@ export default function ChambersContent() {
   const [showFilter, setShowFilter] = useState(false)
   const [createOpen, setCreateOpen] = useState(false)
   const [exportOpen, setExportOpen] = useState(false)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [previewPdf, setPreviewPdf] = useState<string | null>(null)
   const [previewTitle, setPreviewTitle] = useState<string>('')
   const [previewLoadingId, setPreviewLoadingId] = useState<string | null>(null)
   const [exportProject, setExportProject] = useState('')
@@ -932,17 +932,47 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
     }
   }
 
+  useEffect(() => {
+    return () => {
+      if (previewPdf?.startsWith('blob:')) {
+        try { URL.revokeObjectURL(previewPdf) } catch {}
+      }
+    }
+  }, [previewPdf])
+
   function closePreview() {
-    setPreviewUrl(null)
+    setPreviewPdf((prev) => {
+      if (prev?.startsWith('blob:')) {
+        try { URL.revokeObjectURL(prev) } catch {}
+      }
+      return null
+    })
     setPreviewTitle('')
   }
 
-  async function previewManhole(id: string, identifier?: string | null) {
+  async function previewManhole(id: string) {
     setPreviewLoadingId(id)
-    const url = `/manholes/${id}/export?embed=1`
-    setPreviewUrl(url)
-    setPreviewTitle(identifier || 'Chamber Preview')
-    setPreviewLoadingId(null)
+    setPreviewPdf((prev) => {
+      if (prev?.startsWith('blob:')) {
+        try { URL.revokeObjectURL(prev) } catch {}
+      }
+      return null
+    })
+    try {
+      const records = await fetchDetailedChambers([id])
+      if (!records.length) throw new Error('Unable to load chamber for preview.')
+      const logo = await getLogoAsset()
+      const doc = await createPdfDoc(records[0], logo || null)
+      const blob = doc.output('blob') as Blob
+      const url = URL.createObjectURL(blob)
+      setPreviewPdf(url)
+      setPreviewTitle(records[0].identifier || 'Chamber Preview')
+    } catch (err) {
+      const messageText = err instanceof Error ? err.message : String(err)
+      setMessage('Preview failed: ' + messageText)
+    } finally {
+      setPreviewLoadingId(null)
+    }
   }
 
   const SortButton = ({ label, keyName }: { label: string; keyName: SortKey }) => (
@@ -1078,7 +1108,7 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
           </div>
         </div>
       )}
-      {previewUrl && (
+      {previewPdf && (
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-0 sm:p-6">
           <div className="relative bg-white dark:bg-neutral-900 w-screen h-screen sm:w-[90vw] sm:h-[85vh] rounded-none sm:rounded-lg shadow-lg">
             <button
@@ -1089,7 +1119,7 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
               ✕
             </button>
             <div className="absolute top-2 left-4 text-sm font-semibold text-gray-200">{previewTitle}</div>
-            <iframe src={previewUrl} className="w-full h-full border-0 bg-white" />
+            <iframe src={previewPdf} className="w-full h-full border-0 bg-white" />
           </div>
         </div>
       )}
@@ -1227,7 +1257,7 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
                   <td className="px-4 py-2 border-b font-medium">{r.identifier || '-'}</td>
                   <td className="px-4 py-2 border-b text-right">
                     <div className="flex items-center justify-end gap-1">
-                      <IconBtn title="Preview manhole report" onClick={() => previewManhole(r.id, r.identifier)}>
+                      <IconBtn title="Preview chamber sheet" onClick={() => previewManhole(r.id)}>
                         {previewLoadingId === r.id ? (
                           <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24">
                             <circle cx="12" cy="12" r="10" stroke="#999" strokeWidth="4" fill="none" strokeDasharray="60" strokeDashoffset="20" />
