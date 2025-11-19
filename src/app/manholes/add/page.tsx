@@ -110,6 +110,23 @@ function AddManholeForm({ standaloneLayout = true }: { standaloneLayout?: boolea
   const [sketchOpen, setSketchOpen] = useState(false)
   const [sketchDraft, setSketchDraft] = useState<SketchState | null>(null)
 
+  const handleCurrentLocation = () => {
+    if (typeof navigator === 'undefined' || !navigator.geolocation) {
+      setMessage('Geolocation not supported on this device.')
+      return
+    }
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude: lat, longitude: lng } = position.coords
+        setLatitude(lat.toFixed(6))
+        setLongitude(lng.toFixed(6))
+      },
+      (err) => {
+        setMessage(`Unable to fetch location: ${err.message}`)
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    )
+  }
   useEffect(() => {
     // Lock body scroll while sketch is open (mobile-friendly)
     if (sketchOpen) {
@@ -435,7 +452,16 @@ ALTER TABLE public.manholes
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Latitude</label>
+            <div className="flex items-center justify-between">
+              <label className="block text-sm font-medium mb-1">Latitude</label>
+              <button
+                type="button"
+                className="text-xs text-blue-600 hover:underline px-1"
+                onClick={handleCurrentLocation}
+              >
+                Use current location
+              </button>
+            </div>
             <input className="w-full border p-2 rounded" value={latitude} onChange={(e)=>setLatitude(e.target.value)} />
           </div>
           <div>
