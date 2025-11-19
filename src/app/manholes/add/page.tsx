@@ -581,7 +581,7 @@ ALTER TABLE public.manholes
         </div>
 
         {/* Incoming Pipes */}
-        <h2 className="text-xl font-semibold mt-8 mb-3">Incoming Pipes</h2>
+        {pipeLabelMode !== 'numbers' && <h2 className="text-xl font-semibold mt-8 mb-3">Incoming Pipes</h2>}
         <div className="space-y-4">
           {incoming.map((p, idx) => (
             <div key={idx} className="border rounded p-4 bg-white">
@@ -645,7 +645,7 @@ ALTER TABLE public.manholes
         </div>
 
         {/* Outgoing Pipes */}
-        <h2 className="text-xl font-semibold mt-8 mb-3">Outgoing Pipes</h2>
+        {pipeLabelMode !== 'numbers' && <h2 className="text-xl font-semibold mt-8 mb-3">Outgoing Pipes</h2>}
         <div className="space-y-4">
           {outgoing.map((p, idx) => (
             <div key={idx} className="border rounded p-4 bg-white">
