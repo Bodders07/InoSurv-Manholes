@@ -683,7 +683,7 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
       doc.text(valueOrDash(record.project_name), jobBoxX + 25, jobBoxY + 12)
       doc.text('Location:', jobBoxX + 3, jobBoxY + 18)
       doc.text(valueOrDash(record.location_desc), jobBoxX + 25, jobBoxY + 18)
-      doc.text('Manhole ID', jobBoxX + jobBoxWidth - idBoxWidth + 3, jobBoxY + 6)
+      doc.text('Reference ID', jobBoxX + jobBoxWidth - idBoxWidth + 3, jobBoxY + 6)
       doc.text(valueOrDash(record.identifier), jobBoxX + jobBoxWidth - idBoxWidth + 3, jobBoxY + 12)
 
       const sectionY = jobBoxY + jobBoxHeight + 8
