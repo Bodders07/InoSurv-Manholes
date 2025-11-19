@@ -664,68 +664,71 @@ ALTER TABLE public.manholes
           <button onClick={addIncomingPipe} className="px-3 py-2 rounded border border-gray-300 hover:bg-gray-50">Add pipe</button>
         </div>
 
-        {/* Outgoing Pipes */}
-        {pipeLabelMode !== 'numbers' && <h2 className="text-xl font-semibold mt-8 mb-3">Outgoing Pipes</h2>}
-        <div className="space-y-4">
-          {outgoing.map((p, idx) => (
-            <div key={idx} className="border rounded p-4 bg-white">
-              <div className="font-medium mb-3">{p.label}</div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                {/* Function removed */}
-                <div>
-                  <label className="block text-sm mb-1">Shape</label>
-                  <select className="w-full border p-2 rounded" value={p.shape} onChange={(e)=>{const v=[...outgoing]; v[idx].shape=e.target.value; setOutgoing(v)}}>
-                    <option value="">Select</option>
-                    {PIPE_SHAPES.map(o=> <option key={o} value={o}>{o}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm mb-1">Material</label>
-                  <select className="w-full border p-2 rounded" value={p.material} onChange={(e)=>{const v=[...outgoing]; v[idx].material=e.target.value; setOutgoing(v)}}>
-                    <option value="">Select</option>
-                    {PIPE_MATERIALS.map(o=> <option key={o} value={o}>{o}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm mb-1">Invert Depth (m)</label>
-                  <input className="w-full border p-2 rounded" value={p.invert_depth_m} onChange={(e)=>{const v=[...outgoing]; v[idx].invert_depth_m=e.target.value; setOutgoing(v)}} />
-                </div>
-                {['Circular','Egg','Brick Arch','Unknown','Other'].includes(p.shape) ? (
-                  <div>
-                    <label className="block text-sm mb-1">Pipe Diameter (mm)</label>
-                    <input className="w-full border p-2 rounded" value={p.diameter_mm} onChange={(e)=>{const v=[...outgoing]; v[idx].diameter_mm=e.target.value; setOutgoing(v)}} />
-                  </div>
-                ) : (
-                  <>
+        {pipeLabelMode !== 'numbers' && (
+          <>
+            <h2 className="text-xl font-semibold mt-8 mb-3">Outgoing Pipes</h2>
+            <div className="space-y-4">
+              {outgoing.map((p, idx) => (
+                <div key={idx} className="border rounded p-4 bg-white">
+                  <div className="font-medium mb-3">{p.label}</div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    {/* Function removed */}
                     <div>
-                      <label className="block text-sm mb-1">Pipe Width (mm)</label>
-                      <input className="w-full border p-2 rounded" value={p.width_mm} onChange={(e)=>{const v=[...outgoing]; v[idx].width_mm=e.target.value; setOutgoing(v)}} />
+                      <label className="block text-sm mb-1">Shape</label>
+                      <select className="w-full border p-2 rounded" value={p.shape} onChange={(e)=>{const v=[...outgoing]; v[idx].shape=e.target.value; setOutgoing(v)}}>
+                        <option value="">Select</option>
+                        {PIPE_SHAPES.map(o=> <option key={o} value={o}>{o}</option>)}
+                      </select>
                     </div>
                     <div>
-                      <label className="block text-sm mb-1">Pipe Height (mm)</label>
-                      <input className="w-full border p-2 rounded" value={p.height_mm} onChange={(e)=>{const v=[...outgoing]; v[idx].height_mm=e.target.value; setOutgoing(v)}} />
+                      <label className="block text-sm mb-1">Material</label>
+                      <select className="w-full border p-2 rounded" value={p.material} onChange={(e)=>{const v=[...outgoing]; v[idx].material=e.target.value; setOutgoing(v)}}>
+                        <option value="">Select</option>
+                        {PIPE_MATERIALS.map(o=> <option key={o} value={o}>{o}</option>)}
+                      </select>
                     </div>
-                  </>
-                )}
-                <div className="md:col-span-2">
-                  <label className="block text-sm mb-1">Notes</label>
-                  <input className="w-full border p-2 rounded" value={p.notes} onChange={(e)=>{const v=[...outgoing]; v[idx].notes=e.target.value; setOutgoing(v)}} />
-                </div>
-                {idx > 0 && (
-                  <div className="mt-3 text-right md:col-span-3">
-                    <button
-                      onClick={() => removeOutgoingPipe(idx)}
-                      className="px-3 py-1 rounded text-white bg-red-600 hover:bg-red-700"
-                    >
-                      Remove Pipe
-                    </button>
+                    <div>
+                      <label className="block text-sm mb-1">Invert Depth (m)</label>
+                      <input className="w-full border p-2 rounded" value={p.invert_depth_m} onChange={(e)=>{const v=[...outgoing]; v[idx].invert_depth_m=e.target.value; setOutgoing(v)}} />
+                    </div>
+                    {['Circular','Egg','Brick Arch','Unknown','Other'].includes(p.shape) ? (
+                      <div>
+                        <label className="block text-sm mb-1">Pipe Diameter (mm)</label>
+                        <input className="w-full border p-2 rounded" value={p.diameter_mm} onChange={(e)=>{const v=[...outgoing]; v[idx].diameter_mm=e.target.value; setOutgoing(v)}} />
+                      </div>
+                    ) : (
+                      <>
+                        <div>
+                          <label className="block text-sm mb-1">Pipe Width (mm)</label>
+                          <input className="w-full border p-2 rounded" value={p.width_mm} onChange={(e)=>{const v=[...outgoing]; v[idx].width_mm=e.target.value; setOutgoing(v)}} />
+                        </div>
+                        <div>
+                          <label className="block text-sm mb-1">Pipe Height (mm)</label>
+                          <input className="w-full border p-2 rounded" value={p.height_mm} onChange={(e)=>{const v=[...outgoing]; v[idx].height_mm=e.target.value; setOutgoing(v)}} />
+                        </div>
+                      </>
+                    )}
+                    <div className="md:col-span-2">
+                      <label className="block text-sm mb-1">Notes</label>
+                      <input className="w-full border p-2 rounded" value={p.notes} onChange={(e)=>{const v=[...outgoing]; v[idx].notes=e.target.value; setOutgoing(v)}} />
+                    </div>
+                    {idx > 0 && (
+                      <div className="mt-3 text-right md:col-span-3">
+                        <button
+                          onClick={() => removeOutgoingPipe(idx)}
+                          className="px-3 py-1 rounded text-white bg-red-600 hover:bg-red-700"
+                        >
+                          Remove Pipe
+                        </button>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
+                </div>
+              ))}
+              <button onClick={addOutgoingPipe} className="px-3 py-2 rounded border border-gray-300 hover:bg-gray-50">Add pipe</button>
             </div>
-          ))}
-          <button onClick={addOutgoingPipe} className="px-3 py-2 rounded border border-gray-300 hover:bg-gray-50">Add pipe</button>
-        </div>
+          </>
+        )}
 
         {/* Photos */}
         <h2 className="text-xl font-semibold mt-10 mb-3">Internal Photo</h2>
