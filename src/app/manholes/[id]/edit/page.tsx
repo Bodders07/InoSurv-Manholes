@@ -419,7 +419,16 @@ export default function EditManholePage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">Latitude</label>
+                <div className="flex items-center justify-between">
+                  <label className="block text-sm font-medium mb-1">Latitude</label>
+                  <button
+                    type="button"
+                    className="text-xs text-blue-600 hover:underline px-1"
+                    onClick={handleCurrentLocation}
+                  >
+                    Use current location
+                  </button>
+                </div>
                 <input className="w-full border p-2 rounded" value={latitude} onChange={(e)=>setLatitude(e.target.value)} />
               </div>
               <div>
@@ -850,3 +859,20 @@ export default function EditManholePage() {
   )
 }
 
+  const handleCurrentLocation = () => {
+    if (typeof navigator === 'undefined' || !navigator.geolocation) {
+      setMessage('Geolocation is not supported on this device.')
+      return
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude: lat, longitude: lng } = pos.coords
+        setLatitude(lat.toFixed(6))
+        setLongitude(lng.toFixed(6))
+      },
+      (err) => {
+        setMessage(`Unable to fetch location: ${err.message}`)
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    )
+  }
