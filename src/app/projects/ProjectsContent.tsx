@@ -121,6 +121,11 @@ const clientOptions = useMemo(() => {
 }, [projects])
   const [viewId, setViewId] = useState<string | null>(null)
   const [menuFor, setMenuFor] = useState<string | null>(null)
+  const [importOpen, setImportOpen] = useState(false)
+  const [importProjectId, setImportProjectId] = useState<string>('')
+  const [importBusy, setImportBusy] = useState(false)
+  const [importSummary, setImportSummary] = useState<string | null>(null)
+  const [importError, setImportError] = useState<string | null>(null)
   const deferredSearch = useDeferredValue(search)
 
   const refreshProjects = useCallback(async () => {
@@ -298,6 +303,67 @@ const clientOptions = useMemo(() => {
     setEditProjectName('')
   }
 
+  async function handleCsvImport(file: File) {
+    if (!importProjectId) {
+      setImportError('Please choose a project first.')
+      return
+    }
+    setImportBusy(true)
+    setImportSummary(null)
+    setImportError(null)
+    try {
+      const text = await file.text()
+      const rows = parseCsv(text)
+      if (!rows.length) throw new Error('No data rows detected.')
+      let updated = 0
+      for (const row of rows) {
+        const identifier = row.identifier?.trim()
+        if (!identifier) continue
+        const payload: Record<string, number | null> = {
+          latitude: toNumber(row.latitude),
+          longitude: toNumber(row.longitude),
+          easting: toNumber(row.easting),
+          northing: toNumber(row.northing),
+          cover_level: toNumber(row.cover_level),
+        }
+        const { error } = await supabase
+          .from('chambers')
+          .update(payload)
+          .eq('project_id', importProjectId)
+          .eq('identifier', identifier)
+        if (error) throw error
+        updated++
+      }
+      setImportSummary(`Updated ${updated} chamber${updated === 1 ? '' : 's'}.`)
+    } catch (err) {
+      setImportError(err instanceof Error ? err.message : String(err))
+    } finally {
+      setImportBusy(false)
+    }
+  }
+
+  function parseCsv(text: string) {
+    const lines = text.split(/\r?\n/).map((line) => line.trim()).filter(Boolean)
+    if (!lines.length) return []
+    const headers = lines[0].split(',').map((h) => h.trim().toLowerCase())
+    const rows: Record<string, string>[] = []
+    for (let i = 1; i < lines.length; i++) {
+      const values = lines[i].split(',').map((v) => v.trim())
+      const row: Record<string, string> = {}
+      headers.forEach((header, idx) => {
+        row[header] = values[idx] ?? ''
+      })
+      rows.push(row)
+    }
+    return rows
+  }
+
+  function toNumber(value?: string) {
+    if (value === undefined || value === null || value === '') return null
+    const numeric = Number(value)
+    return Number.isFinite(numeric) ? numeric : null
+  }
+
   const disableEditSave = useMemo(
     () =>
       editSaving ||
@@ -395,6 +461,20 @@ const clientOptions = useMemo(() => {
             <span className="inline-flex items-center gap-2">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M3.75 5.5a.75.75 0 0 1 .75-.75h15a.75.75 0 0 1 .55 1.25l-5.3 5.96v4.29a.75.75 0 0 1-1.06.69l-3-1.2a.75.75 0 0 1-.47-.69v-3.09L3.2 6a.75.75 0 0 1 .55-1.25Z"/></svg>
               Filter
+            </span>
+          </button>
+          <button
+            onClick={() => {
+              setImportProjectId('')
+              setImportSummary(null)
+              setImportError(null)
+              setImportOpen(true)
+            }}
+            className="flex-shrink-0 px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-50"
+          >
+            <span className="inline-flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M5 4.75A.75.75 0 0 1 5.75 4H18.25A.75.75 0 0 1 19 4.75V6a.75.75 0 0 1-.75.75H5.75A.75.75 0 0 1 5 6V4.75ZM5 10.75A.75.75 0 0 1 5.75 10H18.25A.75.75 0 0 1 19 10.75V12a.75.75 0 0 1-.75.75H5.75A.75.75 0 0 1 5 12v-1.25ZM5 16.75A.75.75 0 0 1 5.75 16h6.5a.75.75 0 0 1 .75.75V18a.75.75 0 0 1-.75.75H5.75A.75.75 0 0 1 5 18v-1.25Z"/></svg>
+              Import CSV
             </span>
           </button>
           {canCreateProject && (
@@ -694,6 +774,59 @@ const clientOptions = useMemo(() => {
           </section>
         )}
       </div>
+      {importOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" onClick={() => setImportOpen(false)}>
+          <div className="w-full max-w-xl rounded-xl bg-white shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b px-4 py-3">
+              <h3 className="text-lg font-semibold">Import chamber coordinates</h3>
+              <button className="text-sm text-gray-500 hover:text-gray-900" onClick={() => setImportOpen(false)}>
+                Close
+              </button>
+            </div>
+            <div className="space-y-4 px-4 py-5 text-sm text-gray-700">
+              <div>
+                <label className="mb-1 block font-medium">Project</label>
+                <select
+                  className="w-full rounded border border-gray-300 px-3 py-2"
+                  value={importProjectId}
+                  disabled={importBusy}
+                  onChange={(e) => setImportProjectId(e.target.value)}
+                >
+                  <option value="">Choose a project</option>
+                  {projects.map((project) => (
+                    <option key={project.id} value={project.id}>
+                      {project.project_number ? `${project.project_number} – ` : ''}
+                      {project.name || 'Untitled'}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="mb-1 block font-medium">CSV file</label>
+                <input
+                  type="file"
+                  accept=".csv,text/csv"
+                  className="w-full text-sm"
+                  disabled={importBusy || !importProjectId}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0]
+                    if (file) handleCsvImport(file)
+                  }}
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  Required columns: <code>identifier, latitude, longitude, easting, northing, cover_level</code>.
+                </p>
+              </div>
+              {importSummary && <p className="rounded border border-green-200 bg-green-50 p-2 text-green-700">{importSummary}</p>}
+              {importError && <p className="rounded border border-red-200 bg-red-50 p-2 text-red-700">{importError}</p>}
+              <p className="text-xs text-gray-500">
+                Each row updates the matching chamber (by identifier) inside the selected project with the provided coordinates.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {viewId && (
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-0 sm:p-6">
           <div className="relative bg-white dark:bg-neutral-900 w-screen h-screen sm:w-[90vw] sm:h-[85vh] rounded-none sm:rounded-lg shadow-lg">
