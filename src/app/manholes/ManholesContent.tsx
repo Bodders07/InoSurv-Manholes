@@ -1099,17 +1099,14 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
               ✕
             </button>
             <div className="absolute top-2 left-4 text-sm font-semibold text-gray-200">{previewTitle}</div>
-            <iframe src={previewPdf} className="w-full h-full border-0 bg-white" />
-            <div className="absolute bottom-2 left-4">
-              <a
-                href={previewPdf}
-                target="_blank"
-                rel="noreferrer"
-                className="text-xs text-blue-100 underline"
-              >
-                Open in new tab
-              </a>
-            </div>
+            <object data={previewPdf} type="application/pdf" className="w-full h-full">
+              <p className="p-4 text-sm">
+                PDF preview unavailable.{' '}
+                <a href={previewPdf} target="_blank" rel="noreferrer" className="text-blue-600 underline">
+                  Open in new tab
+                </a>
+              </p>
+            </object>
           </div>
         </div>
       )}
