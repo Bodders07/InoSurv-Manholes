@@ -651,16 +651,18 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
     const invertDepth = parseNumber(pipe.invert_depth_m)
     const soffitLevel = parseNumber(pipe.soffit_level)
     const diameterMeters = parseNumber(pipe.diameter_mm, 1000)
+    const derivedDepth = invertDepth ?? (soffitLevel !== null && diameterMeters !== null ? soffitLevel + diameterMeters : null)
 
-    const displayDepth = invertDepth !== null ? valueOrDash(pipe.invert_depth_m) : '-'
+    const displayDepth =
+      invertDepth !== null
+        ? valueOrDash(pipe.invert_depth_m)
+        : derivedDepth !== null
+          ? derivedDepth.toFixed(3)
+          : '-'
 
     const computedInvert = (() => {
-      if (invertDepth !== null) {
-        if (coverLevel === null || coverLevel === undefined) return valueOrDash(pipe.invert_depth_m)
-        return (coverLevel - invertDepth).toFixed(3)
-      }
-      if (soffitLevel !== null && diameterMeters !== null) {
-        return (soffitLevel + diameterMeters).toFixed(3)
+      if (derivedDepth !== null && coverLevel !== null && coverLevel !== undefined) {
+        return (coverLevel - derivedDepth).toFixed(3)
       }
       return '-'
     })()
