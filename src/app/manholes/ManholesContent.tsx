@@ -334,7 +334,6 @@ const CSV_COLUMNS = [
   { key: 'cover_level', label: 'Cover Level' },
   { key: 'cover_shape', label: 'Cover Shape' },
   { key: 'cover_material', label: 'Cover Material' },
-  { key: 'cover_duty', label: 'Cover Duty' },
   { key: 'cover_condition', label: 'Cover Condition' },
   { key: 'chamber_shape', label: 'Chamber Shape' },
   { key: 'chamber_material', label: 'Chamber Material' },
@@ -616,7 +615,6 @@ export default function ChambersContent() {
         `Location: ${record.location_desc || '-'}`,
         `Survey Date: ${record.survey_date || '-'}`,
         `Cover: ${record.cover_shape || '-'} / ${record.cover_material || '-'}`,
-        `Cover Duty: ${record.cover_duty || '-'}`,
         `Cover Condition: ${record.cover_condition || '-'}`,
         `Chamber: ${record.chamber_shape || '-'} / ${record.chamber_material || '-'}`,
       ]
@@ -700,12 +698,6 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
         })
         return height
       }
-      const coverSize = formatDimensionByShape(
-        record.cover_shape,
-        record.cover_diameter_mm,
-        record.cover_width_mm,
-        record.cover_length_mm
-      )
       const chamberSize = formatDimensionByShape(
         record.chamber_shape,
         record.chamber_diameter_mm,
@@ -716,9 +708,7 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
         { label: 'Service Type:', value: valueOrDash(record.service_type) },
         { label: 'Cover Material:', value: valueOrDash(record.cover_material || record.cover_material_other) },
         { label: 'Cover Shape:', value: valueOrDash(record.cover_shape) },
-        { label: 'Cover Size:', value: coverSize },
         { label: 'Cover Cond:', value: valueOrDash(record.cover_condition) },
-        { label: 'Cover Duty:', value: valueOrDash(record.cover_duty) },
       ]
       const generalRows = [
         { label: 'Survey Date:', value: valueOrDash(record.survey_date) },
