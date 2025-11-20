@@ -732,9 +732,9 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
 
       const coverRows = [
         { label: 'Service Type:', value: valueOrDash(record.service_type) },
-        { label: 'Cover Material:', value: valueOrDash(record.cover_material || record.cover_material_other) },
-        { label: 'Cover Shape:', value: valueOrDash(record.cover_shape) },
-        { label: 'Cover Cond:', value: valueOrDash(record.cover_condition) },
+        { label: 'Material:', value: valueOrDash(record.cover_material || record.cover_material_other) },
+        { label: 'Shape:', value: valueOrDash(record.cover_shape) },
+        { label: 'Condition:', value: valueOrDash(record.cover_condition) },
       ]
       const chamberRows = [
         { label: 'Shape:', value: valueOrDash(record.chamber_shape) },
