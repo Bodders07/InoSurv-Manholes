@@ -296,7 +296,7 @@ function AddManholeForm({ standaloneLayout = true }: { standaloneLayout?: boolea
       const hint = `
 To support these fields, add columns in Supabase (run once):
 
-ALTER TABLE public.manholes
+ALTER TABLE public.chambers
   ADD COLUMN IF NOT EXISTS survey_date date,
   ADD COLUMN IF NOT EXISTS measuring_tool text,
   ADD COLUMN IF NOT EXISTS measuring_offset_mm integer,
@@ -320,6 +320,7 @@ ALTER TABLE public.manholes
   ADD COLUMN IF NOT EXISTS chamber_length_mm integer,
   ADD COLUMN IF NOT EXISTS chamber_material text,
   ADD COLUMN IF NOT EXISTS chamber_material_other text,
+  ADD COLUMN IF NOT EXISTS chamber_condition text,
   ADD COLUMN IF NOT EXISTS type text,
   ADD COLUMN IF NOT EXISTS type_other text,
   ADD COLUMN IF NOT EXISTS cover_lifted text,
