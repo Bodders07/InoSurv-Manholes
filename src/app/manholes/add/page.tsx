@@ -444,7 +444,7 @@ ALTER TABLE public.manholes
               className="h-4 w-4"
             />
             <label htmlFor="copy-list" className="text-sm text-gray-700">
-              Copy list (keep Project, Date, Measuring Tool for next manhole)
+              Copy list (keep Project, Date, Measuring Tool for next chamber)
             </label>
           </div>
 
