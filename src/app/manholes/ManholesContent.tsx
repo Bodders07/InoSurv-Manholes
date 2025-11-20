@@ -731,9 +731,9 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
       let currentY = sectionY + generalHeight + 6
 
       const coverRows = [
+        { label: 'Shape:', value: valueOrDash(record.cover_shape) },
         { label: 'Service Type:', value: valueOrDash(record.service_type) },
         { label: 'Material:', value: valueOrDash(record.cover_material || record.cover_material_other) },
-        { label: 'Shape:', value: valueOrDash(record.cover_shape) },
         { label: 'Condition:', value: valueOrDash(record.cover_condition) },
       ]
       const chamberRows = [
