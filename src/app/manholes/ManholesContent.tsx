@@ -687,8 +687,15 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
 
       const sectionY = jobBoxY + jobBoxHeight + 8
       const columnWidth = (jobBoxWidth - 4) / 2
-      const drawSection = (title: string, rows: { label: string; value: string }[], x: number, y: number) => {
-        const height = rows.length * 6 + 8
+      const drawSection = (
+        title: string,
+        rows: { label: string; value: string }[],
+        x: number,
+        y: number,
+        forcedHeight?: number,
+      ) => {
+        const computedHeight = rows.length * 6 + 8
+        const height = forcedHeight ?? computedHeight
         doc.rect(x, y, columnWidth, height)
         doc.setFontSize(11)
         doc.text(title, x + columnWidth / 2, y - 1, { align: 'center' })
@@ -698,18 +705,20 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
         })
         return height
       }
-      const chamberSize = formatDimensionByShape(
-        record.chamber_shape,
-        record.chamber_diameter_mm,
-        record.chamber_width_mm,
-        record.chamber_length_mm
-      )
-      const coverRows = [
-        { label: 'Service Type:', value: valueOrDash(record.service_type) },
-        { label: 'Cover Material:', value: valueOrDash(record.cover_material || record.cover_material_other) },
-        { label: 'Cover Shape:', value: valueOrDash(record.cover_shape) },
-        { label: 'Cover Cond:', value: valueOrDash(record.cover_condition) },
-      ]
+      const drawFullSection = (
+        title: string,
+        rows: { label: string; value: string }[],
+        x: number,
+        y: number,
+      ) => {
+        const height = rows.length * 6 + 8
+        doc.rect(x, y, jobBoxWidth, height)
+        doc.setFontSize(11)
+        doc.text(title, x + jobBoxWidth / 2, y - 1, { align: 'center' })
+        doc.setFontSize(9)
+        rows.forEach((row, idx) => doc.text(`${row.label} ${row.value}`, x + 3, y + 6 + idx * 6))
+        return height
+      }
       const generalRows = [
         { label: 'Survey Date:', value: valueOrDash(record.survey_date) },
         { label: 'Tool:', value: valueOrDash(record.measuring_tool) },
@@ -718,23 +727,35 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
         { label: 'Cover Level:', value: valueOrDash(record.cover_level) },
         { label: 'Cover Lifted:', value: valueOrDash(record.cover_lifted) },
       ]
-      const coverHeight = drawSection('Cover Details', coverRows, jobBoxX, sectionY)
-      const generalHeight = drawSection('General Details', generalRows, jobBoxX + columnWidth + 4, sectionY)
-      let currentY = sectionY + Math.max(coverHeight, generalHeight) + 6
+      const generalHeight = drawFullSection('General Details', generalRows, jobBoxX, sectionY)
+      let currentY = sectionY + generalHeight + 6
+
+      const coverRows = [
+        { label: 'Service Type:', value: valueOrDash(record.service_type) },
+        { label: 'Cover Material:', value: valueOrDash(record.cover_material || record.cover_material_other) },
+        { label: 'Cover Shape:', value: valueOrDash(record.cover_shape) },
+        { label: 'Cover Cond:', value: valueOrDash(record.cover_condition) },
+      ]
       const chamberRows = [
         { label: 'Shape:', value: valueOrDash(record.chamber_shape) },
-        { label: 'Dimensions:', value: chamberSize },
+        {
+          label: 'Dimensions:',
+          value: formatDimensionByShape(
+            record.chamber_shape,
+            record.chamber_diameter_mm,
+            record.chamber_width_mm,
+            record.chamber_length_mm,
+          ),
+        },
         { label: 'Material:', value: valueOrDash(record.chamber_material || record.chamber_material_other) },
         { label: 'Condition:', value: valueOrDash(record.cover_condition) },
       ]
-      doc.rect(jobBoxX, currentY, jobBoxWidth, chamberRows.length * 6 + 8)
-      doc.setFontSize(11)
-      doc.text('Chamber Details', jobBoxX + jobBoxWidth / 2, currentY - 1, { align: 'center' })
-      doc.setFontSize(9)
-      chamberRows.forEach((row, idx) => {
-        doc.text(`${row.label} ${row.value}`, jobBoxX + 3, currentY + 6 + idx * 6)
-      })
-      currentY += chamberRows.length * 6 + 12
+      const coverHeightNeeded = coverRows.length * 6 + 8
+      const chamberHeightNeeded = chamberRows.length * 6 + 8
+      const normalizedHeight = Math.max(coverHeightNeeded, chamberHeightNeeded)
+      drawSection('Cover Details', coverRows, jobBoxX, currentY, normalizedHeight)
+      drawSection('Chamber Details', chamberRows, jobBoxX + columnWidth + 4, currentY, normalizedHeight)
+      currentY += normalizedHeight + 12
 
       const drawPipeTable = (title: string, entries: PipeRow[], y: number, rows = 6) => {
         const cols = [
