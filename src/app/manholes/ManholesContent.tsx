@@ -786,6 +786,16 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
       drawSection('Chamber Details', chamberRows, jobBoxX + columnWidth + 4, currentY, normalizedHeight)
       currentY += normalizedHeight + 6
 
+      const shrinkTextToFit = (text: string, maxWidth: number, baseFont = 9, minFont = 6) => {
+        let fontSize = baseFont
+        doc.setFontSize(fontSize)
+        while (doc.getTextWidth(text) > maxWidth && fontSize > minFont) {
+          fontSize -= 0.5
+          doc.setFontSize(fontSize)
+        }
+        return fontSize
+      }
+
       const drawPipeTable = (title: string, entries: PipeRow[], y: number, rows = 6) => {
         const cols = [
           { label: 'Label', width: 12 },
@@ -821,7 +831,15 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
                 idx === 4 ? row.depth :
                 idx === 5 ? row.invert :
                 row.notes
-              doc.text(text || '-', cursorX + 2, rowY + 5)
+              if (idx === 6) {
+                const safeText = text || '-'
+                const fontSize = shrinkTextToFit(safeText, col.width - 4)
+                doc.setFontSize(fontSize)
+                doc.text(safeText, cursorX + 2, rowY + 5, { maxWidth: col.width - 4 })
+                doc.setFontSize(9)
+              } else {
+                doc.text(text || '-', cursorX + 2, rowY + 5)
+              }
             }
             cursorX += col.width
           })
