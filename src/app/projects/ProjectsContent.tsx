@@ -205,6 +205,39 @@ const clientOptions = useMemo(() => {
     [filteredProjects]
   )
 
+  const checkExactProject = useCallback(
+    async ({
+      name,
+      projectNumber,
+      clientName,
+      excludeId,
+    }: {
+      name: string
+      projectNumber: string | null
+      clientName: string | null
+      excludeId?: string | null
+    }) => {
+      try {
+        let query = supabase
+          .from('projects')
+          .select('id', { count: 'exact', head: true })
+          .eq('name', name)
+        query = projectNumber ? query.eq('project_number', projectNumber) : query.is('project_number', null)
+        query = clientName ? query.eq('client', clientName) : query.is('client', null)
+        if (excludeId) query = query.neq('id', excludeId)
+        const { count, error } = await query
+        if (error) return { duplicate: false, error }
+        return { duplicate: (count ?? 0) > 0, error: null }
+      } catch (err) {
+        return {
+          duplicate: false,
+          error: err instanceof Error ? err : new Error('Unknown error checking duplicates'),
+        }
+      }
+    },
+    [],
+  )
+
   async function addProject() {
     setMessage('')
     if (!canCreateProject) {
@@ -216,9 +249,29 @@ const clientOptions = useMemo(() => {
       return
     }
     setSaving(true)
-    const payload: ProjectInsertPayload = { name: projectName }
-    if (projectNumber) payload.project_number = projectNumber
-    if (client) payload.client = client
+    const normalizedName = projectName.trim()
+    const normalizedNumber = projectNumber.trim()
+    const normalizedClient = client.trim()
+
+    const { duplicate, error: dupError } = await checkExactProject({
+      name: normalizedName,
+      projectNumber: normalizedNumber || null,
+      clientName: normalizedClient || null,
+    })
+    if (dupError) {
+      setSaving(false)
+      setMessage('Error checking existing projects: ' + dupError.message)
+      return
+    }
+    if (duplicate) {
+      setSaving(false)
+      setMessage('A project with the same name, client, and project number already exists.')
+      return
+    }
+
+    const payload: ProjectInsertPayload = { name: normalizedName }
+    if (normalizedNumber) payload.project_number = normalizedNumber
+    if (normalizedClient) payload.client = normalizedClient
     const { error } = await supabase.from('projects').insert([payload])
     setSaving(false)
     if (error) setMessage('Error: ' + error.message)
@@ -383,10 +436,29 @@ const clientOptions = useMemo(() => {
     if (!editingId || !canEditProject) return
     setMessage('')
     setEditSaving(true)
-    const update: ProjectUpdatePayload = { name: editProjectName }
+    const normalizedName = editProjectName.trim()
+    const normalizedNumber = editProjectNumber.trim()
+    const normalizedClient = editClient.trim()
+    const { duplicate, error: dupError } = await checkExactProject({
+      name: normalizedName,
+      projectNumber: normalizedNumber || null,
+      clientName: normalizedClient || null,
+      excludeId: editingId,
+    })
+    if (dupError) {
+      setEditSaving(false)
+      setMessage('Error checking existing projects: ' + dupError.message)
+      return
+    }
+    if (duplicate) {
+      setEditSaving(false)
+      setMessage('A project with the same name, client, and project number already exists.')
+      return
+    }
+    const update: ProjectUpdatePayload = { name: normalizedName }
     if (hasExtendedFields) {
-      update.project_number = editProjectNumber
-      update.client = editClient
+      update.project_number = normalizedNumber || null
+      update.client = normalizedClient || null
     }
     const { error } = await supabase
       .from('projects')
