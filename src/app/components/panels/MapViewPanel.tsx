@@ -138,6 +138,8 @@ export default function MapViewPanel() {
     return mappedPoints.filter((point) => (point.projectId ? selectedSet.has(point.projectId) : false))
   }, [mappedPoints, selectedProjectIds])
 
+  const hasAnyPoints = mappedPoints.length > 0
+
   const projectLookup = useMemo(() => {
     const map = new Map<string, ProjectOption>()
     projects.forEach((project) => map.set(project.id, project))
@@ -191,17 +193,6 @@ export default function MapViewPanel() {
     )
   }
 
-  if (!filteredPoints.length) {
-    const hasAnyPoints = mappedPoints.length > 0
-    return (
-      <div className="rounded-xl border border-gray-200 bg-white p-6">
-        <p className="text-sm text-gray-500">
-          {hasAnyPoints ? 'No manholes match the selected project filters. Adjust the filter to see more locations.' : 'No manholes with latitude/longitude have been recorded yet.'}
-        </p>
-      </div>
-    )
-  }
-
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-1">
@@ -212,6 +203,13 @@ export default function MapViewPanel() {
         </p>
       </div>
       <div className="rounded-xl border border-gray-200 bg-white p-4 space-y-3">
+        {!filteredPoints.length && (
+          <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-3 text-sm text-gray-600">
+            {hasAnyPoints
+              ? 'No chambers match the selected project filters. Adjust or clear the filter to see more locations.'
+              : 'No chambers with latitude/longitude have been recorded yet.'}
+          </div>
+        )}
         <div className="flex flex-wrap items-center gap-3">
           <button
             type="button"
