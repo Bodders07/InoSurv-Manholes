@@ -151,6 +151,8 @@ export default function EditManholePage() {
   const [chamberMaterial, setChamberMaterial] = useState('')
   const [chamberMaterialOther, setChamberMaterialOther] = useState('')
   const [chamberCondition, setChamberCondition] = useState('')
+  const chamberConditionOption = chamberCondition.startsWith('Other:') ? 'Other' : chamberCondition
+  const chamberConditionOtherText = chamberCondition.startsWith('Other:') ? chamberCondition.replace(/^Other:\s*/, '') : ''
 
   // photos
   const [internalPhotoUrl, setInternalPhotoUrl] = useState('')
@@ -575,14 +577,26 @@ export default function EditManholePage() {
           </div>
           <div>
             <label className="block text-sm mb-1">Condition</label>
-            <select className="w-full border p-2 rounded" value={chamberCondition} onChange={(e)=>setChamberCondition(e.target.value)}>
+            <select
+              className="w-full border p-2 rounded"
+              value={chamberConditionOption}
+              onChange={(e) => {
+                const value = e.target.value
+                setChamberCondition(value === 'Other' ? 'Other' : value)
+              }}
+            >
               <option value="">Select condition</option>
-              {['Poor','Poor/Fair','Fair','Fair/Good','Good','Unknown','Unsafe','OK','Needs Attention','Other'].map(opt => (
+              {['Poor','Fair','Good','Other'].map(opt => (
                 <option key={opt} value={opt}>{opt}</option>
               ))}
             </select>
-            {chamberCondition === 'Other' && (
-              <input className="mt-2 w-full border p-2 rounded" placeholder="If Other, specify" onChange={(e)=>setChamberCondition(`Other: ${e.target.value}`)} />
+            {chamberConditionOption === 'Other' && (
+              <input
+                className="mt-2 w-full border p-2 rounded"
+                placeholder="If Other, why?"
+                value={chamberConditionOtherText}
+                onChange={(e)=>setChamberCondition(`Other: ${e.target.value}`)}
+              />
             )}
           </div>
 

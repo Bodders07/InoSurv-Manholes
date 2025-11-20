@@ -1,0 +1,220 @@
+'use client'
+
+import { Suspense, useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
+import SidebarLayout from '@/app/components/SidebarLayout'
+import { supabase } from '@/lib/supabaseClient'
+import NextDynamic from 'next/dynamic'
+import { type SketchState } from '@/app/components/sketch/ChamberSketch'
+const ChamberSketch = NextDynamic(() => import('@/app/components/sketch/ChamberSketch'), { ssr: false })
+
+interface Project {
+  id: string
+  name: string
+}
+
+type Pipe = {
+  label: string
+  shape: string
+  material: string
+  invert_depth_m: string
+  width_mm: string
+  height_mm: string
+  diameter_mm: string
+  notes: string
+}
+
+type PipeLabelMode = 'letters' | 'numbers'
+
+const SERVICE_TYPES = [
+  'Water','Foul Water','Surface Water','Combined','Soakaway','Interceptor','Storm Water Overflow','Electric','BT','Telecom',
+  'Traffic Sig','CATV','SV','FH','AV','WO','CCTV','Comms','Fuel Tank','Fuel Vent','Fuel Filler','WM','Empty','GV','Other',
+  'Cables','Ducts','Fibre','FWS','Gas','Heating Pipes','Pipes','CWS','SWS','Unidentified'
+]
+
+const TYPE_OPTIONS = [
+  'Manhole',
+  'Catchpit',
+  'Hatchbox',
+  'Lamphole',
+  'Dual',
+  'Junction',
+  'Rodding Eye',
+  'Outfall',
+  'CSO Chamber',
+  'Pumping Station',
+  'Inlet',
+  'Other',
+]
+
+const MEASURING_TOOLS = ['Tape','Staff','Laser Level']
+const PIPE_SHAPES = ['Circular','Egg','Rectangular','Trapezoidal','Square','Brick Arch','Unknown','Other']
+const PIPE_MATERIALS = ['Vitrified Clay','Concrete','Plastic','Asbestos Cement','Cast Iron','Spun Iron','Steel','Brick','Pitch Fibre','Unknown','Other']
+
+function nextLabel(current: string) {
+  const code = current.charCodeAt(0)
+  return String.fromCharCode(Math.min(90, code + 1)) // up to 'Z'
+}
+
+function createEmptyPipe(label: string): Pipe {
+  return {
+    label,
+    shape: '',
+    material: '',
+    invert_depth_m: '',
+    width_mm: '',
+    height_mm: '',
+    diameter_mm: '',
+    notes: '',
+  }
+}
+
+function letterForIndex(startCode: number, offset: number) {
+  return String.fromCharCode(Math.min(90, startCode + offset))
+}
+
+function AddManholeForm({ standaloneLayout = true }: { standaloneLayout?: boolean }) {
+  const params = useSearchParams()
+  const [projects, setProjects] = useState<Project[]>([])
+  const [projectId, setProjectId] = useState(() => params.get('project') || '')
+
+  // Basic fields
+  const [identifier, setIdentifier] = useState('')
+  const [surveyDate, setSurveyDate] = useState('')
+  const [measuringTool, setMeasuringTool] = useState('')
+  const [laserOffset, setLaserOffset] = useState('')
+  const [locationDesc, setLocationDesc] = useState('')
+  const [latitude, setLatitude] = useState('')
+  const [longitude, setLongitude] = useState('')
+  const [easting, setEasting] = useState('')
+  const [northing, setNorthing] = useState('')
+  const [coverLevel, setCoverLevel] = useState('')
+
+  // Service/type
+  const [serviceType, setServiceType] = useState('')
+  const [type, setType] = useState('')
+  const [typeOther, setTypeOther] = useState('')
+  const [pipeLabelMode, setPipeLabelMode] = useState<PipeLabelMode>('letters')
+
+  // Cover lifted
+  const [coverLifted, setCoverLifted] = useState('')
+  const [coverNotReason, setCoverNotReason] = useState('')
+
+  // Pipes
+  const [incoming, setIncoming] = useState<Pipe[]>(() => [createEmptyPipe('Pipe A')])
+  const [outgoing, setOutgoing] = useState<Pipe[]>(() => [createEmptyPipe('Pipe X')])
+
+  const [message, setMessage] = useState('')
+  const [copyList, setCopyList] = useState(false)
+  const [sketch, setSketch] = useState<SketchState | null>(null)
+  const [sketchOpen, setSketchOpen] = useState(false)
+  const [sketchDraft, setSketchDraft] = useState<SketchState | null>(null)
+
+  const handleCurrentLocation = () => {
+    if (typeof navigator === 'undefined' || !navigator.geolocation) {
+      setMessage('Geolocation not supported on this device.')
+      return
+    }
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude: lat, longitude: lng } = position.coords
+        setLatitude(lat.toFixed(6))
+        setLongitude(lng.toFixed(6))
+      },
+      (err) => {
+        setMessage(`Unable to fetch location: ${err.message}`)
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    )
+  }
+  useEffect(() => {
+    // Lock body scroll while sketch is open (mobile-friendly)
+    if (sketchOpen) {
+      const prev = document.body.style.overflow
+      document.body.style.overflow = 'hidden'
+      return () => { document.body.style.overflow = prev }
+    }
+  }, [sketchOpen])
+
+  // Cover
+  const [coverShape, setCoverShape] = useState('')
+  const [coverMaterial, setCoverMaterial] = useState('')
+  const [coverMaterialOther, setCoverMaterialOther] = useState('')
+  const [coverCondition, setCoverCondition] = useState('')
+
+  // Chamber
+  const [chamberShape, setChamberShape] = useState('')
+  const [chamberDiameter, setChamberDiameter] = useState('')
+  const [chamberWidth, setChamberWidth] = useState('')
+  const [chamberLength, setChamberLength] = useState('')
+  const [chamberMaterial, setChamberMaterial] = useState('')
+  const [chamberMaterialOther, setChamberMaterialOther] = useState('')
+  const [chamberCondition, setChamberCondition] = useState('')
+  // Photos
+  const [internalPhoto, setInternalPhoto] = useState<File | null>(null)
+  const [internalPreview, setInternalPreview] = useState('')
+  const [externalPhoto, setExternalPhoto] = useState<File | null>(null)
+  const [externalPreview, setExternalPreview] = useState('')
+
+  const numericLabelRegex = /^Pipe\s+(\d+)/i
+
+  const getNextLetterLabel = (list: Pipe[], fallback: string) => {
+    const last = list[list.length - 1]?.label.replace('Pipe ', '') || fallback
+    return `Pipe ${nextLabel(last)}`
+  }
+
+  const getNextNumericLabel = () => {
+    const numbers = [...incoming, ...outgoing]
+      .map(pipe => {
+        const match = pipe.label.match(numericLabelRegex)
+        return match ? Number(match[1]) : Number.NaN
+      })
+      .filter(value => !Number.isNaN(value))
+    const nextNumber = numbers.length ? Math.max(...numbers) + 1 : 1
+    return `Pipe ${nextNumber}`
+  }
+
+  const relabelPipesToNumbers = () => {
+    let counter = 1
+    setIncoming(prev => prev.map(pipe => ({ ...pipe, label: `Pipe ${counter++}` })))
+    setOutgoing(prev => prev.map(pipe => ({ ...pipe, label: `Pipe ${counter++}` })))
+  }
+
+  const relabelPipesToLetters = () => {
+    setIncoming(prev => {
+      const source = prev.length ? prev : [createEmptyPipe('Pipe A')]
+      return source.map((pipe, idx) => ({ ...pipe, label: `Pipe ${letterForIndex(65, idx)}` }))
+    })
+    setOutgoing(prev => {
+      const source = prev.length ? prev : [createEmptyPipe('Pipe X')]
+      return source.map((pipe, idx) => ({ ...pipe, label: `Pipe ${letterForIndex(88, idx)}` }))
+    })
+  }
+
+  const handlePipeModeChange = (mode: PipeLabelMode) => {
+    setPipeLabelMode(mode)
+    if (mode === 'numbers') {
+      relabelPipesToNumbers()
+    } else {
+      relabelPipesToLetters()
+    }
+  }
+
+  useEffect(() => {
+    if (type !== 'Catchpit' && pipeLabelMode !== 'letters') {
+      setPipeLabelMode('letters')
+      relabelPipesToLetters()
+    }
+  }, [type, pipeLabelMode])
+
+  useEffect(() => {
+    if (pipeLabelMode !== 'numbers') return
+    if (!outgoing.length) return
+    setIncoming((prev) => {
+      const combined = [...prev, ...outgoing]
+      return combined.map((pipe, idx) => ({ ...pipe, label: `Pipe ${idx + 1}` }))
+    })
+    setOutgoing([])
+  }, [pipeLabelMode, outgoing])
+
+  useEffect(() => {
