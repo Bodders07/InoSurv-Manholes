@@ -138,12 +138,8 @@ function AddManholeForm({ standaloneLayout = true }: { standaloneLayout?: boolea
 
   // Cover
   const [coverShape, setCoverShape] = useState('')
-  const [coverDiameter, setCoverDiameter] = useState('')
-  const [coverWidth, setCoverWidth] = useState('')
-  const [coverLength, setCoverLength] = useState('')
   const [coverMaterial, setCoverMaterial] = useState('')
   const [coverMaterialOther, setCoverMaterialOther] = useState('')
-  const [coverDuty, setCoverDuty] = useState('')
   const [coverCondition, setCoverCondition] = useState('')
 
   // Chamber
@@ -266,12 +262,8 @@ function AddManholeForm({ standaloneLayout = true }: { standaloneLayout?: boolea
       cover_level: coverLevel || null,
       // cover specifics
       cover_shape: coverShape || null,
-      cover_diameter_mm: coverShape === 'Circle' ? (coverDiameter || null) : null,
-      cover_width_mm: coverShape && coverShape !== 'Circle' ? (coverWidth || null) : null,
-      cover_length_mm: coverShape && coverShape !== 'Circle' ? (coverLength || null) : null,
       cover_material: coverMaterial || null,
       cover_material_other: coverMaterial === 'Other' ? (coverMaterialOther || null) : null,
-      cover_duty: coverDuty || null,
       cover_condition: coverCondition || null,
       // chamber specifics
       chamber_shape: chamberShape || null,
@@ -381,9 +373,6 @@ ALTER TABLE public.chambers
       setCoverLifted('')
       setCoverNotReason('')
       setCoverShape('')
-      setCoverDiameter('')
-      setCoverWidth('')
-      setCoverLength('')
       setChamberShape('')
       setChamberDiameter('')
       setChamberWidth('')
@@ -540,13 +529,6 @@ ALTER TABLE public.chambers
             </select>
           </div>
           <div>
-            <label className="block text-sm mb-1">Cover Duty</label>
-            <select className="w-full border p-2 rounded" value={coverDuty} onChange={(e)=>setCoverDuty(e.target.value)}>
-              <option value="">Select duty</option>
-              {['Heavy','Medium','Light'].map(d => <option key={d} value={d}>{d}</option>)}
-            </select>
-          </div>
-          <div>
             <label className="block text-sm mb-1">Cover Condition</label>
             <select className="w-full border p-2 rounded" value={coverCondition} onChange={(e)=>setCoverCondition(e.target.value)}>
               <option value="">Select condition</option>
@@ -565,23 +547,9 @@ ALTER TABLE public.chambers
               <input className="mt-2 w-full border p-2 rounded" placeholder="If Other, specify" value={coverMaterialOther} onChange={(e)=>setCoverMaterialOther(e.target.value)} />
             )}
           </div>
-          {coverShape === 'Circle' ? (
-            <div>
-              <label className="block text-sm mb-1">Diameter (mm)</label>
-              <input className="w-full border p-2 rounded" value={coverDiameter} onChange={(e)=>setCoverDiameter(e.target.value)} />
-            </div>
-          ) : coverShape ? (
-            <>
-              <div>
-                <label className="block text-sm mb-1">Width (mm)</label>
-                <input className="w-full border p-2 rounded" value={coverWidth} onChange={(e)=>setCoverWidth(e.target.value)} />
-              </div>
-              <div>
-                <label className="block text-sm mb-1">Length (mm)</label>
-                <input className="w-full border p-2 rounded" value={coverLength} onChange={(e)=>setCoverLength(e.target.value)} />
-              </div>
-            </>
-          ) : null}
+        <div className="md:col-span-3 text-sm text-gray-500">
+          Cover dimensions are no longer required for data entry.
+        </div>
         </div>
 
         {/* Chamber */}
