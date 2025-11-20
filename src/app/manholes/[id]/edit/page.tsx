@@ -100,6 +100,7 @@ type ManholeRow = {
   type_other: string | null
   cover_lifted: string | null
   cover_lifted_reason: string | null
+  chainage_mileage: string | null
   incoming_pipes: Pipe[] | null
   outgoing_pipes: Pipe[] | null
   internal_photo_url: string | null
@@ -136,6 +137,7 @@ export default function EditManholePage() {
   const [pipeLabelMode, setPipeLabelMode] = useState<PipeLabelMode>('letters')
   const [coverLifted, setCoverLifted] = useState('')
   const [coverNotReason, setCoverNotReason] = useState('')
+  const [chainageMileage, setChainageMileage] = useState('')
 
   // Cover shape
   const [coverShape, setCoverShape] = useState('')
@@ -284,6 +286,7 @@ export default function EditManholePage() {
         setTypeOther(row.type_other || '')
         setCoverLifted(row.cover_lifted || '')
         setCoverNotReason(row.cover_lifted_reason || '')
+        setChainageMileage(row.chainage_mileage || '')
         setInternalPhotoUrl(row.internal_photo_url || '')
         setExternalPhotoUrl(row.external_photo_url || '')
         setSketch(row.sketch_json || null)
@@ -347,6 +350,7 @@ export default function EditManholePage() {
       chamber_condition: chamberCondition || null,
       cover_lifted: coverLifted || null,
       cover_lifted_reason: coverLifted === 'No' ? (coverNotReason || null) : null,
+      chainage_mileage: chainageMileage || null,
       incoming_pipes: incoming,
       outgoing_pipes: outgoing,
     }
@@ -496,17 +500,26 @@ export default function EditManholePage() {
                 </div>
               )}
             </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Cover Lifted</label>
-                <select className="w-full border p-2 rounded" value={coverLifted} onChange={(e)=>setCoverLifted(e.target.value)}>
-                  <option value="">Select option</option>
-                  <option value="Yes">Yes</option>
-                  <option value="No">No</option>
-                </select>
-                {coverLifted === 'No' && (
-                  <input className="mt-2 w-full border p-2 rounded" placeholder="If No, specify why" value={coverNotReason} onChange={(e)=>setCoverNotReason(e.target.value)} />
-                )}
-              </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Cover Lifted</label>
+              <select className="w-full border p-2 rounded" value={coverLifted} onChange={(e)=>setCoverLifted(e.target.value)}>
+                <option value="">Select option</option>
+                <option value="Yes">Yes</option>
+                <option value="No">No</option>
+              </select>
+              {coverLifted === 'No' && (
+                <input className="mt-2 w-full border p-2 rounded" placeholder="If No, specify why" value={coverNotReason} onChange={(e)=>setCoverNotReason(e.target.value)} />
+              )}
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm mb-1">Chainage / Mileage</label>
+            <input
+              className="w-full border p-2 rounded"
+              placeholder="Enter chainage or mileage"
+              value={chainageMileage}
+              onChange={(e)=>setChainageMileage(e.target.value)}
+            />
           </div>
 
           {/* Cover */}

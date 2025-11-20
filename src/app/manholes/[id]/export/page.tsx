@@ -51,6 +51,7 @@ type ManholeRecord = {
   internal_photo_url?: string | null
   external_photo_url?: string | null
   sketch_json?: SketchState | null
+  chainage_mileage: string | null
 }
 
 type ProjectRecord = {
@@ -159,15 +160,16 @@ export default function ExportManholePage() {
             <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <InfoCard
                 title="Survey Details"
-                rows={[
-                  { label: 'Identifier', value: manhole.identifier || '—' },
-                  { label: 'Service', value: manhole.service || '—' },
-                  { label: 'Survey Date', value: formatValue(manhole.survey_date) },
-                  { label: 'Measuring Tool', value: manhole.measuring_tool || '—' },
-                  { label: 'Offset (mm)', value: formatValue(manhole.measuring_offset_mm) },
-                  { label: 'Location', value: manhole.location_desc || '—' },
-                ]}
-              />
+              rows={[
+                { label: 'Identifier', value: manhole.identifier || '—' },
+                { label: 'Service', value: manhole.service || '—' },
+                { label: 'Survey Date', value: formatValue(manhole.survey_date) },
+                { label: 'Measuring Tool', value: manhole.measuring_tool || '—' },
+                { label: 'Offset (mm)', value: formatValue(manhole.measuring_offset_mm) },
+                { label: 'Location', value: manhole.location_desc || '—' },
+                { label: 'Chainage / Mileage', value: manhole.chainage_mileage || '—' },
+              ]}
+            />
               <InfoCard
                 title="Coordinates"
                 rows={[

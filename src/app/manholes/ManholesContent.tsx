@@ -20,6 +20,7 @@ type DetailedManholeRecord = Record<string, unknown> & {
   survey_date?: string | null
   measuring_tool?: string | null
   measuring_offset_mm?: number | null
+  chainage_mileage?: string | null
   latitude?: number | null
   longitude?: number | null
   easting?: number | null
@@ -616,6 +617,7 @@ export default function ChambersContent() {
         `Survey Date: ${record.survey_date || '-'}`,
         `Cover: ${record.cover_shape || '-'} / ${record.cover_material || '-'}`,
         `Cover Condition: ${record.cover_condition || '-'}`,
+        `Chainage/Mileage: ${record.chainage_mileage || '-'}`,
         `Chamber: ${record.chamber_shape || '-'} / ${record.chamber_material || '-'}`,
       ]
       lines.forEach((text, index) => {
@@ -726,6 +728,7 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
         { label: 'Lat / Lon:', value: `${valueOrDash(record.latitude)} / ${valueOrDash(record.longitude)}` },
         { label: 'Cover Level:', value: valueOrDash(record.cover_level) },
         { label: 'Cover Lifted:', value: valueOrDash(record.cover_lifted) },
+        { label: 'Chainage/Mileage:', value: valueOrDash(record.chainage_mileage) },
       ]
       const generalHeight = drawFullSection('General Details', generalRows, jobBoxX, sectionY)
       let currentY = sectionY + generalHeight + 6

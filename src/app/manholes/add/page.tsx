@@ -99,6 +99,7 @@ function AddManholeForm({ standaloneLayout = true }: { standaloneLayout?: boolea
   // Cover lifted
   const [coverLifted, setCoverLifted] = useState('')
   const [coverNotReason, setCoverNotReason] = useState('')
+  const [chainageMileage, setChainageMileage] = useState('')
 
   // Pipes
   const [incoming, setIncoming] = useState<Pipe[]>(() => [createEmptyPipe('Pipe A')])
@@ -280,6 +281,7 @@ function AddManholeForm({ standaloneLayout = true }: { standaloneLayout?: boolea
       type_other: type === 'Other' ? (typeOther || null) : null,
       cover_lifted: coverLifted || null,
       cover_lifted_reason: coverLifted === 'No' ? (coverNotReason || null) : null,
+      chainage_mileage: chainageMileage || null,
       incoming_pipes: incoming,
       outgoing_pipes: outgoing,
       sketch_json: sketch ? sketch : null,
@@ -374,6 +376,7 @@ ALTER TABLE public.chambers
       setTypeOther('')
       setCoverLifted('')
       setCoverNotReason('')
+      setChainageMileage('')
       setCoverShape('')
       setChamberShape('')
       setChamberDiameter('')
@@ -517,8 +520,17 @@ ALTER TABLE public.chambers
             {coverLifted === 'No' && (
               <input className="mt-2 w-full border p-2 rounded" placeholder="If No, specify why" value={coverNotReason} onChange={(e)=>setCoverNotReason(e.target.value)} />
             )}
-          </div>
         </div>
+      </div>
+      <div>
+        <label className="block text-sm mb-1">Chainage / Mileage</label>
+        <input
+          className="w-full border p-2 rounded"
+          placeholder="Enter chainage or mileage"
+          value={chainageMileage}
+          onChange={(e) => setChainageMileage(e.target.value)}
+        />
+      </div>
 
         {/* Cover */}
         <h2 className="text-xl font-semibold mt-8 mb-3">Cover</h2>
