@@ -88,7 +88,6 @@ type ManholeRow = {
   cover_length_mm: number | null
   cover_material: string | null
   cover_material_other: string | null
-  cover_duty: string | null
   cover_condition: string | null
   chamber_shape: string | null
   chamber_diameter_mm: number | null
@@ -270,7 +269,6 @@ export default function EditManholePage() {
         setCoverShape(row.cover_shape || '')
         setCoverMaterial(row.cover_material || '')
         setCoverMaterialOther(row.cover_material_other || '')
-        setCoverDuty(row.cover_duty || '')
         setCoverCondition(row.cover_condition || '')
         setChamberShape(row.chamber_shape || '')
         setChamberDiameter((row.chamber_diameter_mm ?? '').toString())
