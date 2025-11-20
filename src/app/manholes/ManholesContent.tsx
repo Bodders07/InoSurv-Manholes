@@ -1224,7 +1224,7 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
               <tr className="bg-gray-50 text-left">
                 <th className="px-4 py-2 border-b"><SortButton label="Projects" keyName="project_number" /></th>
                 <th className="px-4 py-2 border-b"><SortButton label="Project Name" keyName="project_name" /></th>
-                <th className="px-4 py-2 border-b"><SortButton label="Manhole Number" keyName="identifier" /></th>
+                <th className="px-4 py-2 border-b"><SortButton label="Reference Number" keyName="identifier" /></th>
                 <th className="px-4 py-2 border-b w-px">Actions</th>
               </tr>
             </thead>
