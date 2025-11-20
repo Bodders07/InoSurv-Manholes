@@ -13,6 +13,7 @@ type Project = {
   created_at?: string | null
   updated_at?: string | null
   archived?: boolean | null
+  completed?: boolean | null
 }
 
 type ProjectInsertPayload = {
@@ -133,7 +134,7 @@ const clientOptions = useMemo(() => {
     setMessage('')
     const { data, error } = await supabase
       .from('projects')
-      .select('id, name, client, project_number, created_at, updated_at, archived')
+      .select('id, name, client, project_number, created_at, updated_at, archived, completed')
       .is('deleted_at', null)
       .order('project_number', { ascending: true })
 
@@ -141,11 +142,11 @@ const clientOptions = useMemo(() => {
       setHasExtendedFields(false)
       const fallback = await supabase
         .from('projects')
-        .select('id, name, client, project_number, created_at, updated_at')
+        .select('id, name, client, project_number, created_at, updated_at, archived, completed')
         .is('deleted_at', null)
         .order('id')
       if (!fallback.error) {
-        const records = (fallback.data as Project[]).map((p) => ({ ...p, archived: undefined }))
+        const records = (fallback.data as Project[]).map((p) => ({ ...p, archived: undefined, completed: undefined }))
         setProjects(records || [])
       } else {
         setProjects([])
@@ -196,7 +197,14 @@ const clientOptions = useMemo(() => {
     return list
   }, [projects, deferredSearch, filterNumber, filterClient])
 
-  const activeProjects = useMemo(() => filteredProjects.filter((p) => !p.archived), [filteredProjects])
+  const activeProjects = useMemo(
+    () => filteredProjects.filter((p) => !p.archived && !p.completed),
+    [filteredProjects],
+  )
+  const completedProjects = useMemo(
+    () => filteredProjects.filter((p) => !!p.completed && !p.archived),
+    [filteredProjects],
+  )
   const archivedProjects = useMemo(() => filteredProjects.filter((p) => !!p.archived), [filteredProjects])
 
   const checkExactProject = useCallback(
@@ -340,6 +348,22 @@ const clientOptions = useMemo(() => {
     } else {
       setMessage('Error updating project: ' + error.message)
     }
+  }
+
+  async function toggleCompleted(p: Project) {
+    setMessage('')
+    const nextCompleted = !p.completed
+    const { error } = await supabase
+      .from('projects')
+      .update({ completed: nextCompleted })
+      .eq('id', p.id)
+      .is('deleted_at', null)
+    if (error) {
+      setMessage('Error updating completion state: ' + error.message)
+      return
+    }
+    setMessage(`Success: Project ${nextCompleted ? 'moved to Completed' : 'moved back to Active'}.`)
+    await refreshProjects()
   }
 
   function startEdit(p: Project) {
@@ -800,6 +824,9 @@ const clientOptions = useMemo(() => {
                               {menuFor === p.id && (
                                 <div className="absolute right-0 top-full mt-1 w-40 rounded-md shadow-lg bg-white ring-1 ring-black/5 z-10">
                                   <button className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100" onClick={() => { setMenuFor(null); duplicateProject(p.id) }}>Duplicate</button>
+                                  <button className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100" onClick={() => { setMenuFor(null); toggleCompleted(p) }}>
+                                    Mark Completed
+                                  </button>
                                   <button className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100" onClick={() => { setMenuFor(null); toggleArchive(p) }}>Archive</button>
                                 </div>
                               )}
@@ -814,6 +841,44 @@ const clientOptions = useMemo(() => {
             )}
           </div>
         </section>
+
+        {completedProjects.length > 0 && (
+          <section className="bg-white rounded-lg border border-gray-200 shadow-sm">
+            <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
+              <h2 className="font-semibold">Completed Projects</h2>
+              <span className="text-xs text-gray-500">{completedProjects.length} completed</span>
+            </div>
+            <div className="p-0 overflow-x-auto">
+              <table className="min-w-full">
+                <thead>
+                  <tr className="bg-gray-50 text-left">
+                    <th className="px-4 py-2 border-b">Project No.</th>
+                    <th className="px-4 py-2 border-b">Client</th>
+                    <th className="px-4 py-2 border-b">Project Name</th>
+                    <th className="px-4 py-2 border-b w-px">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {completedProjects.map((p) => (
+                    <tr key={p.id} className="hover:bg-gray-50">
+                      <td className="px-4 py-2 border-b">{p.project_number || '-'}</td>
+                      <td className="px-4 py-2 border-b">{p.client || '-'}</td>
+                      <td className="px-4 py-2 border-b">{p.name || '-'}</td>
+                      <td className="px-4 py-2 border-b w-px text-right">
+                        <button
+                          onClick={() => toggleCompleted(p)}
+                          className="px-3 py-1 rounded border border-gray-300 text-sm hover:bg-gray-50"
+                        >
+                          Mark Active
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )}
 
         {archivedProjects.length > 0 && (
           <section className="bg-white rounded-lg border border-gray-200 shadow-sm">
