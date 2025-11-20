@@ -708,7 +708,7 @@ export default function EditManholePage() {
                       <input className="w-full border p-2 rounded" value={p.invert_depth_m} onChange={(e)=>{const v=[...incoming]; v[idx].invert_depth_m=e.target.value; setIncoming(v)}} />
                     </div>
                     <div>
-                      <label className="block text-sm mb-1">Soffit Level</label>
+                      <label className="block text-sm mb-1">Soffit Level (m)</label>
                       <input
                         className="w-full border p-2 rounded"
                         placeholder="Only needed if invert is UTS"
@@ -783,7 +783,7 @@ export default function EditManholePage() {
                       <input className="w-full border p-2 rounded" value={p.invert_depth_m} onChange={(e)=>{const v=[...outgoing]; v[idx].invert_depth_m=e.target.value; setOutgoing(v)}} />
                     </div>
                     <div>
-                      <label className="block text-sm mb-1">Soffit Level</label>
+                      <label className="block text-sm mb-1">Soffit Level (m)</label>
                       <input
                         className="w-full border p-2 rounded"
                         placeholder="Only needed if invert is UTS"
