@@ -18,6 +18,7 @@ type Pipe = {
   height_mm: string
   diameter_mm: string
   notes: string
+  soffit_level: string
 }
 
 type PipeLabelMode = 'letters' | 'numbers'
@@ -35,6 +36,7 @@ function createEmptyPipe(label: string): Pipe {
     height_mm: '',
     diameter_mm: '',
     notes: '',
+    soffit_level: '',
   }
 }
 
@@ -292,8 +294,24 @@ export default function EditManholePage() {
         setSketch(row.sketch_json || null)
         const incomingPipes = Array.isArray(row.incoming_pipes) && row.incoming_pipes.length ? (row.incoming_pipes as Pipe[]) : null
         const outgoingPipes = Array.isArray(row.outgoing_pipes) && row.outgoing_pipes.length ? (row.outgoing_pipes as Pipe[]) : null
-        const incomingList = incomingPipes ?? [createEmptyPipe('Pipe A')]
-        const outgoingList = outgoingPipes ?? [createEmptyPipe('Pipe X')]
+        const normalizePipe = (pipe: Pipe, fallbackLabel: string): Pipe => ({
+          label: pipe.label || fallbackLabel,
+          func: pipe.func || '',
+          shape: pipe.shape || '',
+          material: pipe.material || '',
+          invert_depth_m: pipe.invert_depth_m ? String(pipe.invert_depth_m) : '',
+          width_mm: pipe.width_mm ? String(pipe.width_mm) : '',
+          height_mm: pipe.height_mm ? String(pipe.height_mm) : '',
+          diameter_mm: pipe.diameter_mm ? String(pipe.diameter_mm) : '',
+          notes: pipe.notes || '',
+          soffit_level: pipe.soffit_level ? String(pipe.soffit_level) : '',
+        })
+        const incomingList = (incomingPipes ?? [createEmptyPipe('Pipe A')]).map((pipe, index) =>
+          normalizePipe(pipe, pipe.label || `Pipe ${String.fromCharCode(65 + index)}`),
+        )
+        const outgoingList = (outgoingPipes ?? [createEmptyPipe('Pipe X')]).map((pipe, index) =>
+          normalizePipe(pipe, pipe.label || `Pipe ${String.fromCharCode(88 + index)}`),
+        )
         setIncoming(incomingList)
         setOutgoing(outgoingList)
         const hasNumericLabels = [...incomingList, ...outgoingList].some(pipe => PIPE_NUMBER_REGEX.test(pipe.label ?? ''))
@@ -689,6 +707,10 @@ export default function EditManholePage() {
                       <label className="block text-sm mb-1">Invert Depth (m)</label>
                       <input className="w-full border p-2 rounded" value={p.invert_depth_m} onChange={(e)=>{const v=[...incoming]; v[idx].invert_depth_m=e.target.value; setIncoming(v)}} />
                     </div>
+                    <div>
+                      <label className="block text-sm mb-1">Soffit Level</label>
+                      <input className="w-full border p-2 rounded" value={p.soffit_level} onChange={(e)=>{const v=[...incoming]; v[idx].soffit_level=e.target.value; setIncoming(v)}} />
+                    </div>
                     {['Circular','Egg','Brick Arch','Unknown','Other'].includes(p.shape) ? (
                       <div>
                         <label className="block text-sm mb-1">Pipe Diameter (mm)</label>
@@ -754,6 +776,10 @@ export default function EditManholePage() {
                     <div>
                       <label className="block text-sm mb-1">Invert Depth (m)</label>
                       <input className="w-full border p-2 rounded" value={p.invert_depth_m} onChange={(e)=>{const v=[...outgoing]; v[idx].invert_depth_m=e.target.value; setOutgoing(v)}} />
+                    </div>
+                    <div>
+                      <label className="block text-sm mb-1">Soffit Level</label>
+                      <input className="w-full border p-2 rounded" value={p.soffit_level} onChange={(e)=>{const v=[...outgoing]; v[idx].soffit_level=e.target.value; setOutgoing(v)}} />
                     </div>
                     {['Circular','Egg','Brick Arch','Unknown','Other'].includes(p.shape) ? (
                       <div>

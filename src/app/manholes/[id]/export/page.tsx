@@ -17,6 +17,7 @@ type Pipe = {
   width_mm?: string | number | null
   height_mm?: string | number | null
   diameter_mm?: string | number | null
+  soffit_level?: string | number | null
   notes?: string | null
 }
 

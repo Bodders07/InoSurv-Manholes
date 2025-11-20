@@ -59,6 +59,7 @@ type PipeRecord = {
   height_mm?: string | number | null
   diameter_mm?: string | number | null
   invert_depth_m?: string | number | null
+  soffit_level?: string | number | null
   notes?: string | null
 }
 type PipeRow = {
@@ -758,7 +759,7 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
       const normalizedHeight = Math.max(coverHeightNeeded, chamberHeightNeeded)
       drawSection('Cover Details', coverRows, jobBoxX, currentY, normalizedHeight)
       drawSection('Chamber Details', chamberRows, jobBoxX + columnWidth + 4, currentY, normalizedHeight)
-      currentY += normalizedHeight + 12
+      currentY += normalizedHeight + 6
 
       const drawPipeTable = (title: string, entries: PipeRow[], y: number, rows = 6) => {
         const cols = [

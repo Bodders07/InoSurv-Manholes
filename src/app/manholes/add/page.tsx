@@ -22,6 +22,7 @@ type Pipe = {
   height_mm: string
   diameter_mm: string
   notes: string
+  soffit_level: string
 }
 
 type PipeLabelMode = 'letters' | 'numbers'
@@ -66,6 +67,7 @@ function createEmptyPipe(label: string): Pipe {
     height_mm: '',
     diameter_mm: '',
     notes: '',
+    soffit_level: '',
   }
 }
 
@@ -377,6 +379,7 @@ ALTER TABLE public.chambers
       setCoverLifted('')
       setCoverNotReason('')
       setChainageMileage('')
+      setChainageMileage('')
       setCoverShape('')
       setChamberShape('')
       setChamberDiameter('')
@@ -662,6 +665,10 @@ ALTER TABLE public.chambers
                   <label className="block text-sm mb-1">Invert Depth (m)</label>
                   <input className="w-full border p-2 rounded" value={p.invert_depth_m} onChange={(e)=>{const v=[...incoming]; v[idx].invert_depth_m=e.target.value; setIncoming(v)}} />
                 </div>
+                <div>
+                  <label className="block text-sm mb-1">Soffit Level</label>
+                  <input className="w-full border p-2 rounded" value={p.soffit_level} onChange={(e)=>{const v=[...incoming]; v[idx].soffit_level=e.target.value; setIncoming(v)}} />
+                </div>
                 {['Circular','Egg','Brick Arch','Unknown','Other'].includes(p.shape) ? (
                   <div>
                     <label className="block text-sm mb-1">Pipe Diameter (mm)</label>
@@ -725,6 +732,10 @@ ALTER TABLE public.chambers
                     <div>
                       <label className="block text-sm mb-1">Invert Depth (m)</label>
                       <input className="w-full border p-2 rounded" value={p.invert_depth_m} onChange={(e)=>{const v=[...outgoing]; v[idx].invert_depth_m=e.target.value; setOutgoing(v)}} />
+                    </div>
+                    <div>
+                      <label className="block text-sm mb-1">Soffit Level</label>
+                      <input className="w-full border p-2 rounded" value={p.soffit_level} onChange={(e)=>{const v=[...outgoing]; v[idx].soffit_level=e.target.value; setOutgoing(v)}} />
                     </div>
                     {['Circular','Egg','Brick Arch','Unknown','Other'].includes(p.shape) ? (
                       <div>
