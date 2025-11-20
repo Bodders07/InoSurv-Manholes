@@ -6,6 +6,7 @@ import type { PermissionConfig, RoleKey, CategoryKey } from '@/types/permissions
 const ROLE_TABS: { id: RoleKey; label: string; description: string }[] = [
   { id: 'viewer', label: 'Viewer', description: 'Read-only access to records' },
   { id: 'editor', label: 'Editor', description: 'Create and edit day-to-day records' },
+  { id: 'editorPlus', label: 'Editor+', description: 'Editor capabilities with enhanced options' },
   { id: 'admin', label: 'Admin', description: 'Manage projects & manholes plus admin pages' },
   { id: 'superadmin', label: 'Super Admin', description: 'Full platform access' },
 ]

@@ -38,16 +38,7 @@ export function PermissionsProvider({ children }: { children: React.ReactNode })
   const detectRole = useCallback((user: Parameters<typeof deriveRoleInfo>[0]) => {
     try {
       const info = deriveRoleInfo(user)
-      const roleKey: RoleKey =
-        info.isSuperAdmin
-          ? 'superadmin'
-          : info.isAdmin
-            ? 'admin'
-            : (() => {
-                const combined = [info.role, ...info.roles]
-                return combined.some((value) => (value || '').includes('editor')) ? 'editor' : 'viewer'
-              })()
-      setRole(roleKey)
+      setRole(info.roleKey)
     } catch {
       setRole('viewer')
     }

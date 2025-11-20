@@ -8,6 +8,7 @@ import { usePermissions } from '@/app/components/PermissionsContext'
 const ROLES = [
   { value: 'superadmin', label: 'Super Admin' },
   { value: 'admin', label: 'Admin' },
+  { value: 'editorPlus', label: 'Editor+' },
   { value: 'editor', label: 'Editor' },
   { value: 'viewer', label: 'Viewer' },
 ]

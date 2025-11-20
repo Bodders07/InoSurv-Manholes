@@ -97,6 +97,55 @@
       { "key": "run-maintenance", "label": "Run maintenance/cleanup jobs", "allowed": false }
     ]
   },
+  "editorPlus": {
+    "general": [
+      { "key": "view-dashboard", "label": "View dashboard & lists", "allowed": true },
+      { "key": "search", "label": "Use search & filters", "allowed": true },
+      { "key": "view-activity", "label": "View activity feed", "allowed": true },
+      { "key": "edit-settings", "label": "Change site settings", "allowed": false },
+      { "key": "manage-profile", "label": "Update own profile details", "allowed": true }
+    ],
+    "manholes": [
+      { "key": "manhole-view", "label": "View manholes", "allowed": true },
+      { "key": "manhole-create", "label": "Create manholes", "allowed": true },
+      { "key": "manhole-edit", "label": "Edit manholes", "allowed": true },
+      { "key": "manhole-delete", "label": "Delete manholes", "allowed": false },
+      { "key": "manhole-approve", "label": "Approve manhole records", "allowed": false },
+      { "key": "manhole-assign", "label": "Assign manholes to teammates", "allowed": true }
+    ],
+    "projects": [
+      { "key": "project-view", "label": "View projects", "allowed": true },
+      { "key": "project-create", "label": "Create projects", "allowed": true },
+      { "key": "project-edit", "label": "Edit projects", "allowed": true },
+      { "key": "project-delete", "label": "Archive/Delete projects", "allowed": false },
+      { "key": "project-archive", "label": "Archive projects", "allowed": true }
+    ],
+    "media": [
+      { "key": "upload-photo", "label": "Upload photos", "allowed": true },
+      { "key": "edit-sketch", "label": "Edit chamber sketch", "allowed": true },
+      { "key": "delete-media", "label": "Delete photos/sketches", "allowed": false }
+    ],
+    "exports": [
+      { "key": "export-pdf", "label": "Generate PDF exports", "allowed": true },
+      { "key": "export-csv", "label": "Export CSV/Sheets", "allowed": true },
+      { "key": "download-files", "label": "Download attachments", "allowed": true },
+      { "key": "export-kml", "label": "Export GIS / KML files", "allowed": true }
+    ],
+    "map": [
+      { "key": "view-map", "label": "Access map view", "allowed": true },
+      { "key": "configure-map", "label": "Change map appearance", "allowed": true },
+      { "key": "map-preview", "label": "Open manhole preview from map", "allowed": true },
+      { "key": "map-edit", "label": "Open manhole editor from map", "allowed": true }
+    ],
+    "adminTools": [
+      { "key": "view-admin-panels", "label": "View admin panels", "allowed": false },
+      { "key": "invite-users", "label": "Invite users", "allowed": false },
+      { "key": "change-roles", "label": "Change user roles", "allowed": false },
+      { "key": "view-storage", "label": "View storage usage", "allowed": false },
+      { "key": "manage-permissions", "label": "Modify privilege matrix", "allowed": false },
+      { "key": "run-maintenance", "label": "Run maintenance/cleanup jobs", "allowed": false }
+    ]
+  },
   "admin": {
     "general": [
       { "key": "view-dashboard", "label": "View dashboard & lists", "allowed": true },

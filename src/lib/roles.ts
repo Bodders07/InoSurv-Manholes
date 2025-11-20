@@ -29,9 +29,13 @@ export function deriveRoleInfo(user: User | null | undefined): RoleInfo {
   // Superadmin detection: exact membership in roles or role
   const isSuperAdmin = role === 'superadmin' || roles.includes('superadmin')
 
+  const matchesEditorPlus = (value: string) =>
+    value.includes('editorplus') || value.includes('editor+') || value.includes('editor_plus') || value.includes('editor-plus')
+
   let roleKey: RoleKey = 'viewer'
   if (isSuperAdmin) roleKey = 'superadmin'
   else if (isAdmin) roleKey = 'admin'
+  else if (matchesEditorPlus(role) || roles.some((r) => matchesEditorPlus(r))) roleKey = 'editorPlus'
   else if (role.includes('editor') || roles.includes('editor')) roleKey = 'editor'
 
   return { email, role, roles, isAdmin, isSuperAdmin, roleKey }
