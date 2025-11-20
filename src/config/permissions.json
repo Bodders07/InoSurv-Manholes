@@ -20,7 +20,8 @@
       { "key": "project-create", "label": "Create projects", "allowed": false },
       { "key": "project-edit", "label": "Edit projects", "allowed": false },
       { "key": "project-delete", "label": "Archive/Delete projects", "allowed": false },
-      { "key": "project-archive", "label": "Archive projects", "allowed": false }
+      { "key": "project-archive", "label": "Archive projects", "allowed": false },
+      { "key": "project-complete", "label": "Mark projects completed", "allowed": false }
     ],
     "media": [
       { "key": "upload-photo", "label": "Upload photos", "allowed": false },
@@ -69,7 +70,8 @@
       { "key": "project-create", "label": "Create projects", "allowed": true },
       { "key": "project-edit", "label": "Edit projects", "allowed": true },
       { "key": "project-delete", "label": "Archive/Delete projects", "allowed": false },
-      { "key": "project-archive", "label": "Archive projects", "allowed": true }
+      { "key": "project-archive", "label": "Archive projects", "allowed": true },
+      { "key": "project-complete", "label": "Mark projects completed", "allowed": true }
     ],
     "media": [
       { "key": "upload-photo", "label": "Upload photos", "allowed": true },
@@ -167,7 +169,8 @@
       { "key": "project-create", "label": "Create projects", "allowed": true },
       { "key": "project-edit", "label": "Edit projects", "allowed": true },
       { "key": "project-delete", "label": "Archive/Delete projects", "allowed": true },
-      { "key": "project-archive", "label": "Archive projects", "allowed": true }
+      { "key": "project-archive", "label": "Archive projects", "allowed": true },
+      { "key": "project-complete", "label": "Mark projects completed", "allowed": true }
     ],
     "media": [
       { "key": "upload-photo", "label": "Upload photos", "allowed": true },
@@ -216,7 +219,8 @@
       { "key": "project-create", "label": "Create projects", "allowed": true },
       { "key": "project-edit", "label": "Edit projects", "allowed": true },
       { "key": "project-delete", "label": "Archive/Delete projects", "allowed": true },
-      { "key": "project-archive", "label": "Archive projects", "allowed": true }
+      { "key": "project-archive", "label": "Archive projects", "allowed": true },
+      { "key": "project-complete", "label": "Mark projects completed", "allowed": true }
     ],
     "media": [
       { "key": "upload-photo", "label": "Upload photos", "allowed": true },

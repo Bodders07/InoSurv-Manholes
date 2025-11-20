@@ -104,6 +104,7 @@ export default function ProjectsContent() {
   const canCreateProject = has('project-create')
   const canEditProject = has('project-edit')
   const canDeleteProject = has('project-delete')
+  const canCompleteProject = has('project-complete')
   useEffect(() => {
     if (!canCreateProject) setShowCreate(false)
   }, [canCreateProject])
@@ -351,6 +352,10 @@ const clientOptions = useMemo(() => {
   }
 
   async function toggleCompleted(p: Project) {
+    if (!canCompleteProject) {
+      setMessage('Error: You do not have permission to adjust completion status.')
+      return
+    }
     setMessage('')
     const nextCompleted = !p.completed
     const { error } = await supabase
@@ -824,9 +829,11 @@ const clientOptions = useMemo(() => {
                               {menuFor === p.id && (
                                 <div className="absolute right-0 top-full mt-1 w-40 rounded-md shadow-lg bg-white ring-1 ring-black/5 z-10">
                                   <button className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100" onClick={() => { setMenuFor(null); duplicateProject(p.id) }}>Duplicate</button>
-                                  <button className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100" onClick={() => { setMenuFor(null); toggleCompleted(p) }}>
-                                    Mark Completed
-                                  </button>
+                                  {canCompleteProject && (
+                                    <button className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100" onClick={() => { setMenuFor(null); toggleCompleted(p) }}>
+                                      Mark Completed
+                                    </button>
+                                  )}
                                   <button className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100" onClick={() => { setMenuFor(null); toggleArchive(p) }}>Archive</button>
                                 </div>
                               )}
@@ -842,7 +849,7 @@ const clientOptions = useMemo(() => {
           </div>
         </section>
 
-        {completedProjects.length > 0 && (
+        {canCompleteProject && completedProjects.length > 0 && (
           <section className="bg-white rounded-lg border border-gray-200 shadow-sm">
             <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
               <h2 className="font-semibold">Completed Projects</h2>
@@ -867,7 +874,10 @@ const clientOptions = useMemo(() => {
                       <td className="px-4 py-2 border-b w-px text-right">
                         <button
                           onClick={() => toggleCompleted(p)}
-                          className="px-3 py-1 rounded border border-gray-300 text-sm hover:bg-gray-50"
+                          disabled={!canCompleteProject}
+                          className={`px-3 py-1 rounded border text-sm ${
+                            canCompleteProject ? 'border-gray-300 hover:bg-gray-50' : 'border-gray-200 text-gray-400 cursor-not-allowed'
+                          }`}
                         >
                           Mark Active
                         </button>
