@@ -401,8 +401,8 @@ export default function ChambersContent() {
       setLoading(true)
       setMessage('')
       const [projRes, mhRes] = await Promise.all([
-        supabase.from('projects').select('id, name, project_number, client'),
-        supabase.from('chambers').select('id, identifier, project_id'),
+        supabase.from('projects').select('id, name, project_number, client').is('deleted_at', null),
+        supabase.from('chambers').select('id, identifier, project_id').is('deleted_at', null),
       ])
       if (projRes.error) setMessage('Error loading projects: ' + projRes.error.message)
       else setProjects((projRes.data as Project[]) || [])
@@ -420,8 +420,8 @@ export default function ChambersContent() {
   async function reloadLists() {
     setLoading(true)
     const [projRes, mhRes] = await Promise.all([
-      supabase.from('projects').select('id, name, project_number, client'),
-      supabase.from('chambers').select('id, identifier, project_id'),
+      supabase.from('projects').select('id, name, project_number, client').is('deleted_at', null),
+      supabase.from('chambers').select('id, identifier, project_id').is('deleted_at', null),
     ])
     if (!projRes.error && projRes.data) setProjects(projRes.data as Project[])
     if (!mhRes.error && mhRes.data) setChambers(mhRes.data)
@@ -537,6 +537,7 @@ export default function ChambersContent() {
         .from('chambers')
         .select('*')
         .in('id', ids)
+        .is('deleted_at', null)
       if (error) throw new Error(error.message)
       const records = (data as DetailedManholeRecord[]) || []
       const orderMap = new Map(ids.map((id, index) => [id, index]))
@@ -956,14 +957,26 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
 
   async function deleteManhole(id: string) {
     if (!canDeleteManhole) return
-    const proceed = typeof window !== 'undefined' ? window.confirm('Delete this manhole? This cannot be undone.') : true
+    const proceed =
+      typeof window !== 'undefined' ? window.confirm('Move this chamber to the recycle bin?') : true
     if (!proceed) return
     setMessage('')
     setDeletingId(id)
-    const { error } = await supabase.from('chambers').delete().eq('id', id)
+    const { data: userData } = await supabase.auth.getUser()
+    const userId = userData.user?.id ?? null
+    const deletedAt = new Date().toISOString()
+    const { error } = await supabase
+      .from('chambers')
+      .update({ deleted_at: deletedAt, deleted_by: userId })
+      .eq('id', id)
+      .is('deleted_at', null)
     setDeletingId(null)
-    if (error) setMessage('Error: ' + error.message)
-    else setChambers((list) => list.filter((m) => m.id !== id))
+    if (error) {
+      setMessage('Error: ' + error.message)
+    } else {
+      setChambers((list) => list.filter((m) => m.id !== id))
+      setMessage('Chamber moved to recycle bin.')
+    }
   }
 
   if (!hydrated) {

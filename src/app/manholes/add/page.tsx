@@ -223,7 +223,7 @@ function AddManholeForm({ standaloneLayout = true }: { standaloneLayout?: boolea
 
   useEffect(() => {
     async function fetchProjects() {
-      const { data, error } = await supabase.from('projects').select('id, name')
+      const { data, error } = await supabase.from('projects').select('id, name').is('deleted_at', null)
       if (!error && data) setProjects(data)
     }
     fetchProjects()

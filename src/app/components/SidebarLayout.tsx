@@ -224,6 +224,7 @@ export default function SidebarLayout({
     { id: 'users', label: 'User Management', icon: <Settings size={16} />, permission: 'change-roles' },
     { id: 'privileges', label: 'User Privileges', icon: <Settings size={16} />, permission: 'change-roles' },
     { id: 'storage', label: 'Storage Usage', icon: <Settings size={16} />, permission: 'view-storage' },
+    { id: 'recycle', label: 'Recycle Bin', icon: <RefreshCw size={16} />, permission: 'run-maintenance' },
   ]
   const adminNav = adminCatalog.filter((item) => has(item.permission))
   const canSeeAdminTools = !permissionsLoading && has('view-admin-panels') && adminNav.length > 0

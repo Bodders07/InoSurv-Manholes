@@ -10,6 +10,7 @@ import PrivilegesPanel from './components/panels/PrivilegesPanel'
 import SettingsPanel from './components/panels/SettingsPanel'
 import StoragePanel from './components/panels/StoragePanel'
 import MapViewPanel from './components/panels/MapViewPanel'
+import RecyclePanel from './components/panels/RecyclePanel'
 
 export default function HomePage() {
   const { view } = useView()
@@ -30,6 +31,7 @@ export default function HomePage() {
       {view === 'privileges' && <PrivilegesPanel />}
       {view === 'settings' && <SettingsPanel />}
       {view === 'storage' && <StoragePanel />}
+      {view === 'recycle' && <RecyclePanel />}
       {view === 'inspections' && <MapViewPanel />}
     </SidebarLayout>
   )

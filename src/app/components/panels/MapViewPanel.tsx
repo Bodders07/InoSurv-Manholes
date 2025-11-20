@@ -81,6 +81,7 @@ export default function MapViewPanel() {
     const { data, error } = await supabase
       .from('chambers')
       .select('id, identifier, latitude, longitude, cover_shape, project_id')
+      .is('deleted_at', null)
 
     if (error) {
       setError(error.message)
@@ -100,6 +101,7 @@ export default function MapViewPanel() {
       const { data, error } = await supabase
         .from('projects')
         .select('id, name, project_number')
+        .is('deleted_at', null)
         .order('name', { ascending: true, nullsFirst: false })
       if (!error) {
         setProjects((data as ProjectOption[]) || [])

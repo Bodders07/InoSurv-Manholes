@@ -82,6 +82,7 @@ export default function ExportManholePage() {
           .from('chambers')
           .select('*')
           .eq('id', manholeId)
+          .is('deleted_at', null)
           .maybeSingle()
         if (mhError) throw mhError
         if (!mhRow) {
@@ -94,6 +95,7 @@ export default function ExportManholePage() {
             .from('projects')
             .select('id, name, project_number, client')
             .eq('id', record.project_id)
+            .is('deleted_at', null)
             .maybeSingle()
           if (projError) throw projError
           projectRow = projData as ProjectRecord | null

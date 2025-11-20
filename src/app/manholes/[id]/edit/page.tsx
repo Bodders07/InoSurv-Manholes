@@ -256,6 +256,7 @@ export default function EditManholePage() {
         .from('chambers')
         .select('*')
         .eq('id', manholeId)
+        .is('deleted_at', null)
         .maybeSingle()
       if (error) setMessage('Error loading manhole: ' + error.message)
       const row = data as ManholeRow | null
@@ -301,6 +302,8 @@ export default function EditManholePage() {
         setOutgoing(outgoingList)
         const hasNumericLabels = [...incomingList, ...outgoingList].some(pipe => PIPE_NUMBER_REGEX.test(pipe.label ?? ''))
         setPipeLabelMode(row.type === 'Catchpit' && hasNumericLabels ? 'numbers' : 'letters')
+      } else {
+        setMessage('Chamber not found or has been deleted.')
       }
       setLoading(false)
     }
@@ -363,7 +366,11 @@ export default function EditManholePage() {
     update.chamber_material_other = chamberMaterial === 'Other' ? (chamberMaterialOther || null) : null
     update.sketch_json = sketch || null
 
-    const { error } = await supabase.from('chambers').update(update).eq('id', manholeId)
+    const { error } = await supabase
+      .from('chambers')
+      .update(update)
+      .eq('id', manholeId)
+      .is('deleted_at', null)
     if (error) {
       setMessage('Error: ' + error.message)
       return
@@ -386,10 +393,11 @@ export default function EditManholePage() {
       }
       const pub = bucket.getPublicUrl(path)
       const url = pub.data.publicUrl
-      const upRow = await supabase
-        .from('chambers')
-        .update(kind === 'internal' ? { internal_photo_url: url } : { external_photo_url: url })
-        .eq('id', manholeId)
+        const upRow = await supabase
+          .from('chambers')
+          .update(kind === 'internal' ? { internal_photo_url: url } : { external_photo_url: url })
+          .eq('id', manholeId)
+          .is('deleted_at', null)
       if (upRow.error) {
         uploadMsg += `\nNote: Saved file but failed to write URL to DB (${upRow.error.message}). Check manholes RLS allows your role to update.`
       }

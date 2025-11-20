@@ -134,6 +134,7 @@ const clientOptions = useMemo(() => {
     const { data, error } = await supabase
       .from('projects')
       .select('id, name, client, project_number, created_at, updated_at, archived')
+      .is('deleted_at', null)
       .order('project_number', { ascending: true })
 
     if (error) {
@@ -141,6 +142,7 @@ const clientOptions = useMemo(() => {
       const fallback = await supabase
         .from('projects')
         .select('id, name, client, project_number, created_at, updated_at')
+        .is('deleted_at', null)
         .order('id')
       if (!fallback.error) {
         const records = (fallback.data as Project[]).map((p) => ({ ...p, archived: undefined }))
@@ -238,6 +240,7 @@ const clientOptions = useMemo(() => {
       .from('projects')
       .select('name, client, project_number')
       .eq('id', id)
+      .is('deleted_at', null)
       .maybeSingle()
     if (error) {
       setMessage('Error duplicating: ' + error.message)
@@ -264,6 +267,7 @@ const clientOptions = useMemo(() => {
       .from('projects')
       .update({ archived: nextArchived } as { archived: boolean })
       .eq('id', p.id)
+      .is('deleted_at', null)
     if (!error) {
       setMessage(`Success: Project ${nextArchived ? 'archived' : 'unarchived'}.`)
       await refreshProjects()
@@ -278,6 +282,7 @@ const clientOptions = useMemo(() => {
             : (p.name || '').replace(/^Archived -\s*/, '') || p.name,
         })
         .eq('id', p.id)
+        .is('deleted_at', null)
       if (nameErr) setMessage('Error updating project: ' + nameErr.message)
       else {
         setMessage(`Success: Project ${nextArchived ? 'archived (name prefixed)' : 'unarchived (name restored)'}.`)
@@ -331,6 +336,7 @@ const clientOptions = useMemo(() => {
           .update(payload)
           .eq('project_id', importProjectId)
           .eq('identifier', identifier)
+          .is('deleted_at', null)
         if (error) throw error
         updated++
       }
@@ -382,7 +388,11 @@ const clientOptions = useMemo(() => {
       update.project_number = editProjectNumber
       update.client = editClient
     }
-    const { error } = await supabase.from('projects').update(update).eq('id', editingId)
+    const { error } = await supabase
+      .from('projects')
+      .update(update)
+      .eq('id', editingId)
+      .is('deleted_at', null)
     setEditSaving(false)
     if (error) setMessage('Error: ' + error.message)
     else {
@@ -402,11 +412,12 @@ const clientOptions = useMemo(() => {
       .from('chambers')
       .select('id', { count: 'exact', head: true })
       .eq('project_id', id)
+      .is('deleted_at', null)
     const relatedCount = rel.count ?? 0
 
-    let confirmText = 'Delete this project? This cannot be undone.'
+    let confirmText = 'Move this project to the recycle bin?'
     if (relatedCount > 0) {
-      confirmText = `Delete this project and its ${relatedCount} manhole(s)? This cannot be undone. If your database is not set to cascade deletes, this will fail.`
+      confirmText = `Move this project and its ${relatedCount} chamber(s) to the recycle bin? You can restore them later from Admin Tools.`
     }
 
     const proceed = typeof window !== 'undefined' ? window.confirm(confirmText) : true
@@ -414,27 +425,37 @@ const clientOptions = useMemo(() => {
 
     setMessage('')
 
+    const { data: userData } = await supabase.auth.getUser()
+    const userId = userData.user?.id ?? null
+    const deletedAt = new Date().toISOString()
     const { error, data } = await supabase
       .from('projects')
-      .delete()
+      .update({ deleted_at: deletedAt, deleted_by: userId })
       .eq('id', id)
+      .is('deleted_at', null)
       .select('id')
 
     if (error) {
-      if (error.message.toLowerCase().includes('foreign key')) {
-        setMessage('Error: Project has related manholes. Enable ON DELETE CASCADE on manholes.project_id or delete the manholes first.')
-      } else {
-        setMessage('Error: ' + error.message)
-      }
+      setMessage('Error: ' + error.message)
       return
     }
 
     if (!data || data.length === 0) {
-      setMessage('Error: Project not deleted (RLS or missing permissions). Ensure a DELETE policy exists for your role.')
+      setMessage('Error: Project not removed (RLS or missing permissions). Ensure an UPDATE policy exists for your role.')
       return
     }
 
-    setMessage('Success: Project deleted.')
+    const { error: cascadeErr } = await supabase
+      .from('chambers')
+      .update({ deleted_at: deletedAt, deleted_by: userId })
+      .eq('project_id', id)
+      .is('deleted_at', null)
+
+    if (cascadeErr) {
+      setMessage('Project moved to recycle bin, but failed to recycle some chambers: ' + cascadeErr.message)
+    } else {
+      setMessage('Success: Project and related chambers moved to recycle bin.')
+    }
     await refreshProjects()
   }
 

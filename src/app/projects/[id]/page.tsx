@@ -46,15 +46,19 @@ export default function ProjectDetailPage() {
       setLoading(true)
       setMessage('')
       const [{ data: proj, error: projErr }, { data: mhs, error: mhErr }] = await Promise.all([
-        supabase.from('projects').select('name').eq('id', projectId).maybeSingle(),
+        supabase.from('projects').select('name').eq('id', projectId).is('deleted_at', null).maybeSingle(),
         supabase
           .from('chambers')
           .select('id, identifier, project_id, service_type, location_type, lid_material, chamber_construction')
           .eq('project_id', projectId)
+          .is('deleted_at', null)
           .order('identifier', { ascending: true }),
       ])
       if (projErr) setMessage('Error loading project: ' + projErr.message)
-      else setProjectName(proj?.name || '')
+      else if (!proj) {
+        setProjectName('')
+        setMessage('This project was not found or has been deleted.')
+      } else setProjectName(proj.name || '')
       if (mhErr) setMessage((prev) => prev || 'Error loading Chambers: ' + mhErr.message)
       else setChambers(mhs || [])
       setLoading(false)
@@ -64,16 +68,24 @@ export default function ProjectDetailPage() {
 
   async function deleteManhole(id: string) {
     if (!canDeleteManhole) return
-    const proceed = typeof window !== 'undefined' ? window.confirm('Delete this manhole? This cannot be undone.') : true
+    const proceed =
+      typeof window !== 'undefined' ? window.confirm('Move this chamber to the recycle bin?') : true
     if (!proceed) return
     setMessage('')
     setDeletingId(id)
-    const { error } = await supabase.from('chambers').delete().eq('id', id)
+    const { data: userData } = await supabase.auth.getUser()
+    const userId = userData.user?.id ?? null
+    const { error } = await supabase
+      .from('chambers')
+      .update({ deleted_at: new Date().toISOString(), deleted_by: userId })
+      .eq('id', id)
+      .is('deleted_at', null)
     setDeletingId(null)
     if (error) {
       setMessage('Error: ' + error.message)
     } else {
       setChambers((list) => list.filter((m) => m.id !== id))
+      setMessage('Chamber moved to recycle bin.')
     }
   }
 

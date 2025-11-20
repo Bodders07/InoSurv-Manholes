@@ -11,6 +11,7 @@ export type AppView =
   | 'users'
   | 'privileges'
   | 'storage'
+  | 'recycle'
   | 'manholes_add'
 
 type ViewCtx = {
