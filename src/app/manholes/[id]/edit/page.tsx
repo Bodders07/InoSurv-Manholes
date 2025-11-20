@@ -711,7 +711,7 @@ export default function EditManholePage() {
                       <label className="block text-sm mb-1">Soffit Level</label>
                       <input
                         className="w-full border p-2 rounded"
-                        placeholder="Only needed if soffit is UTS"
+                        placeholder="Only needed if invert is UTS"
                         value={p.soffit_level}
                         onChange={(e)=>{const v=[...incoming]; v[idx].soffit_level=e.target.value; setIncoming(v)}}
                       />
@@ -786,7 +786,7 @@ export default function EditManholePage() {
                       <label className="block text-sm mb-1">Soffit Level</label>
                       <input
                         className="w-full border p-2 rounded"
-                        placeholder="Only needed if soffit is UTS"
+                        placeholder="Only needed if invert is UTS"
                         value={p.soffit_level}
                         onChange={(e)=>{const v=[...outgoing]; v[idx].soffit_level=e.target.value; setOutgoing(v)}}
                       />
