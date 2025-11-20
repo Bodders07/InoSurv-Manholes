@@ -709,7 +709,12 @@ export default function EditManholePage() {
                     </div>
                     <div>
                       <label className="block text-sm mb-1">Soffit Level</label>
-                      <input className="w-full border p-2 rounded" value={p.soffit_level} onChange={(e)=>{const v=[...incoming]; v[idx].soffit_level=e.target.value; setIncoming(v)}} />
+                      <input
+                        className="w-full border p-2 rounded"
+                        placeholder="Only needed if soffit is UTS"
+                        value={p.soffit_level}
+                        onChange={(e)=>{const v=[...incoming]; v[idx].soffit_level=e.target.value; setIncoming(v)}}
+                      />
                     </div>
                     {['Circular','Egg','Brick Arch','Unknown','Other'].includes(p.shape) ? (
                       <div>
@@ -779,7 +784,12 @@ export default function EditManholePage() {
                     </div>
                     <div>
                       <label className="block text-sm mb-1">Soffit Level</label>
-                      <input className="w-full border p-2 rounded" value={p.soffit_level} onChange={(e)=>{const v=[...outgoing]; v[idx].soffit_level=e.target.value; setOutgoing(v)}} />
+                      <input
+                        className="w-full border p-2 rounded"
+                        placeholder="Only needed if soffit is UTS"
+                        value={p.soffit_level}
+                        onChange={(e)=>{const v=[...outgoing]; v[idx].soffit_level=e.target.value; setOutgoing(v)}}
+                      />
                     </div>
                     {['Circular','Egg','Brick Arch','Unknown','Other'].includes(p.shape) ? (
                       <div>
