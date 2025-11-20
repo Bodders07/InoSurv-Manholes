@@ -643,12 +643,24 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
     size: formatPipeSize(pipe, pipe.shape),
     shape: pipe.shape || '-',
     material: pipe.material || '-',
-    depth: valueOrDash(pipe.invert_depth_m),
+    depth: (() => {
+      const invertRaw = String(pipe.invert_depth_m ?? '').trim()
+      const soffitRaw = String(pipe.soffit_level ?? '').trim()
+      if (invertRaw) return invertRaw
+      if (soffitRaw) return soffitRaw
+      return '-'
+    })(),
     invert: (() => {
-      if (coverLevel === null || coverLevel === undefined) return '-'
-      const depth = parseFloat(String(pipe.invert_depth_m ?? '').replace(/[^\d.-]/g, ''))
-      if (Number.isNaN(depth)) return '-'
-      return (coverLevel - depth).toFixed(3)
+      const invertRaw = String(pipe.invert_depth_m ?? '').trim()
+      const soffitRaw = String(pipe.soffit_level ?? '').trim()
+      if (invertRaw) {
+        if (coverLevel === null || coverLevel === undefined) return invertRaw
+        const depth = parseFloat(invertRaw.replace(/[^\d.-]/g, ''))
+        if (Number.isNaN(depth)) return invertRaw
+        return (coverLevel - depth).toFixed(3)
+      }
+      if (soffitRaw) return soffitRaw
+      return '-'
     })(),
     notes: pipe.notes || '',
   }))
