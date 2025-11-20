@@ -196,14 +196,8 @@ const clientOptions = useMemo(() => {
     return list
   }, [projects, deferredSearch, filterNumber, filterClient])
 
-  const activeProjects = useMemo(
-    () => filteredProjects.filter((p) => !p.archived),
-    [filteredProjects]
-  )
-  const archivedProjects = useMemo(
-    () => filteredProjects.filter((p) => !!p.archived),
-    [filteredProjects]
-  )
+  const activeProjects = useMemo(() => filteredProjects.filter((p) => !p.archived), [filteredProjects])
+  const archivedProjects = useMemo(() => filteredProjects.filter((p) => !!p.archived), [filteredProjects])
 
   const checkExactProject = useCallback(
     async ({
@@ -220,14 +214,16 @@ const clientOptions = useMemo(() => {
       try {
         let query = supabase
           .from('projects')
-          .select('id', { count: 'exact', head: true })
-          .eq('name', name)
+          .select('id, name')
         query = projectNumber ? query.eq('project_number', projectNumber) : query.is('project_number', null)
         query = clientName ? query.eq('client', clientName) : query.is('client', null)
         if (excludeId) query = query.neq('id', excludeId)
-        const { count, error } = await query
+        const { data, error } = await query
         if (error) return { duplicate: false, error }
-        return { duplicate: (count ?? 0) > 0, error: null }
+        const matchName = (data || []).some(
+          (row) => (row.name || '').trim().toLowerCase() === name.trim().toLowerCase(),
+        )
+        return { duplicate: matchName, error: null }
       } catch (err) {
         return {
           duplicate: false,
