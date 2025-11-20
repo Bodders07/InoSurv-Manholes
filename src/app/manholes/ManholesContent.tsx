@@ -636,34 +636,45 @@ export default function ChambersContent() {
     })
   }
 
+const parseNumber = (value?: string | number | null, divisor = 1) => {
+  if (value === null || value === undefined) return null
+  const raw = String(value).trim()
+  if (!raw) return null
+  const parsed = parseFloat(raw.replace(/[^\d.-]/g, ''))
+  if (Number.isNaN(parsed)) return null
+  return parsed / divisor
+}
+
 const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null, limit = 6) => {
   if (!pipes || !pipes.length) return []
-  return pipes.slice(0, limit).map((pipe) => ({
-    label: pipe.label || '',
-    size: formatPipeSize(pipe, pipe.shape),
-    shape: pipe.shape || '-',
-    material: pipe.material || '-',
-    depth: (() => {
-      const invertRaw = String(pipe.invert_depth_m ?? '').trim()
-      const soffitRaw = String(pipe.soffit_level ?? '').trim()
-      if (invertRaw) return invertRaw
-      if (soffitRaw) return soffitRaw
-      return '-'
-    })(),
-    invert: (() => {
-      const invertRaw = String(pipe.invert_depth_m ?? '').trim()
-      const soffitRaw = String(pipe.soffit_level ?? '').trim()
-      if (invertRaw) {
-        if (coverLevel === null || coverLevel === undefined) return invertRaw
-        const depth = parseFloat(invertRaw.replace(/[^\d.-]/g, ''))
-        if (Number.isNaN(depth)) return invertRaw
-        return (coverLevel - depth).toFixed(3)
+  return pipes.slice(0, limit).map((pipe) => {
+    const invertDepth = parseNumber(pipe.invert_depth_m)
+    const soffitLevel = parseNumber(pipe.soffit_level)
+    const diameterMeters = parseNumber(pipe.diameter_mm, 1000)
+
+    const displayDepth = invertDepth !== null ? valueOrDash(pipe.invert_depth_m) : '-'
+
+    const computedInvert = (() => {
+      if (invertDepth !== null) {
+        if (coverLevel === null || coverLevel === undefined) return valueOrDash(pipe.invert_depth_m)
+        return (coverLevel - invertDepth).toFixed(3)
       }
-      if (soffitRaw) return soffitRaw
+      if (soffitLevel !== null && diameterMeters !== null) {
+        return (soffitLevel + diameterMeters).toFixed(3)
+      }
       return '-'
-    })(),
-    notes: pipe.notes || '',
-  }))
+    })()
+
+    return {
+      label: pipe.label || '',
+      size: formatPipeSize(pipe, pipe.shape),
+      shape: pipe.shape || '-',
+      material: pipe.material || '-',
+      depth: displayDepth,
+      invert: computedInvert,
+      notes: pipe.notes || '',
+    }
+  })
 }
 
   async function renderPdfPage(doc: jsPDF, record: DetailedManholeRecord, logo: ImageAsset | null, addPage = false) {
