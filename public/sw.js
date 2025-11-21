@@ -1,15 +1,18 @@
 const APP_SHELL_CACHE = 'app-shell-v2'
 const RUNTIME_CACHE = 'runtime-v2'
+const PRECACHE_ROUTES = [
+  '/',
+  '/offline.html',
+  '/favicon.ico',
+  '/manifest.json',
+  '/chambers/add',
+  '/chambers/add?embed=1',
+]
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(APP_SHELL_CACHE).then((cache) =>
-      cache.addAll([
-        '/',
-        '/offline.html',
-        '/favicon.ico',
-        '/manifest.json',
-      ]),
+      cache.addAll(PRECACHE_ROUTES),
     ),
   )
   self.skipWaiting()
