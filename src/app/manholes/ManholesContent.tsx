@@ -45,6 +45,7 @@ type DetailedManholeRecord = Record<string, unknown> & {
   type?: string | null
   type_other?: string | null
   cover_lifted?: string | null
+  cover_lifted_reason?: string | null
   incoming_pipes?: PipeRecord[] | null
   outgoing_pipes?: PipeRecord[] | null
   internal_photo_url?: string | null
@@ -207,6 +208,14 @@ function formatDimensionByShape(
   if (hasDiameter) return `${DIAMETER_SYMBOL}${diameter} mm`
   if (hasWidth || hasLength) return `${width || '-'} x ${length || '-'}`
   return '-'
+}
+
+function formatCoverLifted(record: DetailedManholeRecord) {
+  if (record.cover_lifted === 'No') {
+    const reason = (record.cover_lifted_reason || '').toString().trim()
+    return reason ? `No - ${reason}` : 'No -'
+  }
+  return record.cover_lifted || '-'
 }
 
 async function fetchImageData(url?: string | null) {
@@ -815,18 +824,34 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
       const generalRows = [
         { label: 'Survey Date:', value: valueOrDash(record.survey_date) },
         { label: 'Tool:', value: valueOrDash(record.measuring_tool) },
-        { label: 'Easting/Northing:', value: `${valueOrDash(record.easting)} / ${valueOrDash(record.northing)}` },
-        { label: 'Lat / Lon:', value: `${valueOrDash(record.latitude)} / ${valueOrDash(record.longitude)}` },
-        { label: 'Cover Level:', value: valueOrDash(record.cover_level) },
-        { label: 'Cover Lifted:', value: valueOrDash(record.cover_lifted) },
+        { label: 'Type:', value: valueOrDash(record.type_other || record.type) },
+        { label: 'Cover Lifted:', value: formatCoverLifted(record) },
+        { label: 'Service Type:', value: valueOrDash(record.service_type) },
         { label: 'Chainage/Mileage:', value: valueOrDash(record.chainage_mileage) },
       ]
-      const generalHeight = drawFullSection('General Details', generalRows, jobBoxX, sectionY)
-      let currentY = sectionY + generalHeight + 6
+      const coordRows = [
+        { label: 'Easting:', value: valueOrDash(record.easting) },
+        { label: 'Northing:', value: valueOrDash(record.northing) },
+        { label: 'Latitude:', value: valueOrDash(record.latitude) },
+        { label: 'Longitude:', value: valueOrDash(record.longitude) },
+        { label: 'Cover Level:', value: valueOrDash(record.cover_level) },
+      ]
+      const generalHeight = drawSection('General Details', generalRows, jobBoxX, sectionY)
+      const coordHeight = drawSection('Coordinates', coordRows, jobBoxX + columnWidth + 4, sectionY)
+      const normalizedTopHeight = Math.max(generalHeight, coordHeight)
+      let currentY = sectionY + normalizedTopHeight + 6
 
       const coverRows = [
         { label: 'Shape:', value: valueOrDash(record.cover_shape) },
-        { label: 'Service Type:', value: valueOrDash(record.service_type) },
+        {
+          label: 'Cover Size:',
+          value: formatDimensionByShape(
+            record.cover_shape,
+            record.cover_diameter_mm,
+            record.cover_width_mm,
+            record.cover_length_mm,
+          ),
+        },
         { label: 'Material:', value: valueOrDash(record.cover_material || record.cover_material_other) },
         { label: 'Condition:', value: valueOrDash(record.cover_condition) },
       ]
@@ -842,7 +867,7 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
           ),
         },
         { label: 'Material:', value: valueOrDash(record.chamber_material || record.chamber_material_other) },
-        { label: 'Condition:', value: valueOrDash(record.cover_condition) },
+        { label: 'Condition:', value: valueOrDash(record.chamber_condition) },
       ]
       const coverHeightNeeded = coverRows.length * 6 + 8
       const chamberHeightNeeded = chamberRows.length * 6 + 8
