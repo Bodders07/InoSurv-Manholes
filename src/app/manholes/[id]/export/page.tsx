@@ -7,6 +7,7 @@ import type { SketchState } from '@/app/components/sketch/ChamberSketch'
 import { supabase } from '@/lib/supabaseClient'
 
 const ChamberSketch = NextDynamic(() => import('@/app/components/sketch/ChamberSketch'), { ssr: false })
+const BUILD_TAG = 'export-layout-v2'
 
 type Pipe = {
   label?: string | null
@@ -152,6 +153,7 @@ export default function ExportManholePage() {
               Print / Save PDF
             </button>
             <span className="text-xs text-gray-500">Generated {new Date().toLocaleString()}</span>
+            <span className="text-[10px] text-gray-400">Build: {BUILD_TAG}</span>
           </div>
         </div>
 
