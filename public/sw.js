@@ -1,5 +1,5 @@
-const APP_SHELL_CACHE = 'app-shell-v2'
-const RUNTIME_CACHE = 'runtime-v2'
+const APP_SHELL_CACHE = 'app-shell-v3'
+const RUNTIME_CACHE = 'runtime-v3'
 const PRECACHE_ROUTES = [
   '/',
   '/offline.html',
@@ -7,6 +7,8 @@ const PRECACHE_ROUTES = [
   '/manifest.json',
   '/chambers/add',
   '/chambers/add?embed=1',
+  '/manholes/add',
+  '/manholes/add?embed=1',
 ]
 
 self.addEventListener('install', (event) => {
@@ -59,21 +61,23 @@ self.addEventListener('fetch', (event) => {
           return network
         } catch (err) {
           const cache = await caches.open(APP_SHELL_CACHE)
-          // Try exact match, then ignore search (handles ?embed=1), then root, then offline
+          // Try exact match, then ignore search (handles ?embed=1), then no trailing slash, then root, then offline
+          const pathNoSlash = url.pathname.endsWith('/') ? url.pathname.slice(0, -1) : url.pathname
           const cached =
             (await cache.match(request)) ||
             (await cache.match(url.pathname, { ignoreSearch: true })) ||
-            (await cache.match('/'))
+            (await cache.match(pathNoSlash, { ignoreSearch: true })) ||
+            (await cache.match('/')) ||
+            (await cache.match('/offline.html'))
           if (cached) return cached
-          const offline = await cache.match('/offline.html')
-          return offline || Response.error()
+          return Response.error()
         }
       })(),
     )
     return
   }
 
-  // Same-origin assets: cache-first
+  // Same-origin assets: cache-first with small runtime cache
   if (url.origin === self.location.origin) {
     event.respondWith(cacheFirst(request, RUNTIME_CACHE))
     return
