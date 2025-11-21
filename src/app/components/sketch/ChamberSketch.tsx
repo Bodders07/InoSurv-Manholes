@@ -478,13 +478,15 @@ export default function ChamberSketch({
           {/* Items */}
           {state.items.map((it) => {
             const isNumeric = it.type === 'numeric-known' || it.type === 'numeric-unknown'
-            const color = isNumeric
-              ? 'var(--sketch-numeric, #111827)'
+            const palettePrint = palette === 'print-light'
+            const baseColor = palettePrint
+              ? '#111111'
               : it.type === 'in'
                 ? '#1d4ed8'
                 : it.type === 'out'
                   ? '#dc2626'
                   : '#111827'
+            const color = isNumeric ? (palettePrint ? '#111111' : 'var(--sketch-numeric, #111827)') : baseColor
             const sx = it.sx ?? center.x
             const sy = it.sy ?? center.y
             const ex = it.ex ?? it.x ?? center.x
