@@ -1023,9 +1023,17 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
       } else if (exportFormat === 'jpeg') {
         downloadJpegFiles(records)
       } else {
-        await downloadPdfFiles(records)
+        // For PDF, open the new export page per selected chamber (new layout)
+        const selectedRows = rows.filter((r) => exportSelected.includes(r.id))
+        if (!selectedRows.length) throw new Error('No data found for the selected Chambers.')
+        selectedRows.forEach((r) => {
+          const slug = encodeURIComponent(r.identifier || r.id)
+          const url = `/chambers/${slug}/export?embed=1`
+          window.open(url, '_blank')
+        })
+        setMessage(`Opened ${selectedRows.length} export tab(s).`)
+        setExportOpen(false)
       }
-      setExportOpen(false)
     } catch (err) {
       const messageText = err instanceof Error ? err.message : String(err)
       setMessage('Export failed: ' + messageText)
@@ -1053,22 +1061,10 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
   }
 
   async function previewManhole(id: string, identifier?: string | null) {
-    setPreviewLoadingId(id)
-    try {
-      const records = await fetchDetailedChambers([id])
-      if (!records.length) throw new Error('Unable to load chamber for preview.')
-      const logo = await getLogoAsset()
-      const doc = await createPdfDoc(records[0], logo || null)
-      const pdfBlob = doc.output('blob') as Blob
-      const url = URL.createObjectURL(pdfBlob)
-      setPreviewPdf(url)
-      setPreviewTitle(identifier || records[0].identifier || 'Chamber Preview')
-    } catch (err) {
-      const messageText = err instanceof Error ? err.message : String(err)
-      setMessage('Preview failed: ' + messageText)
-    } finally {
-      setPreviewLoadingId(null)
-    }
+    // Use the new live export page instead of the legacy JS PDF preview
+    const slug = encodeURIComponent(identifier || id)
+    const url = `/chambers/${slug}/export?embed=1`
+    window.open(url, '_blank')
   }
 
   const SortButton = ({ label, keyName }: { label: string; keyName: SortKey }) => (
