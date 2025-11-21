@@ -2,7 +2,6 @@
 
 type MutationType = 'project-insert' | 'project-update' | 'chamber-insert' | 'chamber-update'
 import { retrieveOfflineFile, deleteOfflineFiles } from '@/lib/offlinePhotos'
-import { retrieveOfflineFile, deleteOfflineFiles } from '@/lib/offlinePhotos'
 
 export type QueuedMutation = {
   id: string
