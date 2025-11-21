@@ -956,7 +956,7 @@ ALTER TABLE public.chambers
           </div>
         )}
 
-        <button onClick={addManhole} className="mt-8 w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700">Save Manhole</button>
+        <button onClick={addChamber} className="mt-8 w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700">Save Chamber</button>
 
         {message && <pre className="mt-4 whitespace-pre-wrap text-sm">{message}</pre>}
       </div>
