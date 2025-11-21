@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import SidebarLayout from '@/app/components/SidebarLayout'
 import { supabase } from '@/lib/supabaseClient'
 import { enqueueMutation } from '@/lib/mutationQueue'
+import { getCachedList } from '@/lib/offlineCache'
 import NextDynamic from 'next/dynamic'
 import { type SketchState } from '@/app/components/sketch/ChamberSketch'
 const ChamberSketch = NextDynamic(() => import('@/app/components/sketch/ChamberSketch'), { ssr: false })
@@ -225,8 +226,19 @@ function AddManholeForm({ standaloneLayout = true }: { standaloneLayout?: boolea
 
   useEffect(() => {
     async function fetchProjects() {
-      const { data, error } = await supabase.from('projects').select('id, name').is('deleted_at', null)
-      if (!error && data) setProjects(data)
+      try {
+        const { data, error } = await supabase.from('projects').select('id, name').is('deleted_at', null)
+        if (error) throw error
+        if (data) setProjects(data)
+      } catch {
+        const cached = await getCachedList<Project>('projects')
+        if (cached?.data?.length) {
+          setProjects(cached.data)
+          setMessage('Offline: using cached projects. New chamber will queue for sync.')
+        } else {
+          setMessage('Offline: no cached projects available. Connect to pick a project.')
+        }
+      }
     }
     fetchProjects()
   }, [])
