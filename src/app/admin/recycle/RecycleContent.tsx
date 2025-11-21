@@ -46,7 +46,6 @@ export default function RecycleContent() {
   const [message, setMessage] = useState('')
   const [busyId, setBusyId] = useState<string | null>(null)
   const [bulkBusy, setBulkBusy] = useState(false)
-  const [bulkBusy, setBulkBusy] = useState(false)
 
   const loadChambers = useCallback(async () => {
     setLoadingChambers(true)
