@@ -451,7 +451,7 @@ function formatChamberDimensions(m: ManholeRecord) {
 function formatCoverLifted(m: ManholeRecord) {
   if (m.cover_lifted === 'No') {
     const reason = m.cover_lifted_reason?.trim()
-    return reason ? `- ${reason}` : '-'
+    return reason ? `No - ${reason}` : 'No -'
   }
   return m.cover_lifted || '-'
 }
