@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import { clearQueue, flushQueue, getQueue, type QueuedMutation } from '@/lib/mutationQueue'
 
@@ -44,6 +44,24 @@ export default function SyncStatus() {
       return () => window.removeEventListener('online', handleOnline)
     }
     return undefined
+  }, [queued, syncing])
+
+  // Retry sync every few seconds while there is a queue and we are online
+  const retryTimer = useRef<number | null>(null)
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined
+    const shouldRetry = queued > 0 && navigator.onLine
+    if (shouldRetry) {
+      retryTimer.current = window.setInterval(() => {
+        if (!syncing) syncNow()
+      }, 5000)
+    }
+    return () => {
+      if (retryTimer.current) {
+        clearInterval(retryTimer.current)
+        retryTimer.current = null
+      }
+    }
   }, [queued, syncing])
 
   const clearAll = async () => {
