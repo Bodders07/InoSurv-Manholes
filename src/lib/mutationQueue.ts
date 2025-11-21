@@ -87,7 +87,24 @@ export async function flushQueue(supabase: any, onStatus?: (msg: string) => void
           break
         }
         case 'chamber-insert': {
-          const { error } = await supabase.from('chambers').insert([payload])
+          const { project_lookup, ...rest } = payload as any
+          let insertPayload: Record<string, unknown> = { ...rest }
+          const projectId = rest.project_id as string | undefined
+          if (projectId && projectId.startsWith('tmp-') && project_lookup) {
+            // Try to resolve the real project_id using project meta
+            const query = supabase
+              .from('projects')
+              .select('id')
+              .limit(1)
+              .eq('project_number', project_lookup.project_number ?? null)
+              .eq('name', project_lookup.name ?? null)
+              .eq('client', project_lookup.client ?? null)
+            const res = await query.maybeSingle()
+            if (!res.error && res.data?.id) {
+              insertPayload.project_id = res.data.id
+            }
+          }
+          const { error } = await supabase.from('chambers').insert([insertPayload])
           if (error) throw error
           break
         }

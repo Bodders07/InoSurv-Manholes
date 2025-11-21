@@ -13,6 +13,8 @@ const ChamberSketch = NextDynamic(() => import('@/app/components/sketch/ChamberS
 interface Project {
   id: string
   name: string
+  project_number?: string | null
+  client?: string | null
 }
 
 type Pipe = {
@@ -272,7 +274,7 @@ function AddManholeForm({ standaloneLayout = true }: { standaloneLayout?: boolea
         return
       }
       try {
-        const { data, error } = await supabase.from('projects').select('id, name').is('deleted_at', null)
+    const { data, error } = await supabase.from('projects').select('id, name, project_number, client').is('deleted_at', null)
         if (error) throw error
         if (data?.length) {
           setProjects(data)
@@ -314,6 +316,7 @@ function AddManholeForm({ standaloneLayout = true }: { standaloneLayout?: boolea
       setMessage('Please select a project and enter an identifier.')
       return
     }
+    const selectedProject = projects.find((p) => p.id === projectId)
 
     const payload: Record<string, unknown> = {
       project_id: projectId,
@@ -353,7 +356,14 @@ function AddManholeForm({ standaloneLayout = true }: { standaloneLayout?: boolea
 
     const isOffline = typeof navigator !== 'undefined' && navigator.onLine === false
     if (isOffline) {
-      await enqueueMutation('chamber-insert', payload)
+      const project_lookup = selectedProject
+        ? {
+            project_number: selectedProject.project_number || null,
+            name: selectedProject.name || null,
+            client: selectedProject.client || null,
+          }
+        : undefined
+      await enqueueMutation('chamber-insert', project_lookup ? { ...payload, project_lookup } : payload)
       setMessage('Offline: Chamber queued for sync. Photos will upload after you reconnect.')
       resetForm()
       return
