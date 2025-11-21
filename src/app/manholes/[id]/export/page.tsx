@@ -183,80 +183,61 @@ export default function ExportManholePage() {
 
         {!loading && manhole && (
           <div className="space-y-4">
-            {/* Header box */}
+            {/* Header with logo and summary */}
             <div className="border border-gray-400">
-              <div className="flex border-b border-gray-400">
-                <div className="flex-1 border-r border-gray-400 p-3 space-y-2 text-sm">
-                  <div>
-                    <div className="text-gray-500">Job No.:</div>
-                    <div className="font-medium">{project?.project_number || '-'}</div>
-                  </div>
-                  <div>
-                    <div className="text-gray-500">Project:</div>
-                    <div className="font-medium">{project?.name || '-'}</div>
-                  </div>
-                  <div>
-                    <div className="text-gray-500">Location:</div>
-                    <div className="font-medium">{manhole.location_desc || '-'}</div>
-                  </div>
-                  <div>
-                    <div className="text-gray-500">Chainage/Mileage:</div>
-                    <div className="font-medium">{manhole.chainage_mileage || '-'}</div>
-                  </div>
+              <div className="flex items-start p-3 border-b border-gray-400">
+                <div className="flex-1 space-y-1">
+                  <img src="/inorail-logo.png" alt="InoRail" className="h-10 mb-2" />
+                  <div className="text-sm text-gray-500">Job No.:</div>
+                  <div className="font-medium">{project?.project_number || '-'}</div>
+                  <div className="text-sm text-gray-500">Project:</div>
+                  <div className="font-medium">{project?.name || '-'}</div>
+                  <div className="text-sm text-gray-500">Location:</div>
+                  <div className="font-medium">{manhole.location_desc || '-'}</div>
+                  <div className="text-sm text-gray-500">Chainage/Mileage:</div>
+                  <div className="font-medium">{manhole.chainage_mileage || '-'}</div>
                 </div>
-                <div className="w-1/3 p-3">
+                <div className="w-1/3 border border-gray-400 p-3">
                   <div className="text-sm text-gray-500">Reference ID</div>
                   <div className="font-medium">{manhole.identifier || '-'}</div>
                 </div>
               </div>
             </div>
 
-            {/* General + Coordinates boxes */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div className="border border-gray-400">
-                <div className="border-b border-gray-400 p-2 text-center font-semibold">General Details</div>
-                <div className="p-3 grid grid-cols-1 gap-1 text-sm">
-                  <div className="flex justify-between gap-2"><span>Survey Date:</span><span>{formatValue(manhole.survey_date)}</span></div>
-                  <div className="flex justify-between gap-2"><span>Tool:</span><span>{manhole.measuring_tool || '-'}</span></div>
-                  <div className="flex justify-between gap-2"><span>Service Type:</span><span>{manhole.service || '-'}</span></div>
-                  <div className="flex justify-between gap-2">
-                    <span>Cover Lifted:</span>
-                    <span>{formatCoverLifted(manhole)}</span>
-                  </div>
-                  <div className="flex justify-between gap-2"><span>Type:</span><span>{manhole.type_other || manhole.type || '-'}</span></div>
-                </div>
-              </div>
-              <div className="border border-gray-400">
-                <div className="border-b border-gray-400 p-2 text-center font-semibold">Coordinates</div>
-                <div className="p-3 grid grid-cols-1 gap-1 text-sm">
-                  <div className="flex justify-between gap-2"><span>Easting:</span><span>{formatValue(manhole.easting)}</span></div>
-                  <div className="flex justify-between gap-2"><span>Northing:</span><span>{formatValue(manhole.northing)}</span></div>
-                  <div className="flex justify-between gap-2"><span>Latitude:</span><span>{formatValue(manhole.latitude)}</span></div>
-                  <div className="flex justify-between gap-2"><span>Longitude:</span><span>{formatValue(manhole.longitude)}</span></div>
-                  <div className="flex justify-between gap-2"><span>Cover Level:</span><span>{formatValue(manhole.cover_level)}</span></div>
-                </div>
-              </div>
-            </div>
-
-            {/* Cover + Chamber row */}
+            {/* Cover + General row */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div className="border border-gray-400">
                 <div className="border-b border-gray-400 p-2 text-center font-semibold">Cover Details</div>
                 <div className="p-3 text-sm space-y-1">
-                  <div className="flex justify-between gap-2"><span>Shape:</span><span>{manhole.cover_shape || '-'}</span></div>
-                  <div className="flex justify-between gap-2"><span>Dimensions:</span><span>{formatCoverDimensions(manhole)}</span></div>
-                  <div className="flex justify-between gap-2"><span>Material:</span><span>{manhole.cover_material_other || manhole.cover_material || '-'}</span></div>
-                  <div className="flex justify-between gap-2"><span>Condition:</span><span>{manhole.cover_condition || '-'}</span></div>
+                  <div className="flex justify-between gap-2"><span>Service Type:</span><span>{manhole.service || '-'}</span></div>
+                  <div className="flex justify-between gap-2"><span>Cover Material:</span><span>{manhole.cover_material_other || manhole.cover_material || '-'}</span></div>
+                  <div className="flex justify-between gap-2"><span>Cover Shape:</span><span>{manhole.cover_shape || '-'}</span></div>
+                  <div className="flex justify-between gap-2"><span>Cover Size:</span><span>{formatCoverDimensions(manhole)}</span></div>
+                  <div className="flex justify-between gap-2"><span>Cover Cond:</span><span>{manhole.cover_condition || '-'}</span></div>
+                  <div className="flex justify-between gap-2"><span>Cover Duty:</span><span>{manhole.cover_duty || '-'}</span></div>
                 </div>
               </div>
               <div className="border border-gray-400">
-                <div className="border-b border-gray-400 p-2 text-center font-semibold">Chamber Details</div>
+                <div className="border-b border-gray-400 p-2 text-center font-semibold">General Details</div>
                 <div className="p-3 text-sm space-y-1">
-                  <div className="flex justify-between gap-2"><span>Shape:</span><span>{manhole.chamber_shape || '-'}</span></div>
-                  <div className="flex justify-between gap-2"><span>Dimensions:</span><span>{formatChamberDimensions(manhole)}</span></div>
-                  <div className="flex justify-between gap-2"><span>Material:</span><span>{manhole.chamber_material_other || manhole.chamber_material || '-'}</span></div>
-                  <div className="flex justify-between gap-2"><span>Condition:</span><span>{manhole.chamber_condition || '-'}</span></div>
+                  <div className="flex justify-between gap-2"><span>Survey Date:</span><span>{formatValue(manhole.survey_date)}</span></div>
+                  <div className="flex justify-between gap-2"><span>Tool:</span><span>{manhole.measuring_tool || '-'}</span></div>
+                  <div className="flex justify-between gap-2"><span>Easting/Northing:</span><span>{`${formatValue(manhole.easting)} / ${formatValue(manhole.northing)}`}</span></div>
+                  <div className="flex justify-between gap-2"><span>Lat / Lon:</span><span>{`${formatValue(manhole.latitude)} / ${formatValue(manhole.longitude)}`}</span></div>
+                  <div className="flex justify-between gap-2"><span>Cover Level:</span><span>{formatValue(manhole.cover_level)}</span></div>
+                  <div className="flex justify-between gap-2"><span>Cover Lifted:</span><span>{formatCoverLifted(manhole)}</span></div>
                 </div>
+              </div>
+            </div>
+
+            {/* Chamber full width */}
+            <div className="border border-gray-400">
+              <div className="border-b border-gray-400 p-2 text-center font-semibold">Chamber Details</div>
+              <div className="p-3 text-sm space-y-1">
+                <div className="flex justify-between gap-2"><span>Shape:</span><span>{manhole.chamber_shape || '-'}</span></div>
+                <div className="flex justify-between gap-2"><span>Dimensions:</span><span>{formatChamberDimensions(manhole)}</span></div>
+                <div className="flex justify-between gap-2"><span>Material:</span><span>{manhole.chamber_material_other || manhole.chamber_material || '-'}</span></div>
+                <div className="flex justify-between gap-2"><span>Condition:</span><span>{manhole.chamber_condition || '-'}</span></div>
               </div>
             </div>
 
