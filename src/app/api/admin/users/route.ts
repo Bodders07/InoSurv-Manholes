@@ -195,10 +195,17 @@ export async function PATCH(req: NextRequest) {
     }
 
     const payload: {
-      app_metadata?: { role: Role; roles: Role[] }
+      app_metadata?: { role: Role; roles: Role[]; is_admin?: boolean }
       user_metadata?: Record<string, unknown>
     } = {}
-    if (desired) payload.app_metadata = { role: desired, roles: [desired] }
+    if (desired) {
+      payload.app_metadata = {
+        role: desired,
+        roles: [desired],
+        // mark admin flag only for admin/superadmin, clear it otherwise
+        is_admin: desired === 'admin' || desired === 'superadmin',
+      }
+    }
     if (typeof nextName === 'string' && nextName.length > 0) {
       payload.user_metadata = { full_name: nextName, name: nextName }
     }
