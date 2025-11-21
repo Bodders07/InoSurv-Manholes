@@ -221,11 +221,7 @@ export default function ExportManholePage() {
                   <div className="flex justify-between gap-2"><span>Service Type:</span><span>{manhole.service || '-'}</span></div>
                   <div className="flex justify-between gap-2">
                     <span>Cover Lifted:</span>
-                    <span>
-                      {manhole.cover_lifted === 'No'
-                        ? `No - ${manhole.cover_lifted_reason || '-'}`
-                        : manhole.cover_lifted || '-'}
-                    </span>
+                    <span>{formatCoverLifted(manhole)}</span>
                   </div>
                   <div className="flex justify-between gap-2"><span>Type:</span><span>{manhole.type_other || manhole.type || '-'}</span></div>
                 </div>
@@ -429,4 +425,12 @@ function formatChamberDimensions(m: ManholeRecord) {
   if (Number.isFinite(w)) return mm(w)
   if (Number.isFinite(l)) return mm(l)
   return '-'
+}
+
+function formatCoverLifted(m: ManholeRecord) {
+  if (m.cover_lifted === 'No') {
+    const reason = m.cover_lifted_reason?.trim()
+    return reason ? `- ${reason}` : '-'
+  }
+  return m.cover_lifted || '-'
 }
