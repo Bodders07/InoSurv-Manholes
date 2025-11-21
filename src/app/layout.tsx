@@ -7,6 +7,7 @@ import ThemeInit from "./components/ThemeInit";
 import ServiceWorkerRegister from "./components/ServiceWorkerRegister";
 import SyncStatus from "./components/SyncStatus";
 import OnlineStatusBar from "./components/OnlineStatusBar";
+import UpdateCheckButton from "./components/UpdateCheckButton";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -45,6 +46,7 @@ export default function RootLayout({
         <ServiceWorkerRegister />
         <SyncStatus />
         <OnlineStatusBar />
+        <UpdateCheckButton />
         <ViewProvider>
           <PermissionsProvider>
             {children}
