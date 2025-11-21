@@ -261,8 +261,8 @@ export default function ExportManholePage() {
             </div>
 
             {/* Pipes tables */}
-            <PipeTableLegacy title="Incoming Pipes" pipes={incoming} />
-            <PipeTableLegacy title="Outgoing Pipes" pipes={outgoing} />
+            <PipeTableLegacy title="Incoming Pipes" pipes={incoming} coverLevel={numberOrNull(manhole.cover_level)} />
+            <PipeTableLegacy title="Outgoing Pipes" pipes={outgoing} coverLevel={numberOrNull(manhole.cover_level)} />
 
             {/* Photos / sketch */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -348,7 +348,7 @@ function toErrorText(err: unknown) {
   }
 }
 
-function PipeTableLegacy({ title, pipes }: { title: string; pipes: Pipe[] }) {
+function PipeTableLegacy({ title, pipes, coverLevel }: { title: string; pipes: Pipe[]; coverLevel: number | null }) {
   const headers = ['Label', 'Size', 'Shape', 'Material', 'Depth', 'Invert', 'Notes']
 
   const numberOrNull = (v: string | number | null | undefined) => {
@@ -372,6 +372,20 @@ function PipeTableLegacy({ title, pipes }: { title: string; pipes: Pipe[] }) {
     if (v === null || v === undefined || v === '') return '-'
     if (typeof v === 'number') return Number.isFinite(v) ? v.toString() : '-'
     return v as string
+  }
+
+  const deriveDepthAndInvert = (p: Pipe) => {
+    const depth = (() => {
+      const explicitDepth = numberOrNull(p.invert_depth_m)
+      if (explicitDepth !== null) return explicitDepth
+      const soffit = numberOrNull(p.soffit_level)
+      const dia = numberOrNull(p.diameter_mm)
+      if (soffit !== null && dia !== null) return soffit + dia / 1000 // add pipe diameter (m) to soffit to get depth
+      return null
+    })()
+
+    const invert = coverLevel !== null && depth !== null ? coverLevel - depth : null
+    return { depth, invert }
   }
 
   return (
@@ -398,13 +412,20 @@ function PipeTableLegacy({ title, pipes }: { title: string; pipes: Pipe[] }) {
             ) : (
               pipes.map((p, idx) => (
                 <tr key={`${p.label || idx}-${idx}`} className="border-t border-gray-200">
-                  <td className="px-2 py-1">{p.label || '-'}</td>
-                  <td className="px-2 py-1">{getSize(p)}</td>
-                  <td className="px-2 py-1">{p.shape || '-'}</td>
-                  <td className="px-2 py-1">{p.material || '-'}</td>
-                  <td className="px-2 py-1">{fmt(p.invert_depth_m)}</td>
-                  <td className="px-2 py-1">{fmt(p.soffit_level)}</td>
-                  <td className="px-2 py-1">{p.notes || '-'}</td>
+                  {(() => {
+                    const { depth, invert } = deriveDepthAndInvert(p)
+                    return (
+                      <>
+                        <td className="px-2 py-1">{p.label || '-'}</td>
+                        <td className="px-2 py-1">{getSize(p)}</td>
+                        <td className="px-2 py-1">{p.shape || '-'}</td>
+                        <td className="px-2 py-1">{p.material || '-'}</td>
+                        <td className="px-2 py-1">{fmt(depth)}</td>
+                        <td className="px-2 py-1">{fmt(invert)}</td>
+                        <td className="px-2 py-1">{p.notes || '-'}</td>
+                      </>
+                    )
+                  })()}
                 </tr>
               ))
             )}
