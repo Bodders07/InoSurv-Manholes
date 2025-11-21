@@ -824,10 +824,10 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
       const generalRows = [
         { label: 'Survey Date:', value: valueOrDash(record.survey_date) },
         { label: 'Tool:', value: valueOrDash(record.measuring_tool) },
+        { label: 'Chainage/Mileage:', value: valueOrDash(record.chainage_mileage) },
         { label: 'Type:', value: valueOrDash(record.type_other || record.type) },
         { label: 'Cover Lifted:', value: formatCoverLifted(record) },
         { label: 'Service Type:', value: valueOrDash(record.service_type) },
-        { label: 'Chainage/Mileage:', value: valueOrDash(record.chainage_mileage) },
       ]
       const coordRows = [
         { label: 'Easting:', value: valueOrDash(record.easting) },
