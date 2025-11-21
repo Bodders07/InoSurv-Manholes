@@ -2,7 +2,13 @@
 
 import { useEffect, useState } from 'react'
 
+let onlineBarMounted = false
+
 export default function OnlineStatusBar() {
+  // Prevent duplicate bars if a nested render mounts this component twice
+  if (onlineBarMounted) return null
+  onlineBarMounted = true
+
   const [online, setOnline] = useState<boolean | null>(null)
 
   useEffect(() => {
@@ -13,6 +19,7 @@ export default function OnlineStatusBar() {
     return () => {
       window.removeEventListener('online', update)
       window.removeEventListener('offline', update)
+      onlineBarMounted = false
     }
   }, [])
 

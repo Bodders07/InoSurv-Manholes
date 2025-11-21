@@ -2,7 +2,13 @@
 
 import { useState } from 'react'
 
+let updateButtonMounted = false
+
 export default function UpdateCheckButton() {
+  // Prevent duplicate bars if rendered twice (e.g., nested layouts)
+  if (updateButtonMounted) return null
+  updateButtonMounted = true
+
   const [status, setStatus] = useState<string>('')
 
   const checkForUpdate = async () => {
