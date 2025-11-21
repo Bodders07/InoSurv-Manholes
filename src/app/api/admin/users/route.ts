@@ -6,7 +6,7 @@ export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 const ADMIN_ROLES = ['admin', 'owner', 'superadmin', 'root'] as const
-type Role = 'superadmin' | 'admin' | 'editor' | 'viewer'
+type Role = 'superadmin' | 'admin' | 'editorPlus' | 'editor' | 'viewer'
 
 type ClientPair =
   | { error: string; requester: null; admin: null }
@@ -34,6 +34,7 @@ function normalizeRole(input: string): Role | null {
   const v = (input || '').toString().trim().toLowerCase().replace(/\s+/g, '')
   if (v === 'superadmin' || v === 'super' || v === 'superadministrator') return 'superadmin'
   if (v === 'admin' || v === 'administrator') return 'admin'
+  if (v === 'editorplus' || v === 'editor+' || v === 'editor-plus' || v === 'editor_plus') return 'editorPlus'
   if (v === 'editor') return 'editor'
   if (v === 'viewer' || v === 'read' || v === 'readonly') return 'viewer'
   return null
