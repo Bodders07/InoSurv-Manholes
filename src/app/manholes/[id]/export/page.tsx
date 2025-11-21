@@ -160,7 +160,7 @@ export default function ExportManholePage() {
 
         {!loading && manhole && (
           <div className="space-y-6">
-            {/* Top row: survey details */}
+            {/* Top row: survey + coordinates */}
             <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <InfoCard
                 title="Survey Details"
@@ -201,8 +201,6 @@ export default function ExportManholePage() {
                   { label: 'Type', value: manhole.type_other || manhole.type || '-' },
                 ]}
               />
-
-            <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <InfoCard
                 title="Cover"
                 rows={[
@@ -214,6 +212,9 @@ export default function ExportManholePage() {
                   { label: 'Reason', value: manhole.cover_lifted_reason || '-' },
                 ]}
               />
+            </section>
+
+            <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <InfoCard
                 title="Chamber"
                 rows={[
