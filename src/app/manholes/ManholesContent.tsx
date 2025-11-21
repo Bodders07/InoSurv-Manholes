@@ -1061,15 +1061,11 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
   }
 
   async function previewManhole(id: string, identifier?: string | null) {
-    // Open the live export page in a popup window (same URL, no new tab)
+    // Open the live export page inside an in-app modal (iframe) instead of a new tab/popup
     const slug = encodeURIComponent(identifier || id)
     const url = `/chambers/${slug}/export?embed=1`
-    const popup = typeof window !== 'undefined'
-      ? window.open(url, 'exportPreview', 'width=1400,height=900,noopener,noreferrer')
-      : null
-    if (!popup) {
-      setMessage('Popup blocked. Please allow popups for this site to preview the sheet.')
-    }
+    setPreviewTitle(identifier || 'Chamber Preview')
+    setPreviewPdf(url)
   }
 
   const SortButton = ({ label, keyName }: { label: string; keyName: SortKey }) => (
@@ -1217,7 +1213,7 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
           </div>
         </div>
       )}
-      {previewPdf && (
+            {previewPdf && (
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-0 sm:p-6">
           <div className="relative bg-white dark:bg-neutral-900 w-screen h-screen sm:w-[90vw] sm:h-[85vh] rounded-none sm:rounded-lg shadow-lg">
             <button
@@ -1225,22 +1221,14 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
               className="absolute top-2 right-2 px-2 py-1 rounded bg-neutral-800 text-white hover:bg-neutral-700"
               onClick={closePreview}
             >
-              âœ•
+              ×
             </button>
             <div className="absolute top-2 left-4 text-sm font-semibold text-gray-200">{previewTitle}</div>
-            <object data={previewPdf} type="application/pdf" className="w-full h-full">
-              <p className="p-4 text-sm">
-                PDF preview unavailable.{' '}
-                <a href={previewPdf} target="_blank" rel="noreferrer" className="text-blue-600 underline">
-                  Open in new tab
-                </a>
-              </p>
-            </object>
+            <iframe src={previewPdf} className="w-full h-full border-0" title="Chamber Preview" />
           </div>
         </div>
       )}
-
-      {exportOpen && (
+{exportOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-2" onClick={() => setExportOpen(false)}>
           <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-neutral-800">
@@ -1440,6 +1428,7 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
     </>
   )
 }
+
 
 
 
