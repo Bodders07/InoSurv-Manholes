@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, useEffect, useState } from 'react'
+import React, { Suspense, useEffect, useState, type ReactNode } from 'react'
 import { useSearchParams } from 'next/navigation'
 import SidebarLayout from '@/app/components/SidebarLayout'
 import { supabase } from '@/lib/supabaseClient'
@@ -31,6 +31,43 @@ type Pipe = {
 }
 
 type PipeLabelMode = 'letters' | 'numbers'
+
+class ChamberFormBoundary extends React.Component<{ children: ReactNode }, { error: Error | null }> {
+  constructor(props: { children: ReactNode }) {
+    super(props)
+    this.state = { error: null }
+  }
+  static getDerivedStateFromError(error: Error) {
+    return { error }
+  }
+  componentDidCatch(error: Error) {
+    try {
+      localStorage.setItem(
+        'lastAddChamberError',
+        JSON.stringify({ message: error.message, stack: error.stack, ts: Date.now() })
+      )
+    } catch {
+      /* ignore */
+    }
+  }
+  render() {
+    if (this.state.error) {
+      return (
+        <div className="p-4 text-sm text-red-700 bg-red-50 rounded border border-red-200">
+          <p className="font-semibold">Add Chamber error (captured locally)</p>
+          <p className="mt-1 break-words">{this.state.error.message}</p>
+          {this.state.error.stack && (
+            <pre className="mt-2 whitespace-pre-wrap text-xs text-red-800">{this.state.error.stack}</pre>
+          )}
+          <p className="mt-2 text-xs text-gray-600">
+            Screenshot this block and share it so we can patch the iOS offline crash.
+          </p>
+        </div>
+      )
+    }
+    return this.props.children as ReactNode
+  }
+}
 
 const SERVICE_TYPES = [
   'Water','Foul Water','Surface Water','Combined','Soakaway','Interceptor','Storm Water Overflow','Electric','BT','Telecom',
@@ -470,7 +507,8 @@ ALTER TABLE public.chambers
     }
   }
 
-  const content = (<>
+  const content = (
+    <ChamberFormBoundary>
       <div className="p-8 max-w-4xl mx-auto">
         <h1 className="text-2xl font-bold mb-4">Add Chamber</h1>
 
@@ -951,7 +989,7 @@ ALTER TABLE public.chambers
 
         {message && <pre className="mt-4 whitespace-pre-wrap text-sm">{message}</pre>}
       </div>
-    </>);
+    </ChamberFormBoundary>);
   if (standaloneLayout) { return (<SidebarLayout>{content}</SidebarLayout>); }
   return content;
 }
