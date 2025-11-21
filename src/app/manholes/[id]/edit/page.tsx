@@ -708,18 +708,11 @@ export default function EditManholePage() {
                 <div key={idx} className="border rounded p-4 bg-white">
                   <div className="font-medium mb-3">{p.label}</div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    <div>
-                      <label className="block text-sm mb-1">Function</label>
-                      <select className="w-full border p-2 rounded" value={p.func} onChange={(e)=>{const v=[...incoming]; v[idx].func=e.target.value; setIncoming(v)}}>
-                        <option value="">Select</option>
-                        {PIPE_FUNCTIONS.map(o=> <option key={o} value={o}>{o}</option>)}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm mb-1">Shape</label>
-                      <select className="w-full border p-2 rounded" value={p.shape} onChange={(e)=>{const v=[...incoming]; v[idx].shape=e.target.value; setIncoming(v)}}>
-                        <option value="">Select</option>
-                        {PIPE_SHAPES.map(o=> <option key={o} value={o}>{o}</option>)}
+                  <div>
+                    <label className="block text-sm mb-1">Shape</label>
+                    <select className="w-full border p-2 rounded" value={p.shape} onChange={(e)=>{const v=[...incoming]; v[idx].shape=e.target.value; setIncoming(v)}}>
+                      <option value="">Select</option>
+                      {PIPE_SHAPES.map(o=> <option key={o} value={o}>{o}</option>)}
                       </select>
                     </div>
                     <div>
@@ -783,13 +776,6 @@ export default function EditManholePage() {
                 <div key={idx} className="border rounded p-4 bg-white">
                   <div className="font-medium mb-3">{p.label}</div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    <div>
-                      <label className="block text-sm mb-1">Function</label>
-                      <select className="w-full border p-2 rounded" value={p.func} onChange={(e)=>{const v=[...outgoing]; v[idx].func=e.target.value; setOutgoing(v)}}>
-                        <option value="">Select</option>
-                        {PIPE_FUNCTIONS.map(o=> <option key={o} value={o}>{o}</option>)}
-                      </select>
-                    </div>
                     <div>
                       <label className="block text-sm mb-1">Shape</label>
                       <select className="w-full border p-2 rounded" value={p.shape} onChange={(e)=>{const v=[...outgoing]; v[idx].shape=e.target.value; setOutgoing(v)}}>
