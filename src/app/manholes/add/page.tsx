@@ -311,7 +311,7 @@ function AddManholeForm({ standaloneLayout = true }: { standaloneLayout?: boolea
     setOutgoing((arr) => arr.filter((_, i) => i !== index))
   }
 
-    async function addChamber() {
+  async function addChamber() {
     try {
       if (!projectId || !identifier) {
         setMessage('Please select a project and enter an identifier.')
@@ -444,44 +444,8 @@ ALTER TABLE public.chambers
         setMessage('Success: Chamber created.' + uploadMsg)
         resetForm()
       }
-      setMessage('Success: Manhole created.' + uploadMsg)
-      // Reset fields; optionally keep project/date/tool when copyList is enabled
-      setIdentifier('')
-      if (!copyList) {
-        setProjectId('')
-        setSurveyDate('')
-        setMeasuringTool('')
-      }
-      setLaserOffset('')
-      setLocationDesc('')
-      setLatitude('')
-      setLongitude('')
-      setEasting('')
-      setNorthing('')
-      setCoverLevel('')
-      setServiceType('')
-      setType('')
-      setTypeOther('')
-      setCoverLifted('')
-      setCoverNotReason('')
-      setChainageMileage('')
-      setChainageMileage('')
-      setCoverShape('')
-      setChamberShape('')
-      setChamberDiameter('')
-      setChamberWidth('')
-      setChamberLength('')
-      setChamberMaterial('')
-      setChamberMaterialOther('')
-      setInternalPhoto(null)
-      setInternalPreview('')
-      setExternalPhoto(null)
-      setExternalPreview('')
-      setChamberMaterial('')
-      setChamberMaterialOther('')
-      setPipeLabelMode('letters')
-      setIncoming([createEmptyPipe('Pipe A')])
-      setOutgoing([createEmptyPipe('Pipe X')])
+    } catch (err) {
+      setMessage('Error: ' + (err instanceof Error ? err.message : String(err)))
     }
   }
 
