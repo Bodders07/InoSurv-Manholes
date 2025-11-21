@@ -460,7 +460,14 @@ export default function ChamberSketch({
 
           {/* Items */}
           {state.items.map((it) => {
-            const color = it.type === 'in' ? '#1d4ed8' : it.type === 'out' ? '#dc2626' : '#111827'
+            const isNumeric = it.type === 'numeric-known' || it.type === 'numeric-unknown'
+            const color = isNumeric
+              ? 'var(--sketch-numeric, #111827)'
+              : it.type === 'in'
+                ? '#1d4ed8'
+                : it.type === 'out'
+                  ? '#dc2626'
+                  : '#111827'
             const sx = it.sx ?? center.x
             const sy = it.sy ?? center.y
             const ex = it.ex ?? it.x ?? center.x

@@ -119,6 +119,7 @@ html, body {
   --sketch-legend-bg: #ffffff;
   --sketch-legend-border: #e5e7eb; /* gray-200 */
   --sketch-arrow: #111111;
+  --sketch-numeric: #111827; /* default numeric arrows/labels */
 }
 
 .theme-dark {
@@ -128,6 +129,7 @@ html, body {
   --sketch-legend-bg: #111827; /* gray-900 */
   --sketch-legend-border: #374151; /* slate-700 */
   --sketch-arrow: #ffffff;
+  --sketch-numeric: #ffffff;
 }
 
 .theme-dark .sketch-toolbar button,
