@@ -1,7 +1,7 @@
 'use client'
+import { retrieveOfflineFile, deleteOfflineFiles } from '@/lib/offlinePhotos'
 
 type MutationType = 'project-insert' | 'project-update' | 'chamber-insert' | 'chamber-update'
-import { retrieveOfflineFile, deleteOfflineFiles } from '@/lib/offlinePhotos'
 
 export type QueuedMutation = {
   id: string
@@ -154,9 +154,11 @@ export async function flushQueue(supabase: any, onStatus?: (msg: string) => void
               return url
             }
 
-            await uploadPhoto(offline_photos.internal, 'internal')
-            await uploadPhoto(offline_photos.external, 'external')
-            deleteOfflineFiles([offline_photos.internal?.key, offline_photos.external?.key])
+            const upInternal = await uploadPhoto(offline_photos.internal, 'internal')
+            const upExternal = await uploadPhoto(offline_photos.external, 'external')
+            await deleteOfflineFiles([offline_photos.internal?.key, offline_photos.external?.key])
+            if (!upInternal && offline_photos.internal) onStatus?.('Warning: failed to upload offline internal photo')
+            if (!upExternal && offline_photos.external) onStatus?.('Warning: failed to upload offline external photo')
           }
           break
         }
