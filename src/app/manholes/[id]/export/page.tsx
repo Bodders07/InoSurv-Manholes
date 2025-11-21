@@ -201,25 +201,34 @@ export default function ExportManholePage() {
               </div>
             </div>
 
-            {/* General Details box */}
-            <div className="border border-gray-400">
-              <div className="border-b border-gray-400 p-2 text-center font-semibold">General Details</div>
-              <div className="p-3 grid grid-cols-1 gap-1 text-sm">
-                <div className="flex justify-between gap-2"><span>Survey Date:</span><span>{formatValue(manhole.survey_date)}</span></div>
-                <div className="flex justify-between gap-2"><span>Tool:</span><span>{manhole.measuring_tool || '-'}</span></div>
-                <div className="flex justify-between gap-2"><span>Easting/Northing:</span><span>{`${formatValue(manhole.easting)} / ${formatValue(manhole.northing)}`}</span></div>
-                <div className="flex justify-between gap-2"><span>Lat / Lon:</span><span>{`${formatValue(manhole.latitude)} / ${formatValue(manhole.longitude)}`}</span></div>
-                <div className="flex justify-between gap-2"><span>Cover Level:</span><span>{formatValue(manhole.cover_level)}</span></div>
-                <div className="flex justify-between gap-2">
-                  <span>Cover Lifted:</span>
-                  <span>
-                    {manhole.cover_lifted === 'No'
-                      ? `No - ${manhole.cover_lifted_reason || '-'}`
-                      : manhole.cover_lifted || '-'}
-                  </span>
+            {/* General + Coordinates boxes */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="border border-gray-400">
+                <div className="border-b border-gray-400 p-2 text-center font-semibold">General Details</div>
+                <div className="p-3 grid grid-cols-1 gap-1 text-sm">
+                  <div className="flex justify-between gap-2"><span>Survey Date:</span><span>{formatValue(manhole.survey_date)}</span></div>
+                  <div className="flex justify-between gap-2"><span>Tool:</span><span>{manhole.measuring_tool || '-'}</span></div>
+                  <div className="flex justify-between gap-2">
+                    <span>Cover Lifted:</span>
+                    <span>
+                      {manhole.cover_lifted === 'No'
+                        ? `No - ${manhole.cover_lifted_reason || '-'}`
+                        : manhole.cover_lifted || '-'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between gap-2"><span>Chainage/Mileage:</span><span>{manhole.chainage_mileage || '-'}</span></div>
+                  <div className="flex justify-between gap-2"><span>Type:</span><span>{manhole.type_other || manhole.type || '-'}</span></div>
                 </div>
-                <div className="flex justify-between gap-2"><span>Chainage/Mileage:</span><span>{manhole.chainage_mileage || '-'}</span></div>
-                <div className="flex justify-between gap-2"><span>Type:</span><span>{manhole.type_other || manhole.type || '-'}</span></div>
+              </div>
+              <div className="border border-gray-400">
+                <div className="border-b border-gray-400 p-2 text-center font-semibold">Coordinates</div>
+                <div className="p-3 grid grid-cols-1 gap-1 text-sm">
+                  <div className="flex justify-between gap-2"><span>Easting:</span><span>{formatValue(manhole.easting)}</span></div>
+                  <div className="flex justify-between gap-2"><span>Northing:</span><span>{formatValue(manhole.northing)}</span></div>
+                  <div className="flex justify-between gap-2"><span>Latitude:</span><span>{formatValue(manhole.latitude)}</span></div>
+                  <div className="flex justify-between gap-2"><span>Longitude:</span><span>{formatValue(manhole.longitude)}</span></div>
+                  <div className="flex justify-between gap-2"><span>Cover Level:</span><span>{formatValue(manhole.cover_level)}</span></div>
+                </div>
               </div>
             </div>
 
