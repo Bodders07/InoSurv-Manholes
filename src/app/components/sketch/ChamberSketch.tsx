@@ -64,10 +64,12 @@ export default function ChamberSketch({
   value,
   onChange,
   compact = false,
+  palette = 'auto',
 }: {
   value?: SketchState
   onChange?: (s: SketchState) => void
   compact?: boolean
+  palette?: 'auto' | 'print-light'
 }) {
   const [state, setSketchState] = useState<SketchState>(() => {
     if (value) {
@@ -425,7 +427,22 @@ export default function ChamberSketch({
       </div>
 
       {/* Canvas */}
-      <div className="bg-white border rounded shadow-sm">
+      <div
+        className="bg-white border rounded shadow-sm"
+        style={
+          palette === 'print-light'
+            ? ({
+                '--sketch-text': '#111111',
+                '--sketch-cover': '#111111',
+                '--sketch-chamber': '#111111',
+                '--sketch-legend-bg': '#ffffff',
+                '--sketch-legend-border': '#d1d5db',
+                '--sketch-arrow': '#111111',
+                '--sketch-numeric': '#111111',
+              } as React.CSSProperties)
+            : undefined
+        }
+      >
         <svg
           ref={svgRef}
           width="100%"
