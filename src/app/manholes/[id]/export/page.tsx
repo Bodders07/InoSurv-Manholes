@@ -186,13 +186,23 @@ export default function ExportManholePage() {
             {/* Header box */}
             <div className="border border-gray-400">
               <div className="flex border-b border-gray-400">
-                <div className="flex-1 border-r border-gray-400 p-3">
-                  <div className="text-sm text-gray-500">Job No.:</div>
-                  <div className="font-medium">{project?.project_number || '-'}</div>
-                  <div className="text-sm text-gray-500 mt-2">Project:</div>
-                  <div className="font-medium">{project?.name || '-'}</div>
-                  <div className="text-sm text-gray-500 mt-2">Location:</div>
-                  <div className="font-medium">{manhole.location_desc || '-'}</div>
+                <div className="flex-1 border-r border-gray-400 p-3 space-y-2 text-sm">
+                  <div>
+                    <div className="text-gray-500">Job No.:</div>
+                    <div className="font-medium">{project?.project_number || '-'}</div>
+                  </div>
+                  <div>
+                    <div className="text-gray-500">Project:</div>
+                    <div className="font-medium">{project?.name || '-'}</div>
+                  </div>
+                  <div>
+                    <div className="text-gray-500">Location:</div>
+                    <div className="font-medium">{manhole.location_desc || '-'}</div>
+                  </div>
+                  <div>
+                    <div className="text-gray-500">Chainage/Mileage:</div>
+                    <div className="font-medium">{manhole.chainage_mileage || '-'}</div>
+                  </div>
                 </div>
                 <div className="w-1/3 p-3">
                   <div className="text-sm text-gray-500">Reference ID</div>
@@ -216,7 +226,6 @@ export default function ExportManholePage() {
                         : manhole.cover_lifted || '-'}
                     </span>
                   </div>
-                  <div className="flex justify-between gap-2"><span>Chainage/Mileage:</span><span>{manhole.chainage_mileage || '-'}</span></div>
                   <div className="flex justify-between gap-2"><span>Type:</span><span>{manhole.type_other || manhole.type || '-'}</span></div>
                 </div>
               </div>
@@ -241,7 +250,6 @@ export default function ExportManholePage() {
                   <div className="flex justify-between gap-2"><span>Dimensions:</span><span>{formatCoverDimensions(manhole)}</span></div>
                   <div className="flex justify-between gap-2"><span>Service Type:</span><span>{manhole.service || '-'}</span></div>
                   <div className="flex justify-between gap-2"><span>Material:</span><span>{manhole.cover_material_other || manhole.cover_material || '-'}</span></div>
-                  <div className="flex justify-between gap-2"><span>Duty:</span><span>{manhole.cover_duty || '-'}</span></div>
                   <div className="flex justify-between gap-2"><span>Condition:</span><span>{manhole.cover_condition || '-'}</span></div>
                 </div>
               </div>
@@ -252,7 +260,6 @@ export default function ExportManholePage() {
                   <div className="flex justify-between gap-2"><span>Dimensions:</span><span>{formatChamberDimensions(manhole)}</span></div>
                   <div className="flex justify-between gap-2"><span>Material:</span><span>{manhole.chamber_material_other || manhole.chamber_material || '-'}</span></div>
                   <div className="flex justify-between gap-2"><span>Condition:</span><span>{manhole.chamber_condition || '-'}</span></div>
-                  <div className="flex justify-between gap-2"><span>Type:</span><span>{manhole.type_other || manhole.type || '-'}</span></div>
                 </div>
               </div>
             </div>
