@@ -144,6 +144,9 @@ export default function EditManholePage() {
 
   // Cover shape
   const [coverShape, setCoverShape] = useState('')
+  const [coverDiameter, setCoverDiameter] = useState('')
+  const [coverWidth, setCoverWidth] = useState('')
+  const [coverLength, setCoverLength] = useState('')
   const [coverMaterial, setCoverMaterial] = useState('')
   const [coverMaterialOther, setCoverMaterialOther] = useState('')
   const [coverCondition, setCoverCondition] = useState('')
@@ -277,6 +280,9 @@ export default function EditManholePage() {
         setCoverMaterial(row.cover_material || '')
         setCoverMaterialOther(row.cover_material_other || '')
         setCoverCondition(row.cover_condition || '')
+        setCoverDiameter((row.cover_diameter_mm ?? '').toString())
+        setCoverWidth((row.cover_width_mm ?? '').toString())
+        setCoverLength((row.cover_length_mm ?? '').toString())
         setChamberShape(row.chamber_shape || '')
         setChamberDiameter((row.chamber_diameter_mm ?? '').toString())
         setChamberWidth((row.chamber_width_mm ?? '').toString())
@@ -356,6 +362,9 @@ export default function EditManholePage() {
       northing: northing || null,
       cover_level: coverLevel || null,
       cover_shape: coverShape || null,
+      cover_diameter_mm: coverShape === 'Circle' ? (coverDiameter || null) : null,
+      cover_width_mm: ['Square','Rectangle','Hexagon'].includes(coverShape) ? (coverWidth || null) : null,
+      cover_length_mm: ['Square','Rectangle','Hexagon'].includes(coverShape) ? (coverLength || null) : null,
       cover_material: coverMaterial || null,
       cover_material_other: coverMaterial === 'Other' ? (coverMaterialOther || null) : null,
       cover_condition: coverCondition || null,
