@@ -5,6 +5,7 @@ import { ViewProvider } from "./components/ViewContext";
 import { PermissionsProvider } from "./components/PermissionsContext";
 import ThemeInit from "./components/ThemeInit";
 import ServiceWorkerRegister from "./components/ServiceWorkerRegister";
+import SyncStatus from "./components/SyncStatus";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -41,6 +42,7 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <ThemeInit />
         <ServiceWorkerRegister />
+        <SyncStatus />
         <ViewProvider>
           <PermissionsProvider>
             {children}

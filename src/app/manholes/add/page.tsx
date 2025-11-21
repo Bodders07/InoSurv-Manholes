@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import SidebarLayout from '@/app/components/SidebarLayout'
 import { supabase } from '@/lib/supabaseClient'
+import { enqueueMutation } from '@/lib/mutationQueue'
 import NextDynamic from 'next/dynamic'
 import { type SketchState } from '@/app/components/sketch/ChamberSketch'
 const ChamberSketch = NextDynamic(() => import('@/app/components/sketch/ChamberSketch'), { ssr: false })
@@ -287,6 +288,48 @@ function AddManholeForm({ standaloneLayout = true }: { standaloneLayout?: boolea
       incoming_pipes: incoming,
       outgoing_pipes: outgoing,
       sketch_json: sketch ? sketch : null,
+    }
+
+    const isOffline = typeof navigator !== 'undefined' && navigator.onLine === false
+    if (isOffline) {
+      await enqueueMutation('chamber-insert', payload)
+      setMessage('Offline: Chamber queued for sync. Photos will upload after you reconnect.')
+      setIdentifier('')
+      if (!copyList) {
+        setProjectId('')
+        setSurveyDate('')
+        setMeasuringTool('')
+      }
+      setLaserOffset('')
+      setLocationDesc('')
+      setLatitude('')
+      setLongitude('')
+      setEasting('')
+      setNorthing('')
+      setCoverLevel('')
+      setServiceType('')
+      setType('')
+      setTypeOther('')
+      setCoverLifted('')
+      setCoverNotReason('')
+      setIncoming([createPipe('A')])
+      setOutgoing([createPipe('X')])
+      setInternalPhoto(null)
+      setExternalPhoto(null)
+      setSketch(null)
+      setChainageMileage('')
+      setCoverShape('')
+      setCoverCondition('')
+      setCoverMaterial('')
+      setCoverMaterialOther('')
+      setChamberShape('')
+      setChamberDiameter('')
+      setChamberWidth('')
+      setChamberLength('')
+      setChamberMaterial('')
+      setChamberMaterialOther('')
+      setChamberCondition('')
+      return
     }
 
     const insertRes = await supabase.from('chambers').insert([payload]).select('id').single()

@@ -7,6 +7,7 @@ const ChamberSketch = NextDynamic(() => import('@/app/components/sketch/ChamberS
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import SidebarLayout from '@/app/components/SidebarLayout'
 import { supabase } from '@/lib/supabaseClient'
+import { enqueueMutation } from '@/lib/mutationQueue'
 
 type Pipe = {
   label: string
@@ -376,6 +377,16 @@ export default function EditManholePage() {
     update.chamber_material = chamberMaterial || null
     update.chamber_material_other = chamberMaterial === 'Other' ? (chamberMaterialOther || null) : null
     update.sketch_json = sketch || null
+
+    const isOffline = typeof navigator !== 'undefined' && navigator.onLine === false
+    if (isOffline) {
+      await enqueueMutation('chamber-update', { id: manholeId, update })
+      setMessage('Offline: Chamber changes queued for sync. Photos will upload after you reconnect.')
+      if (embed) {
+        window.parent?.postMessage({ type: 'close-edit-modal', refresh: true }, '*')
+      }
+      return
+    }
 
     const { error } = await supabase
       .from('chambers')

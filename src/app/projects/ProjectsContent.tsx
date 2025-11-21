@@ -5,6 +5,7 @@ import { useCallback, useDeferredValue, useEffect, useMemo, useState } from 'rea
 import { supabase } from '@/lib/supabaseClient'
 import { usePermissions } from '@/app/components/PermissionsContext'
 import { cacheList, getCachedList } from '@/lib/offlineCache'
+import { enqueueMutation } from '@/lib/mutationQueue'
 
 type Project = {
   id: string
@@ -278,6 +279,23 @@ const clientOptions = useMemo(() => {
     const payload: ProjectInsertPayload = { name: normalizedName }
     if (normalizedNumber) payload.project_number = normalizedNumber
     if (normalizedClient) payload.client = normalizedClient
+
+    const isOffline = typeof navigator !== 'undefined' && navigator.onLine === false
+    if (isOffline) {
+      const tempId = `tmp-${Date.now()}`
+      await enqueueMutation('project-insert', payload)
+      const nextList = [...projects, { ...payload, id: tempId, completed: false, archived: false } as Project]
+      await cacheList('projects', nextList)
+      setProjects(nextList)
+      setMessage('Offline: Project queued for sync.')
+      setSaving(false)
+      setProjectNumber('')
+      setClient('')
+      setProjectName('')
+      setShowCreate(false)
+      return
+    }
+
     const { error } = await supabase.from('projects').insert([payload])
     setSaving(false)
     if (error) setMessage('Error: ' + error.message)
@@ -485,6 +503,17 @@ const clientOptions = useMemo(() => {
     if (hasExtendedFields) {
       update.project_number = normalizedNumber || null
       update.client = normalizedClient || null
+    }
+    const isOffline = typeof navigator !== 'undefined' && navigator.onLine === false
+    if (isOffline) {
+      await enqueueMutation('project-update', { id: editingId, update })
+      setMessage('Offline: edit queued for sync.')
+      setEditSaving(false)
+      setEditingId(null)
+      const nextList = projects.map((p) => (p.id === editingId ? { ...p, ...update } : p))
+      setProjects(nextList)
+      cacheList('projects', nextList)
+      return
     }
     const { error } = await supabase
       .from('projects')
