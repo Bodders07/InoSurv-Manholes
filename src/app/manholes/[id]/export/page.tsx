@@ -47,6 +47,10 @@ type ManholeRecord = {
   chamber_shape: string | null
   chamber_material: string | null
   chamber_material_other: string | null
+  chamber_length_mm?: number | null
+  chamber_width_mm?: number | null
+  chamber_diameter_mm?: number | null
+  chamber_condition?: string | null
   type: string | null
   type_other: string | null
   cover_lifted: string | null
@@ -150,23 +154,20 @@ export default function ExportManholePage() {
     [manhole?.outgoing_pipes],
   )
 
-  const headerTitle = manhole?.identifier || 'Manhole Export'
-  const projectName = project?.name || 'Unnamed Project'
-
   return (
     <div className={`min-h-screen ${embed ? 'bg-white' : 'bg-neutral-100'} text-gray-900`}>
-      <div className="mx-auto w-full max-w-5xl p-6 space-y-6">
+      <div className="mx-auto w-full max-w-6xl p-6 space-y-4">
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-sm uppercase tracking-wide text-gray-500">Project</p>
-            <h1 className="text-3xl font-semibold">
-              {projectName}
-              <span className="text-gray-400 text-xl font-normal ml-2">
+            <h1 className="text-3xl font-semibold flex items-center gap-2">
+              {project?.name || 'Unnamed Project'}
+              <span className="text-gray-400 text-xl font-normal">
                 ({project?.project_number || 'No Project No.'})
               </span>
             </h1>
-            <p className="text-sm text-gray-600">{project?.client || 'Client: ---'}</p>
-            <p className="mt-2 text-lg font-medium">Manhole: {headerTitle}</p>
+            <p className="text-sm text-gray-600">Client: {project?.client || '---'}</p>
+            <p className="mt-2 text-lg font-medium">Manhole: {manhole?.identifier || 'Manhole Export'}</p>
           </div>
           <div className="flex flex-col items-end gap-2">
             <button onClick={() => window.print()} className="px-4 py-2 rounded border border-gray-300 text-sm hover:bg-gray-50">
@@ -181,131 +182,104 @@ export default function ExportManholePage() {
         {!loading && message && <p className="text-red-600">{message}</p>}
 
         {!loading && manhole && (
-          <div className="space-y-6">
-            {/* Row 1: General Details (classic single card) */}
-            <section className="grid grid-cols-1 gap-4">
-              <InfoCard
-                title="General Details"
-                rows={[
-                  { label: 'Survey Date', value: formatValue(manhole.survey_date) },
-                  { label: 'Tool', value: manhole.measuring_tool || '-' },
-                  { label: 'Easting/Northing', value: `${formatValue(manhole.easting)} / ${formatValue(manhole.northing)}` },
-                  { label: 'Lat / Lon', value: `${formatValue(manhole.latitude)} / ${formatValue(manhole.longitude)}` },
-                  { label: 'Cover Level', value: formatValue(manhole.cover_level) },
-                  {
-                    label: 'Cover Lifted',
-                    value:
-                      manhole.cover_lifted === 'No'
-                        ? `No - ${manhole.cover_lifted_reason || '-'}`
-                        : manhole.cover_lifted || '-',
-                  },
-                  { label: 'Chainage/Mileage', value: manhole.chainage_mileage || '-' },
-                  { label: 'Type', value: manhole.type_other || manhole.type || '-' },
-                ]}
-              />
-            </section>
+          <div className="space-y-4">
+            {/* Header box */}
+            <div className="border border-gray-400">
+              <div className="flex border-b border-gray-400">
+                <div className="flex-1 border-r border-gray-400 p-3">
+                  <div className="text-sm text-gray-500">Job No.:</div>
+                  <div className="font-medium">{project?.project_number || '-'}</div>
+                  <div className="text-sm text-gray-500 mt-2">Project:</div>
+                  <div className="font-medium">{project?.name || '-'}</div>
+                  <div className="text-sm text-gray-500 mt-2">Location:</div>
+                  <div className="font-medium">{manhole.location_desc || '-'}</div>
+                </div>
+                <div className="w-1/3 p-3">
+                  <div className="text-sm text-gray-500">Reference ID</div>
+                  <div className="font-medium">{manhole.identifier || '-'}</div>
+                </div>
+              </div>
+            </div>
 
-            {/* Row 2: cover + chamber side by side */}
-            <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <InfoCard
-                title="Cover"
-                rows={[
-                  { label: 'Shape', value: manhole.cover_shape || '-' },
-                  { label: 'Dimensions', value: formatCoverDimensions(manhole) },
-                  { label: 'Material', value: manhole.cover_material_other || manhole.cover_material || '-' },
-                  { label: 'Duty', value: manhole.cover_duty || '-' },
-                  { label: 'Condition', value: manhole.cover_condition || '-' },
-                  { label: 'Lifted?', value: manhole.cover_lifted || '-' },
-                  { label: 'Reason', value: manhole.cover_lifted_reason || '-' },
-                ]}
-              />
-              <InfoCard
-                title="Chamber"
-                rows={[
-                  { label: 'Shape', value: manhole.chamber_shape || '-' },
-                  { label: 'Material', value: manhole.chamber_material_other || manhole.chamber_material || '-' },
-                  { label: 'Type', value: manhole.type_other || manhole.type || '-' },
-                ]}
-              />
-            </section>
+            {/* General Details box */}
+            <div className="border border-gray-400">
+              <div className="border-b border-gray-400 p-2 text-center font-semibold">General Details</div>
+              <div className="p-3 grid grid-cols-1 gap-1 text-sm">
+                <div className="flex justify-between gap-2"><span>Survey Date:</span><span>{formatValue(manhole.survey_date)}</span></div>
+                <div className="flex justify-between gap-2"><span>Tool:</span><span>{manhole.measuring_tool || '-'}</span></div>
+                <div className="flex justify-between gap-2"><span>Easting/Northing:</span><span>{`${formatValue(manhole.easting)} / ${formatValue(manhole.northing)}`}</span></div>
+                <div className="flex justify-between gap-2"><span>Lat / Lon:</span><span>{`${formatValue(manhole.latitude)} / ${formatValue(manhole.longitude)}`}</span></div>
+                <div className="flex justify-between gap-2"><span>Cover Level:</span><span>{formatValue(manhole.cover_level)}</span></div>
+                <div className="flex justify-between gap-2">
+                  <span>Cover Lifted:</span>
+                  <span>
+                    {manhole.cover_lifted === 'No'
+                      ? `No - ${manhole.cover_lifted_reason || '-'}`
+                      : manhole.cover_lifted || '-'}
+                  </span>
+                </div>
+                <div className="flex justify-between gap-2"><span>Chainage/Mileage:</span><span>{manhole.chainage_mileage || '-'}</span></div>
+                <div className="flex justify-between gap-2"><span>Type:</span><span>{manhole.type_other || manhole.type || '-'}</span></div>
+              </div>
+            </div>
 
-            <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <PipeTable title="Incoming Pipes" pipes={incoming} emptyText="No incoming pipes recorded." />
-              <PipeTable title="Outgoing Pipes" pipes={outgoing} emptyText="No outgoing pipes recorded." />
-            </section>
+            {/* Cover + Chamber row */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="border border-gray-400">
+                <div className="border-b border-gray-400 p-2 text-center font-semibold">Cover Details</div>
+                <div className="p-3 text-sm space-y-1">
+                  <div className="flex justify-between gap-2"><span>Shape:</span><span>{manhole.cover_shape || '-'}</span></div>
+                  <div className="flex justify-between gap-2"><span>Dimensions:</span><span>{formatCoverDimensions(manhole)}</span></div>
+                  <div className="flex justify-between gap-2"><span>Service Type:</span><span>{manhole.service || '-'}</span></div>
+                  <div className="flex justify-between gap-2"><span>Material:</span><span>{manhole.cover_material_other || manhole.cover_material || '-'}</span></div>
+                  <div className="flex justify-between gap-2"><span>Duty:</span><span>{manhole.cover_duty || '-'}</span></div>
+                  <div className="flex justify-between gap-2"><span>Condition:</span><span>{manhole.cover_condition || '-'}</span></div>
+                </div>
+              </div>
+              <div className="border border-gray-400">
+                <div className="border-b border-gray-400 p-2 text-center font-semibold">Chamber Details</div>
+                <div className="p-3 text-sm space-y-1">
+                  <div className="flex justify-between gap-2"><span>Shape:</span><span>{manhole.chamber_shape || '-'}</span></div>
+                  <div className="flex justify-between gap-2"><span>Dimensions:</span><span>{formatChamberDimensions(manhole)}</span></div>
+                  <div className="flex justify-between gap-2"><span>Material:</span><span>{manhole.chamber_material_other || manhole.chamber_material || '-'}</span></div>
+                  <div className="flex justify-between gap-2"><span>Condition:</span><span>{manhole.chamber_condition || '-'}</span></div>
+                  <div className="flex justify-between gap-2"><span>Type:</span><span>{manhole.type_other || manhole.type || '-'}</span></div>
+                </div>
+              </div>
+            </div>
 
-            {(manhole.internal_photo_url || manhole.external_photo_url) && (
-              <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {manhole.internal_photo_url && <PhotoCard label="Internal Photo" url={manhole.internal_photo_url} />}
-                {manhole.external_photo_url && <PhotoCard label="External Photo" url={manhole.external_photo_url} />}
-              </section>
-            )}
+            {/* Pipes tables */}
+            <PipeTableLegacy title="Incoming Pipes" pipes={incoming} />
+            <PipeTableLegacy title="Outgoing Pipes" pipes={outgoing} />
 
-            {manhole.sketch_json && (
-              <section className="border rounded-lg p-4 bg-white">
-                <h2 className="text-lg font-semibold mb-2">Sketch</h2>
-                <div className="inline-block border border-gray-300 rounded p-3">
-                  <div className="w-[500px] h-[500px]">
-                    <ChamberSketch compact value={manhole.sketch_json} palette="print-light" />
+            {/* Photos / sketch */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              {manhole.sketch_json ? (
+                <div className="border border-gray-400 p-2">
+                  <div className="text-center font-semibold mb-2">Chamber Sketch</div>
+                  <div className="border border-gray-300 inline-block">
+                    <div className="w-[220px] h-[220px]">
+                      <ChamberSketch compact value={manhole.sketch_json} palette="print-light" />
+                    </div>
                   </div>
                 </div>
-              </section>
-            )}
+              ) : (
+                <div className="border border-gray-400 p-2 text-sm text-gray-500 text-center">Chamber Sketch: No data</div>
+              )}
+              {manhole.internal_photo_url ? (
+                <PhotoCard label="Internal Photo" url={manhole.internal_photo_url} />
+              ) : (
+                <div className="border border-gray-400 p-2 text-sm text-gray-500 text-center">Internal Photo: No data</div>
+              )}
+              {manhole.external_photo_url ? (
+                <PhotoCard label="External Photo" url={manhole.external_photo_url} />
+              ) : (
+                <div className="border border-gray-400 p-2 text-sm text-gray-500 text-center">External Photo: No data</div>
+              )}
+            </div>
           </div>
         )}
       </div>
-    </div>
-  )
-}
-
-function InfoCard({ title, rows }: { title: string; rows: { label: string; value: string | number | null }[] }) {
-  return (
-    <div className="border rounded-lg bg-white p-4">
-      <h2 className="text-lg font-semibold mb-3">{title}</h2>
-      <dl className="space-y-2 text-sm">
-        {rows.map((row) => (
-          <div key={row.label} className="flex justify-between gap-4">
-            <dt className="text-gray-500">{row.label}</dt>
-            <dd className="font-medium text-right break-words">{row.value ?? '-'}</dd>
-          </div>
-        ))}
-      </dl>
-    </div>
-  )
-}
-
-function PipeTable({ title, pipes, emptyText }: { title: string; pipes: Pipe[]; emptyText: string }) {
-  return (
-    <div className="border rounded-lg bg-white p-4">
-      <h2 className="text-lg font-semibold mb-3">{title}</h2>
-      {pipes.length === 0 ? (
-        <p className="text-sm text-gray-500">{emptyText}</p>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-sm">
-            <thead>
-              <tr className="text-left text-gray-500">
-                <th className="py-1 pr-2 font-medium">Label</th>
-                <th className="py-1 pr-2 font-medium">Function</th>
-                <th className="py-1 pr-2 font-medium">Shape</th>
-                <th className="py-1 pr-2 font-medium">Material</th>
-                <th className="py-1 pr-2 font-medium">Notes</th>
-              </tr>
-            </thead>
-            <tbody>
-              {pipes.map((pipe, idx) => (
-                <tr key={`${pipe.label || idx}-${idx}`} className="border-t">
-                  <td className="py-1 pr-2">{pipe.label || '-'}</td>
-                  <td className="py-1 pr-2">{pipe.func || '-'}</td>
-                  <td className="py-1 pr-2">{pipe.shape || '-'}</td>
-                  <td className="py-1 pr-2">{pipe.material || '-'}</td>
-                  <td className="py-1 pr-2">{pipe.notes || '-'}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
     </div>
   )
 }
@@ -360,4 +334,83 @@ function toErrorText(err: unknown) {
   } catch {
     return String(err)
   }
+}
+
+function PipeTableLegacy({ title, pipes }: { title: string; pipes: Pipe[] }) {
+  const headers = ['Label', 'Size', 'Shape', 'Material', 'Depth', 'Invert', 'Notes']
+
+  const numberOrNull = (v: string | number | null | undefined) => {
+    if (v === null || v === undefined) return null
+    const n = typeof v === 'string' ? Number(v) : v
+    return Number.isFinite(n) ? n : null
+  }
+
+  const getSize = (p: Pipe) => {
+    const d = numberOrNull(p.diameter_mm)
+    const w = numberOrNull(p.width_mm)
+    const h = numberOrNull(p.height_mm)
+    if (d) return `${d} mm`
+    if (w && h) return `${w} x ${h}`
+    if (w) return `${w} mm`
+    if (h) return `${h} mm`
+    return '-'
+  }
+
+  const fmt = (v: string | number | null | undefined) => {
+    if (v === null || v === undefined || v === '') return '-'
+    if (typeof v === 'number') return Number.isFinite(v) ? v.toString() : '-'
+    return v as string
+  }
+
+  return (
+    <div className="border border-gray-400">
+      <div className="border-b border-gray-400 p-2 text-center font-semibold">{title}</div>
+      <div className="overflow-x-auto">
+        <table className="min-w-full text-xs">
+          <thead>
+            <tr className="border-b border-gray-300">
+              {headers.map((h) => (
+                <th key={h} className="px-2 py-1 text-left font-medium">
+                  {h}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {pipes.length === 0 ? (
+              <tr>
+                <td className="px-2 py-2 text-gray-500 text-center" colSpan={headers.length}>
+                  No data
+                </td>
+              </tr>
+            ) : (
+              pipes.map((p, idx) => (
+                <tr key={`${p.label || idx}-${idx}`} className="border-t border-gray-200">
+                  <td className="px-2 py-1">{p.label || '-'}</td>
+                  <td className="px-2 py-1">{getSize(p)}</td>
+                  <td className="px-2 py-1">{p.shape || '-'}</td>
+                  <td className="px-2 py-1">{p.material || '-'}</td>
+                  <td className="px-2 py-1">{fmt(p.invert_depth_m)}</td>
+                  <td className="px-2 py-1">{fmt(p.soffit_level)}</td>
+                  <td className="px-2 py-1">{p.notes || '-'}</td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
+}
+
+function formatChamberDimensions(m: ManholeRecord) {
+  const w = m.chamber_length_mm ?? null
+  const l = m.chamber_width_mm ?? null
+  const d = m.chamber_diameter_mm ?? null
+  const mm = (v: number | null) => (v === null || !Number.isFinite(v) ? null : `${v} mm`)
+  if (Number.isFinite(d)) return mm(d)
+  if (Number.isFinite(w) && Number.isFinite(l)) return `${mm(w)} x ${mm(l)}`
+  if (Number.isFinite(w)) return mm(w)
+  if (Number.isFinite(l)) return mm(l)
+  return '-'
 }
