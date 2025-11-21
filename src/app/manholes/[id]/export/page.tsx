@@ -224,7 +224,11 @@ export default function ExportManholePage() {
             {manhole.sketch_json && (
               <section className="border rounded-lg p-4 bg-white">
                 <h2 className="text-lg font-semibold mb-2">Sketch</h2>
-                <ChamberSketch compact value={manhole.sketch_json} palette="print-light" />
+                <div className="inline-block border border-gray-300 rounded p-3">
+                  <div className="w-[500px] h-[500px]">
+                    <ChamberSketch compact value={manhole.sketch_json} palette="print-light" />
+                  </div>
+                </div>
               </section>
             )}
           </div>
