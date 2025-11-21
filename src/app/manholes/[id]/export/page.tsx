@@ -467,12 +467,6 @@ function formatCoverLifted(m: ManholeRecord) {
   return m.cover_lifted || '-'
 }
 
-function numberOrNull(v: string | number | null | undefined) {
-  if (v === null || v === undefined) return null
-  const n = typeof v === 'string' ? Number(v) : v
-  return Number.isFinite(n) ? n : null
-}
-
 function isNumericLabel(label?: string | null) {
   if (!label) return false
   const s = label.trim()
