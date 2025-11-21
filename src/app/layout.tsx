@@ -6,6 +6,7 @@ import { PermissionsProvider } from "./components/PermissionsContext";
 import ThemeInit from "./components/ThemeInit";
 import ServiceWorkerRegister from "./components/ServiceWorkerRegister";
 import SyncStatus from "./components/SyncStatus";
+import OnlineStatusBar from "./components/OnlineStatusBar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -43,6 +44,7 @@ export default function RootLayout({
         <ThemeInit />
         <ServiceWorkerRegister />
         <SyncStatus />
+        <OnlineStatusBar />
         <ViewProvider>
           <PermissionsProvider>
             {children}
