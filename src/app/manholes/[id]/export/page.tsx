@@ -40,6 +40,9 @@ type ManholeRecord = {
   cover_material: string | null
   cover_material_other: string | null
   cover_duty: string | null
+  cover_width_mm?: number | null
+  cover_length_mm?: number | null
+  cover_diameter_mm?: number | null
   cover_condition: string | null
   chamber_shape: string | null
   chamber_material: string | null
@@ -191,6 +194,7 @@ export default function ExportManholePage() {
                 title="Cover"
                 rows={[
                   { label: 'Shape', value: manhole.cover_shape || '-' },
+                  { label: 'Dimensions', value: formatCoverDimensions(manhole) },
                   { label: 'Material', value: manhole.cover_material_other || manhole.cover_material || '-' },
                   { label: 'Duty', value: manhole.cover_duty || '-' },
                   { label: 'Condition', value: manhole.cover_condition || '-' },
@@ -308,4 +312,30 @@ function formatValue(value: string | number | null) {
     return '-'
   }
   return value
+}
+
+function formatCoverDimensions(manhole: ManholeRecord) {
+  const shape = (manhole.cover_shape || '').toLowerCase()
+  const width = manhole.cover_width_mm
+  const length = manhole.cover_length_mm
+  const diameter = manhole.cover_diameter_mm
+
+  const mm = (v: number | null | undefined) =>
+    v === null || v === undefined || !Number.isFinite(v) ? null : `${v} mm`
+
+  if (shape.includes('circle') || shape.includes('round') || shape.includes('circular')) {
+    const d = mm(diameter)
+    return d || '-'
+  }
+
+  if (shape.includes('rect') || shape.includes('square') || shape.includes('hex')) {
+    const w = mm(width)
+    const l = mm(length)
+    if (w && l) return `${w} x ${l}`
+    if (w) return w
+    if (l) return l
+    return '-'
+  }
+
+  return '-'
 }
