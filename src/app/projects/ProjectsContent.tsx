@@ -4,6 +4,7 @@ import type { ReactNode } from 'react'
 import { useCallback, useDeferredValue, useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import { usePermissions } from '@/app/components/PermissionsContext'
+import { cacheList, getCachedList } from '@/lib/offlineCache'
 
 type Project = {
   id: string
@@ -133,28 +134,28 @@ const clientOptions = useMemo(() => {
   const refreshProjects = useCallback(async () => {
     setLoading(true)
     setMessage('')
-    const { data, error } = await supabase
-      .from('projects')
-      .select('id, name, client, project_number, created_at, updated_at, archived, completed')
-      .is('deleted_at', null)
-      .order('project_number', { ascending: true })
-
-    if (error) {
-      setHasExtendedFields(false)
-      const fallback = await supabase
+    try {
+      const { data, error } = await supabase
         .from('projects')
-        .select('id, name, client, project_number, created_at, updated_at, archived')
+        .select('id, name, client, project_number, created_at, updated_at, archived, completed')
         .is('deleted_at', null)
-        .order('id')
-      if (!fallback.error) {
-        const records = (fallback.data as Project[]).map((p) => ({ ...p, completed: undefined }))
-        setProjects(records || [])
+        .order('project_number', { ascending: true })
+
+      if (error) throw error
+      const records = (data as Project[]) || []
+      setHasExtendedFields(true)
+      setProjects(records)
+      cacheList('projects', records)
+    } catch (err) {
+      setHasExtendedFields(false)
+      const cached = await getCachedList<Project>('projects')
+      if (cached?.data) {
+        setProjects(cached.data)
+        setMessage('Offline mode: showing cached projects.')
       } else {
         setProjects([])
+        if (err instanceof Error) setMessage('Error loading projects: ' + err.message)
       }
-    } else {
-      setHasExtendedFields(true)
-      setProjects((data as Project[]) || [])
     }
 
     setLoading(false)

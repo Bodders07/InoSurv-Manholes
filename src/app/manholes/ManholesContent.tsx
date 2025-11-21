@@ -5,6 +5,7 @@ import { jsPDF } from 'jspdf'
 import { supabase } from '@/lib/supabaseClient'
 import type { SketchState } from '@/app/components/sketch/ChamberSketch'
 import { usePermissions } from '@/app/components/PermissionsContext'
+import { cacheList, getCachedList } from '@/lib/offlineCache'
 
 type Project = { id: string; name: string | null; project_number: string | null; client: string | null }
 type Manhole = { id: string; identifier: string | null; project_id: string }
@@ -401,14 +402,27 @@ export default function ChambersContent() {
     async function loadData() {
       setLoading(true)
       setMessage('')
-      const [projRes, mhRes] = await Promise.all([
-        supabase.from('projects').select('id, name, project_number, client').is('deleted_at', null),
-        supabase.from('chambers').select('id, identifier, project_id').is('deleted_at', null),
-      ])
-      if (projRes.error) setMessage('Error loading projects: ' + projRes.error.message)
-      else setProjects((projRes.data as Project[]) || [])
-      if (mhRes.error) setMessage((prev) => prev || 'Error loading Chambers: ' + mhRes.error!.message)
-      else setChambers(mhRes.data || [])
+      try {
+        const [projRes, mhRes] = await Promise.all([
+          supabase.from('projects').select('id, name, project_number, client').is('deleted_at', null),
+          supabase.from('chambers').select('id, identifier, project_id').is('deleted_at', null),
+        ])
+        if (projRes.error) throw new Error(projRes.error.message)
+        if (mhRes.error) throw new Error(mhRes.error.message)
+        const projData = (projRes.data as Project[]) || []
+        const chamberData = mhRes.data || []
+        setProjects(projData)
+        setChambers(chamberData)
+        cacheList('projects', projData)
+        cacheList('chambers', chamberData)
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : 'Error loading data'
+        setMessage((prev) => prev || msg)
+        const cachedProjects = await getCachedList<Project>('projects')
+        const cachedChambers = await getCachedList<Manhole>('chambers')
+        if (cachedProjects?.data) setProjects(cachedProjects.data)
+        if (cachedChambers?.data) setChambers(cachedChambers.data)
+      }
       setLoading(false)
     }
     loadData()
@@ -420,12 +434,22 @@ export default function ChambersContent() {
 
   async function reloadLists() {
     setLoading(true)
-    const [projRes, mhRes] = await Promise.all([
-      supabase.from('projects').select('id, name, project_number, client').is('deleted_at', null),
-      supabase.from('chambers').select('id, identifier, project_id').is('deleted_at', null),
-    ])
-    if (!projRes.error && projRes.data) setProjects(projRes.data as Project[])
-    if (!mhRes.error && mhRes.data) setChambers(mhRes.data)
+    try {
+      const [projRes, mhRes] = await Promise.all([
+        supabase.from('projects').select('id, name, project_number, client').is('deleted_at', null),
+        supabase.from('chambers').select('id, identifier, project_id').is('deleted_at', null),
+      ])
+      if (projRes.error) throw new Error(projRes.error.message)
+      if (mhRes.error) throw new Error(mhRes.error.message)
+      const projData = projRes.data as Project[]
+      const chamberData = mhRes.data || []
+      setProjects(projData)
+      setChambers(chamberData)
+      cacheList('projects', projData)
+      cacheList('chambers', chamberData)
+    } catch {
+      // On failure keep current state
+    }
     setLoading(false)
   }
 
