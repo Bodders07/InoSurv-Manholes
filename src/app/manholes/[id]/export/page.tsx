@@ -87,10 +87,9 @@ export default function ExportManholePage() {
           .is('deleted_at', null)
           .maybeSingle()
         if (mhError) throw mhError
-        if (!mhRow) {
-          throw new Error('Manhole not found')
-        }
+        if (!mhRow) throw new Error('Manhole not found')
         const record = mhRow as ManholeRecord
+
         let projectRow: ProjectRecord | null = null
         if (record.project_id) {
           const { data: projData, error: projError } = await supabase
@@ -102,13 +101,13 @@ export default function ExportManholePage() {
           if (projError) throw projError
           projectRow = projData as ProjectRecord | null
         }
+
         if (!active) return
         setManhole(record)
         setProject(projectRow)
       } catch (err) {
         if (!active) return
-        const msg = err instanceof Error ? err.message : String(err)
-        setMessage(msg)
+        setMessage(err instanceof Error ? err.message : String(err))
         setManhole(null)
         setProject(null)
       } finally {
@@ -121,8 +120,14 @@ export default function ExportManholePage() {
     }
   }, [manholeId])
 
-  const incoming = useMemo(() => (Array.isArray(manhole?.incoming_pipes) ? manhole?.incoming_pipes ?? [] : []), [manhole?.incoming_pipes])
-  const outgoing = useMemo(() => (Array.isArray(manhole?.outgoing_pipes) ? manhole?.outgoing_pipes ?? [] : []), [manhole?.outgoing_pipes])
+  const incoming = useMemo(
+    () => (Array.isArray(manhole?.incoming_pipes) ? manhole?.incoming_pipes ?? [] : []),
+    [manhole?.incoming_pipes],
+  )
+  const outgoing = useMemo(
+    () => (Array.isArray(manhole?.outgoing_pipes) ? manhole?.outgoing_pipes ?? [] : []),
+    [manhole?.outgoing_pipes],
+  )
 
   const headerTitle = manhole?.identifier || 'Manhole Export'
   const projectName = project?.name || 'Unnamed Project'
@@ -139,21 +144,18 @@ export default function ExportManholePage() {
                 ({project?.project_number || 'No Project No.'})
               </span>
             </h1>
-            <p className="text-sm text-gray-600">{project?.client || 'Client: —'}</p>
+            <p className="text-sm text-gray-600">{project?.client || 'Client: ---'}</p>
             <p className="mt-2 text-lg font-medium">Manhole: {headerTitle}</p>
           </div>
           <div className="flex flex-col items-end gap-2">
-            <button
-              onClick={() => window.print()}
-              className="px-4 py-2 rounded border border-gray-300 text-sm hover:bg-gray-50"
-            >
+            <button onClick={() => window.print()} className="px-4 py-2 rounded border border-gray-300 text-sm hover:bg-gray-50">
               Print / Save PDF
             </button>
             <span className="text-xs text-gray-500">Generated {new Date().toLocaleString()}</span>
           </div>
         </div>
 
-        {loading && <p>Loading details…</p>}
+        {loading && <p>Loading details...</p>}
         {!loading && message && <p className="text-red-600">{message}</p>}
 
         {!loading && manhole && (
@@ -161,25 +163,31 @@ export default function ExportManholePage() {
             <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <InfoCard
                 title="Survey Details"
-              rows={[
-                { label: 'Identifier', value: manhole.identifier || '—' },
-                { label: 'Location', value: manhole.location_desc || '�' },
-                { label: 'Service', value: manhole.service || '�' },
-                { label: 'Chainage / Mileage', value: manhole.chainage_mileage || '�' },
-                { label: 'Offset (mm)', value: formatValue(manhole.measuring_offset_mm) },
+                rows={[
+                  { label: 'Identifier', value: manhole.identifier || '-' },
+                  { label: 'Location', value: manhole.location_desc || '-' },
+                  { label: 'Service', value: manhole.service || '-' },
+                  { label: 'Chainage / Mileage', value: manhole.chainage_mileage || '-' },
+                  { label: 'Offset (mm)', value: formatValue(manhole.measuring_offset_mm) },
                 ]}
               />
               <InfoCard
                 title="General Details"
                 rows={[
                   { label: 'Survey Date', value: formatValue(manhole.survey_date) },
-                  { label: 'Tool', value: manhole.measuring_tool || '�' },
-                  { label: 'Cover Lifted', value: manhole.cover_lifted === 'No' ? ('No - ' + (manhole.cover_lifted_reason || '-')) : manhole.cover_lifted || '�' },
-                  { label: 'Type', value: manhole.type_other || manhole.type || '�' },
+                  { label: 'Tool', value: manhole.measuring_tool || '-' },
+                  {
+                    label: 'Cover Lifted',
+                    value:
+                      manhole.cover_lifted === 'No'
+                        ? `No - ${manhole.cover_lifted_reason || '-'}`
+                        : manhole.cover_lifted || '-',
+                  },
+                  { label: 'Type', value: manhole.type_other || manhole.type || '-' },
                 ]}
               />
-
             </section>
+
             <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <InfoCard
                 title="Coordinates"
@@ -197,20 +205,20 @@ export default function ExportManholePage() {
               <InfoCard
                 title="Cover"
                 rows={[
-                  { label: 'Shape', value: manhole.cover_shape || '—' },
-                  { label: 'Material', value: manhole.cover_material_other || manhole.cover_material || '—' },
-                  { label: 'Duty', value: manhole.cover_duty || '—' },
-                  { label: 'Condition', value: manhole.cover_condition || '—' },
-                  { label: 'Lifted?', value: manhole.cover_lifted || '—' },
-                  { label: 'Reason', value: manhole.cover_lifted_reason || '—' },
+                  { label: 'Shape', value: manhole.cover_shape || '-' },
+                  { label: 'Material', value: manhole.cover_material_other || manhole.cover_material || '-' },
+                  { label: 'Duty', value: manhole.cover_duty || '-' },
+                  { label: 'Condition', value: manhole.cover_condition || '-' },
+                  { label: 'Lifted?', value: manhole.cover_lifted || '-' },
+                  { label: 'Reason', value: manhole.cover_lifted_reason || '-' },
                 ]}
               />
               <InfoCard
                 title="Chamber"
                 rows={[
-                  { label: 'Shape', value: manhole.chamber_shape || '—' },
-                  { label: 'Material', value: manhole.chamber_material_other || manhole.chamber_material || '—' },
-                  { label: 'Type', value: manhole.type_other || manhole.type || '—' },
+                  { label: 'Shape', value: manhole.chamber_shape || '-' },
+                  { label: 'Material', value: manhole.chamber_material_other || manhole.chamber_material || '-' },
+                  { label: 'Type', value: manhole.type_other || manhole.type || '-' },
                 ]}
               />
             </section>
@@ -222,12 +230,8 @@ export default function ExportManholePage() {
 
             {(manhole.internal_photo_url || manhole.external_photo_url) && (
               <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {manhole.internal_photo_url && (
-                  <PhotoCard label="Internal Photo" url={manhole.internal_photo_url} />
-                )}
-                {manhole.external_photo_url && (
-                  <PhotoCard label="External Photo" url={manhole.external_photo_url} />
-                )}
+                {manhole.internal_photo_url && <PhotoCard label="Internal Photo" url={manhole.internal_photo_url} />}
+                {manhole.external_photo_url && <PhotoCard label="External Photo" url={manhole.external_photo_url} />}
               </section>
             )}
 
@@ -256,7 +260,7 @@ function InfoCard({ title, rows }: { title: string; rows: { label: string; value
         {rows.map((row) => (
           <div key={row.label} className="flex justify-between gap-4">
             <dt className="text-gray-500">{row.label}</dt>
-            <dd className="font-medium text-right break-words">{row.value ?? '—'}</dd>
+            <dd className="font-medium text-right break-words">{row.value ?? '-'}</dd>
           </div>
         ))}
       </dl>
@@ -313,11 +317,10 @@ function PhotoCard({ label, url }: { label: string; url: string }) {
 }
 
 function formatValue(value: string | number | null) {
-  if (value === null || value === undefined || value === '') return '—'
+  if (value === null || value === undefined || value === '') return '-'
   if (typeof value === 'number') {
     if (Number.isFinite(value)) return value.toString()
-    return '—'
+    return '-'
   }
   return value
 }
-
