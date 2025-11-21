@@ -360,9 +360,25 @@ function AddManholeForm({ standaloneLayout = true }: { standaloneLayout?: boolea
           setMessage('Offline: no cached projects to assign. Go online once, then retry.')
           return
         }
-        const offline_photos: { internal?: string | null; external?: string | null } = {}
-        if (internalPhoto) offline_photos.internal = await storeOfflineFile(internalPhoto)
-        if (externalPhoto) offline_photos.external = await storeOfflineFile(externalPhoto)
+        const fileToDataUrl = (file: File) =>
+          new Promise<{ dataUrl: string; name: string; type: string }>((resolve, reject) => {
+            const reader = new FileReader()
+            reader.onload = () => resolve({ dataUrl: String(reader.result), name: file.name, type: file.type })
+            reader.onerror = () => reject(reader.error)
+            reader.readAsDataURL(file)
+          })
+
+        const offline_photos: { internal?: Record<string, unknown>; external?: Record<string, unknown> } = {}
+        if (internalPhoto) {
+          const key = await storeOfflineFile(internalPhoto)
+          const data = await fileToDataUrl(internalPhoto)
+          offline_photos.internal = { key, ...data }
+        }
+        if (externalPhoto) {
+          const key = await storeOfflineFile(externalPhoto)
+          const data = await fileToDataUrl(externalPhoto)
+          offline_photos.external = { key, ...data }
+        }
         const project_lookup = selectedProject
           ? {
               project_number: selectedProject.project_number || null,

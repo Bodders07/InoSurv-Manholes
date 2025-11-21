@@ -2,6 +2,7 @@
 
 type MutationType = 'project-insert' | 'project-update' | 'chamber-insert' | 'chamber-update'
 import { retrieveOfflineFile, deleteOfflineFiles } from '@/lib/offlinePhotos'
+import { retrieveOfflineFile, deleteOfflineFiles } from '@/lib/offlinePhotos'
 
 export type QueuedMutation = {
   id: string
@@ -92,7 +93,6 @@ export async function flushQueue(supabase: any, onStatus?: (msg: string) => void
           let insertPayload: Record<string, unknown> = { ...rest }
           const projectId = rest.project_id as string | undefined
           if (projectId && projectId.startsWith('tmp-') && project_lookup) {
-            // Try to resolve the real project_id using project meta
             const query = supabase
               .from('projects')
               .select('id')
@@ -109,18 +109,41 @@ export async function flushQueue(supabase: any, onStatus?: (msg: string) => void
           if (insertRes.error) throw insertRes.error
           const chamberId = insertRes.data?.id
 
-          // If there were offline photos cached, upload them now
           if (chamberId && offline_photos) {
             const bucket = supabase.storage.from('manhole-photos')
-            const uploadPhoto = async (key: string | null | undefined, kind: 'internal' | 'external') => {
-              if (!key) return null
-              const stored = await retrieveOfflineFile(key)
-              if (!stored) return null
-              const extFromName = (stored.name?.split('.').pop() || '').toLowerCase()
+
+            const uploadPhoto = async (photo: any, kind: 'internal' | 'external') => {
+              if (!photo) return null
+              let blob: Blob | null = null
+              let name = 'photo.jpg'
+              let type = 'image/jpeg'
+
+              if (photo.key) {
+                const stored = await retrieveOfflineFile(photo.key)
+                if (stored) {
+                  blob = new Blob([stored.data], { type: stored.type || 'image/jpeg' })
+                  name = stored.name || name
+                  type = stored.type || type
+                }
+              }
+              if (!blob && photo.dataUrl) {
+                const parts = photo.dataUrl.split(',')
+                if (parts.length === 2) {
+                  const meta = parts[0]
+                  const b64 = parts[1]
+                  const mime = meta.match(/data:(.*);base64/)?.[1] || type
+                  const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0))
+                  blob = new Blob([bytes], { type: mime })
+                  type = mime
+                  name = photo.name || name
+                }
+              }
+
+              if (!blob) return null
+              const extFromName = (name.split('.').pop() || '').toLowerCase()
               const ext = extFromName || 'jpg'
-              const blob = new Blob([stored.data], { type: stored.type || 'image/jpeg' })
               const path = `${chamberId}/${kind}-${Date.now()}.${ext}`
-              const up = await bucket.upload(path, blob, { upsert: true, contentType: stored.type || 'image/jpeg', cacheControl: '3600' })
+              const up = await bucket.upload(path, blob, { upsert: true, contentType: type, cacheControl: '3600' })
               if (up.error) return null
               const pub = bucket.getPublicUrl(path)
               const url = pub.data.publicUrl
@@ -131,9 +154,10 @@ export async function flushQueue(supabase: any, onStatus?: (msg: string) => void
               if (upRow.error) return null
               return url
             }
+
             await uploadPhoto(offline_photos.internal, 'internal')
             await uploadPhoto(offline_photos.external, 'external')
-            deleteOfflineFiles([offline_photos.internal, offline_photos.external])
+            deleteOfflineFiles([offline_photos.internal?.key, offline_photos.external?.key])
           }
           break
         }
