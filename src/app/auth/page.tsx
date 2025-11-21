@@ -65,10 +65,10 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-b from-slate-50 to-slate-100 theme-dark:from-gray-950 theme-dark:to-gray-900 flex items-center justify-center p-4">
-      <div className="w-full max-w-sm rounded-2xl border border-slate-200 theme-dark:border-slate-800 bg-white theme-dark:bg-[#0f1626] px-6 py-7 text-slate-900 theme-dark:text-slate-100 shadow-xl">
+    <div className="min-h-screen w-full bg-gradient-to-b from-slate-50 to-slate-100 flex items-center justify-center p-4">
+      <div className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white px-6 py-7 text-slate-900 shadow-xl">
         <h1 className="text-2xl font-bold mb-2 text-center">Surveyor Login</h1>
-        <p className="text-xs text-slate-500 theme-dark:text-slate-300 mb-6 text-center">
+        <p className="text-xs text-slate-500 mb-6 text-center">
           Accounts are created by administrator invitation only.
         </p>
         <input
@@ -76,14 +76,14 @@ export default function AuthPage() {
           placeholder={defaultEmail}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full border border-slate-200 theme-dark:border-slate-700 rounded-lg p-3 mb-3 bg-white theme-dark:bg-[#0e121a] text-slate-900 theme-dark:text-slate-100 placeholder:text-slate-400 theme-dark:placeholder:text-slate-500 shadow-inner"
+          className="w-full border border-slate-200 rounded-lg p-3 mb-3 bg-white text-slate-900 placeholder:text-slate-400 shadow-inner"
         />
         <input
           type="password"
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full border border-slate-200 theme-dark:border-slate-700 rounded-lg p-3 mb-5 bg-white theme-dark:bg-[#0e121a] text-slate-900 theme-dark:text-slate-100 placeholder:text-slate-400 theme-dark:placeholder:text-slate-500 shadow-inner"
+          className="w-full border border-slate-200 rounded-lg p-3 mb-5 bg-white text-slate-900 placeholder:text-slate-400 shadow-inner"
         />
         <button
           onClick={signInWithPassword}
