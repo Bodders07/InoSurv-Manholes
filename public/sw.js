@@ -1,6 +1,9 @@
+const APP_SHELL_CACHE = 'app-shell-v2'
+const RUNTIME_CACHE = 'runtime-v2'
+
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open('app-shell-v1').then((cache) =>
+    caches.open(APP_SHELL_CACHE).then((cache) =>
       cache.addAll([
         '/',
         '/offline.html',
@@ -17,7 +20,8 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((keys) =>
       Promise.all(
         keys
-          .filter((key) => key.startsWith('app-shell-') && key !== 'app-shell-v1')
+          .filter((key) => key.startsWith('app-shell-') || key.startsWith('runtime-'))
+          .filter((key) => key !== APP_SHELL_CACHE && key !== RUNTIME_CACHE)
           .map((key) => caches.delete(key)),
       ),
     ),
@@ -25,25 +29,48 @@ self.addEventListener('activate', (event) => {
   self.clients.claim()
 })
 
+async function cacheFirst(request, cacheName) {
+  const cache = await caches.open(cacheName)
+  const cached = await cache.match(request)
+  if (cached) return cached
+  const response = await fetch(request)
+  if (response && response.status === 200) {
+    cache.put(request, response.clone())
+  }
+  return response
+}
+
 self.addEventListener('fetch', (event) => {
   const { request } = event
   if (request.method !== 'GET') return
+  const url = new URL(request.url)
 
-  // Handle navigation requests with offline fallback
+  // Navigation: try network, then cached shell, then offline page
   if (request.mode === 'navigate') {
     event.respondWith(
-      fetch(request).catch(() =>
-        caches.match('/offline.html', { cacheName: 'app-shell-v1' }),
-      ),
+      (async () => {
+        try {
+          const network = await fetch(request)
+          const cache = await caches.open(APP_SHELL_CACHE)
+          cache.put(request, network.clone())
+          return network
+        } catch (err) {
+          const cache = await caches.open(APP_SHELL_CACHE)
+          const cached = (await cache.match(request)) || (await cache.match('/'))
+          if (cached) return cached
+          const offline = await cache.match('/offline.html')
+          return offline || Response.error()
+        }
+      })(),
     )
     return
   }
 
-  // Cache-first for same-origin assets
-  event.respondWith(
-    caches.match(request).then((cached) => {
-      if (cached) return cached
-      return fetch(request)
-    }),
-  )
+  // Same-origin assets: cache-first
+  if (url.origin === self.location.origin) {
+    event.respondWith(cacheFirst(request, RUNTIME_CACHE))
+    return
+  }
+
+  // For cross-origin, just let it pass through
 })
