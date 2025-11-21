@@ -107,3 +107,14 @@ export async function flushQueue(supabase: any, onStatus?: (msg: string) => void
   }
   return { success, failed }
 }
+
+export async function clearQueue() {
+  const db = await openDb()
+  if (!db) return
+  return new Promise<void>((resolve) => {
+    const tx = db.transaction(STORE, 'readwrite')
+    tx.objectStore(STORE).clear()
+    tx.oncomplete = () => resolve()
+    tx.onerror = () => resolve()
+  })
+}

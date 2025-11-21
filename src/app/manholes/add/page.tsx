@@ -104,6 +104,44 @@ function AddManholeForm({ standaloneLayout = true }: { standaloneLayout?: boolea
   const [coverLifted, setCoverLifted] = useState('')
   const [coverNotReason, setCoverNotReason] = useState('')
   const [chainageMileage, setChainageMileage] = useState('')
+  const resetForm = () => {
+    setIdentifier('')
+    if (!copyList) {
+      setProjectId('')
+      setSurveyDate('')
+      setMeasuringTool('')
+    }
+    setLaserOffset('')
+    setLocationDesc('')
+    setLatitude('')
+    setLongitude('')
+    setEasting('')
+    setNorthing('')
+    setCoverLevel('')
+    setServiceType('')
+    setType('')
+    setTypeOther('')
+    setCoverLifted('')
+    setCoverNotReason('')
+    setIncoming([createEmptyPipe('A')])
+    setOutgoing([createEmptyPipe('X')])
+    setInternalPhoto(null)
+    setExternalPhoto(null)
+    setSketch(null)
+    setChainageMileage('')
+    setCoverShape('')
+    setCoverCondition('')
+    setCoverMaterial('')
+    setCoverMaterialOther('')
+    setChamberShape('')
+    setChamberDiameter('')
+    setChamberWidth('')
+    setChamberLength('')
+    setChamberMaterial('')
+    setChamberMaterialOther('')
+    setChamberCondition('')
+    setPipeLabelMode('letters')
+  }
 
   // Pipes
   const [incoming, setIncoming] = useState<Pipe[]>(() => [createEmptyPipe('Pipe A')])
@@ -226,10 +264,21 @@ function AddManholeForm({ standaloneLayout = true }: { standaloneLayout?: boolea
 
   useEffect(() => {
     async function fetchProjects() {
+      const isOffline = typeof navigator !== 'undefined' && navigator.onLine === false
+      const cached = await getCachedList<Project>('projects')
+      if (isOffline && cached?.data?.length) {
+        setProjects(cached.data)
+        setMessage('Offline: using cached projects. New chamber will queue for sync.')
+        return
+      }
       try {
         const { data, error } = await supabase.from('projects').select('id, name').is('deleted_at', null)
         if (error) throw error
-        if (data) setProjects(data)
+        if (data?.length) {
+          setProjects(data)
+        } else if (cached?.data?.length) {
+          setProjects(cached.data)
+        }
       } catch {
         const cached = await getCachedList<Project>('projects')
         if (cached?.data?.length) {
@@ -306,41 +355,7 @@ function AddManholeForm({ standaloneLayout = true }: { standaloneLayout?: boolea
     if (isOffline) {
       await enqueueMutation('chamber-insert', payload)
       setMessage('Offline: Chamber queued for sync. Photos will upload after you reconnect.')
-      setIdentifier('')
-      if (!copyList) {
-        setProjectId('')
-        setSurveyDate('')
-        setMeasuringTool('')
-      }
-      setLaserOffset('')
-      setLocationDesc('')
-      setLatitude('')
-      setLongitude('')
-      setEasting('')
-      setNorthing('')
-      setCoverLevel('')
-      setServiceType('')
-      setType('')
-      setTypeOther('')
-      setCoverLifted('')
-      setCoverNotReason('')
-      setIncoming([createEmptyPipe('A')])
-      setOutgoing([createEmptyPipe('X')])
-      setInternalPhoto(null)
-      setExternalPhoto(null)
-      setSketch(null)
-      setChainageMileage('')
-      setCoverShape('')
-      setCoverCondition('')
-      setCoverMaterial('')
-      setCoverMaterialOther('')
-      setChamberShape('')
-      setChamberDiameter('')
-      setChamberWidth('')
-      setChamberLength('')
-      setChamberMaterial('')
-      setChamberMaterialOther('')
-      setChamberCondition('')
+      resetForm()
       return
     }
 
