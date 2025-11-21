@@ -162,15 +162,26 @@ export default function ExportManholePage() {
 
         {!loading && manhole && (
           <div className="space-y-6">
-            {/* Row 1: General vs Coordinates side by side */}
-            <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Row 1: General Details (classic single card) */}
+            <section className="grid grid-cols-1 gap-4">
               <InfoCard
                 title="General Details"
-                rows={[]}
-              />
-              <InfoCard
-                title="Coordinates"
-                rows={[]}
+                rows={[
+                  { label: 'Survey Date', value: formatValue(manhole.survey_date) },
+                  { label: 'Tool', value: manhole.measuring_tool || '-' },
+                  { label: 'Easting/Northing', value: `${formatValue(manhole.easting)} / ${formatValue(manhole.northing)}` },
+                  { label: 'Lat / Lon', value: `${formatValue(manhole.latitude)} / ${formatValue(manhole.longitude)}` },
+                  { label: 'Cover Level', value: formatValue(manhole.cover_level) },
+                  {
+                    label: 'Cover Lifted',
+                    value:
+                      manhole.cover_lifted === 'No'
+                        ? `No - ${manhole.cover_lifted_reason || '-'}`
+                        : manhole.cover_lifted || '-',
+                  },
+                  { label: 'Chainage/Mileage', value: manhole.chainage_mileage || '-' },
+                  { label: 'Type', value: manhole.type_other || manhole.type || '-' },
+                ]}
               />
             </section>
 
