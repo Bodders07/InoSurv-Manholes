@@ -348,14 +348,14 @@ function toErrorText(err: unknown) {
   }
 }
 
+function numberOrNull(v: string | number | null | undefined) {
+  if (v === null || v === undefined) return null
+  const n = typeof v === 'string' ? Number(v) : v
+  return Number.isFinite(n) ? n : null
+}
+
 function PipeTableLegacy({ title, pipes, coverLevel }: { title: string; pipes: Pipe[]; coverLevel: number | null }) {
   const headers = ['Label', 'Size', 'Shape', 'Material', 'Depth', 'Invert', 'Notes']
-
-  const numberOrNull = (v: string | number | null | undefined) => {
-    if (v === null || v === undefined) return null
-    const n = typeof v === 'string' ? Number(v) : v
-    return Number.isFinite(n) ? n : null
-  }
 
   const getSize = (p: Pipe) => {
     const d = numberOrNull(p.diameter_mm)
