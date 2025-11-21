@@ -259,26 +259,6 @@ export default function RecycleContent() {
     }
   }
 
-  const deleteAllProjects = async () => {
-    if (!canRestore) {
-      setMessage('You do not have permission to delete projects.')
-      return
-    }
-    if (!projects.length) return
-    const confirmText = `Permanently delete ${projects.length} project(s)? This cannot be undone.`
-    if (!window.confirm(confirmText)) return
-    setBulkBusy(true)
-    setMessage('')
-    const ids = projects.map((p) => p.id)
-    const { error } = await supabase.from('projects').delete().in('id', ids)
-    setBulkBusy(false)
-    if (error) setMessage('Failed to delete all projects: ' + error.message)
-    else {
-      setMessage('Deleted all projects in recycle bin.')
-      loadProjects()
-    }
-  }
-
   return (
     <div className="space-y-6">
       <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
