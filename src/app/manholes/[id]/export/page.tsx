@@ -166,33 +166,11 @@ export default function ExportManholePage() {
             <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <InfoCard
                 title="General Details"
-                rows={[
-                  { label: 'Identifier', value: manhole.identifier || '-' },
-                  { label: 'Location', value: manhole.location_desc || '-' },
-                  { label: 'Service', value: manhole.service || '-' },
-                  { label: 'Chainage / Mileage', value: manhole.chainage_mileage || '-' },
-                  { label: 'Offset (mm)', value: formatValue(manhole.measuring_offset_mm) },
-                  { label: 'Survey Date', value: formatValue(manhole.survey_date) },
-                  { label: 'Tool', value: manhole.measuring_tool || '-' },
-                  {
-                    label: 'Cover Lifted',
-                    value:
-                      manhole.cover_lifted === 'No'
-                        ? `No - ${manhole.cover_lifted_reason || '-'}`
-                        : manhole.cover_lifted || '-',
-                  },
-                  { label: 'Type', value: manhole.type_other || manhole.type || '-' },
-                ]}
+                rows={[]}
               />
               <InfoCard
                 title="Coordinates"
-                rows={[
-                  { label: 'Easting', value: formatValue(manhole.easting) },
-                  { label: 'Northing', value: formatValue(manhole.northing) },
-                  { label: 'Latitude', value: formatValue(manhole.latitude) },
-                  { label: 'Longitude', value: formatValue(manhole.longitude) },
-                  { label: 'Cover Level', value: formatValue(manhole.cover_level) },
-                ]}
+                rows={[]}
               />
             </section>
 
