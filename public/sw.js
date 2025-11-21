@@ -14,7 +14,7 @@ const PRECACHE_ROUTES = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(APP_SHELL_CACHE).then((cache) =>
-      cache.addAll(PRECACHE_ROUTES),
+      Promise.all(PRECACHE_ROUTES.map((path) => cache.add(path).catch(() => null))),
     ),
   )
   self.skipWaiting()
@@ -50,27 +50,27 @@ self.addEventListener('fetch', (event) => {
   if (request.method !== 'GET') return
   const url = new URL(request.url)
 
-  // Navigation: try network, then cached shell, then offline page
+  // Navigation: prefer cached shell first for offline embeds, then network, then offline page
   if (request.mode === 'navigate') {
     event.respondWith(
       (async () => {
+        const cache = await caches.open(APP_SHELL_CACHE)
+        const pathNoSlash = url.pathname.endsWith('/') ? url.pathname.slice(0, -1) : url.pathname
+        const cachedFirst =
+          (await cache.match(request)) ||
+          (await cache.match(url.pathname, { ignoreSearch: true })) ||
+          (await cache.match(pathNoSlash, { ignoreSearch: true })) ||
+          (await cache.match('/')) ||
+          (await cache.match('/offline.html'))
+        if (cachedFirst && !navigator.onLine) return cachedFirst
         try {
           const network = await fetch(request)
-          const cache = await caches.open(APP_SHELL_CACHE)
           cache.put(request, network.clone())
           return network
         } catch (err) {
-          const cache = await caches.open(APP_SHELL_CACHE)
-          // Try exact match, then ignore search (handles ?embed=1), then no trailing slash, then root, then offline
-          const pathNoSlash = url.pathname.endsWith('/') ? url.pathname.slice(0, -1) : url.pathname
-          const cached =
-            (await cache.match(request)) ||
-            (await cache.match(url.pathname, { ignoreSearch: true })) ||
-            (await cache.match(pathNoSlash, { ignoreSearch: true })) ||
-            (await cache.match('/')) ||
-            (await cache.match('/offline.html'))
-          if (cached) return cached
-          return Response.error()
+          if (cachedFirst) return cachedFirst
+          const offline = await cache.match('/offline.html')
+          return offline || Response.error()
         }
       })(),
     )
