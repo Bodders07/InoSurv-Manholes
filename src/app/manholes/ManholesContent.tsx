@@ -773,7 +773,7 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
       doc.setFontSize(10)
       const jobBoxY = margin + 18
       const jobBoxWidth = innerWidth - 4
-      const jobBoxHeight = 20
+      const jobBoxHeight = 28
       const jobBoxX = startX + 2
       doc.rect(jobBoxX, jobBoxY, jobBoxWidth, jobBoxHeight)
       const idBoxWidth = 55
@@ -784,6 +784,8 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
       doc.text(valueOrDash(record.project_name), jobBoxX + 25, jobBoxY + 12)
       doc.text('Location:', jobBoxX + 3, jobBoxY + 18)
       doc.text(valueOrDash(record.location_desc), jobBoxX + 25, jobBoxY + 18)
+      doc.text('Chainage/Mileage:', jobBoxX + 3, jobBoxY + 24)
+      doc.text(valueOrDash(record.chainage_mileage), jobBoxX + 32, jobBoxY + 24)
       doc.text('Reference ID', jobBoxX + jobBoxWidth - idBoxWidth + 3, jobBoxY + 6)
       doc.text(valueOrDash(record.identifier), jobBoxX + jobBoxWidth - idBoxWidth + 3, jobBoxY + 12)
 
@@ -824,7 +826,6 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
       const generalRows = [
         { label: 'Survey Date:', value: valueOrDash(record.survey_date) },
         { label: 'Tool:', value: valueOrDash(record.measuring_tool) },
-        { label: 'Chainage/Mileage:', value: valueOrDash(record.chainage_mileage) },
         { label: 'Type:', value: valueOrDash(record.type_other || record.type) },
         { label: 'Cover Lifted:', value: formatCoverLifted(record) },
         { label: 'Service Type:', value: valueOrDash(record.service_type) },
