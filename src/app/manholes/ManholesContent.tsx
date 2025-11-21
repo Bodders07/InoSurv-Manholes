@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import React, { useCallback, useEffect, useMemo, useState, useDeferredValue, type ReactNode } from 'react'
 import { jsPDF } from 'jspdf'
@@ -1221,7 +1221,22 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
               className="absolute top-2 right-2 px-2 py-1 rounded bg-neutral-800 text-white hover:bg-neutral-700"
               onClick={closePreview}
             >
-              �
+              �
+            </button>
+            <div className="absolute top-2 left-4 text-sm font-semibold text-gray-200">{previewTitle}</div>
+            <iframe src={previewPdf} className="w-full h-full border-0" title="Chamber Preview" />
+          </div>
+        </div>
+      )}
+      {previewPdf && (
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-0 sm:p-6">
+          <div className="relative bg-white dark:bg-neutral-900 w-screen h-screen sm:w-[90vw] sm:h-[85vh] rounded-none sm:rounded-lg shadow-lg">
+            <button
+              aria-label="Close preview"
+              className="absolute top-2 right-2 px-2 py-1 rounded bg-neutral-800 text-white hover:bg-neutral-700"
+              onClick={closePreview}
+            >
+              ×
             </button>
             <div className="absolute top-2 left-4 text-sm font-semibold text-gray-200">{previewTitle}</div>
             <iframe src={previewPdf} className="w-full h-full border-0" title="Chamber Preview" />
@@ -1428,6 +1443,7 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
     </>
   )
 }
+
 
 
 
