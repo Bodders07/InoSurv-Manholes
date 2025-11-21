@@ -311,7 +311,7 @@ function AddManholeForm({ standaloneLayout = true }: { standaloneLayout?: boolea
     setOutgoing((arr) => arr.filter((_, i) => i !== index))
   }
 
-  async function addManhole() {
+  async function addChamber() {
     if (!projectId || !identifier) {
       setMessage('Please select a project and enter an identifier.')
       return
