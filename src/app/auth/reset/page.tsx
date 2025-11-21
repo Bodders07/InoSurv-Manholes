@@ -65,8 +65,8 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 p-4 auth-light">
-      <div className="bg-white border border-slate-200 p-8 rounded-xl shadow-md w-full max-w-sm text-slate-900 auth-card">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 p-4">
+      <div className="bg-white border border-slate-200 p-8 rounded-xl shadow-md w-full max-w-sm text-slate-900">
         <h1 className="text-2xl font-bold mb-4 text-center">{heading}</h1>
         {!recovering && <p className="text-sm text-slate-600 mb-4">{subcopy}</p>}
         <input

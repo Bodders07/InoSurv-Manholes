@@ -48,23 +48,6 @@ html, body {
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-/* Auth screens: force light palette even when theme-dark is active */
-.auth-light {
-  background: linear-gradient(to bottom, #f8fafc, #e2e8f0) !important;
-  color: #0f172a !important;
-}
-.auth-light .auth-card {
-  background: #ffffff !important;
-  color: #0f172a !important;
-  border-color: #e2e8f0 !important;
-}
-.theme-dark .auth-light input,
-.theme-dark .auth-light select,
-.theme-dark .auth-light textarea {
-  background-color: #ffffff !important;
-  color: #0f172a !important;
-  border-color: #cbd5e1 !important;
-}
 /* Dark theme overrides for common utility classes and components */
 .theme-dark .bg-white { background-color: #121212 !important; }
 .theme-dark .bg-gray-50 { background-color: #1f2937 !important; }
