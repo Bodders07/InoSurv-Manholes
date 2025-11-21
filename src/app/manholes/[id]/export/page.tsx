@@ -218,6 +218,7 @@ export default function ExportManholePage() {
                 <div className="p-3 grid grid-cols-1 gap-1 text-sm">
                   <div className="flex justify-between gap-2"><span>Survey Date:</span><span>{formatValue(manhole.survey_date)}</span></div>
                   <div className="flex justify-between gap-2"><span>Tool:</span><span>{manhole.measuring_tool || '-'}</span></div>
+                  <div className="flex justify-between gap-2"><span>Service Type:</span><span>{manhole.service || '-'}</span></div>
                   <div className="flex justify-between gap-2">
                     <span>Cover Lifted:</span>
                     <span>
@@ -248,7 +249,6 @@ export default function ExportManholePage() {
                 <div className="p-3 text-sm space-y-1">
                   <div className="flex justify-between gap-2"><span>Shape:</span><span>{manhole.cover_shape || '-'}</span></div>
                   <div className="flex justify-between gap-2"><span>Dimensions:</span><span>{formatCoverDimensions(manhole)}</span></div>
-                  <div className="flex justify-between gap-2"><span>Service Type:</span><span>{manhole.service || '-'}</span></div>
                   <div className="flex justify-between gap-2"><span>Material:</span><span>{manhole.cover_material_other || manhole.cover_material || '-'}</span></div>
                   <div className="flex justify-between gap-2"><span>Condition:</span><span>{manhole.cover_condition || '-'}</span></div>
                 </div>
