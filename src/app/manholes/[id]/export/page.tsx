@@ -361,7 +361,10 @@ function toErrorText(err: unknown) {
 
 function numberOrNull(v: string | number | null | undefined) {
   if (v === null || v === undefined) return null
-  const n = typeof v === 'string' ? Number(v) : v
+  if (typeof v === 'number') return Number.isFinite(v) ? v : null
+  const cleaned = v.trim().replace(/[^\d.-]/g, '')
+  if (!cleaned) return null
+  const n = Number(cleaned)
   return Number.isFinite(n) ? n : null
 }
 
@@ -390,7 +393,10 @@ function PipeTableLegacy({ title, pipes, coverLevel }: { title: string; pipes: P
       const explicitDepth = numberOrNull(p.invert_depth_m)
       if (explicitDepth !== null) return explicitDepth
       const soffit = numberOrNull(p.soffit_level)
-      const dia = numberOrNull(p.diameter_mm)
+      const dia =
+        numberOrNull(p.diameter_mm) ??
+        numberOrNull(p.width_mm) ??
+        numberOrNull(p.height_mm)
       if (soffit !== null && dia !== null) return soffit + dia / 1000 // add pipe diameter (m) to soffit to get depth
       return null
     })()
