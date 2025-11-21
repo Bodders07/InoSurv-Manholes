@@ -239,26 +239,6 @@ export default function RecycleContent() {
     )
   }, [busyId, canRestore, projects])
 
-  const deleteAllChambers = async () => {
-    if (!canRestore) {
-      setMessage('You do not have permission to delete chambers.')
-      return
-    }
-    if (!chambers.length) return
-    const confirmText = `Permanently delete ${chambers.length} chamber(s)? This cannot be undone.`
-    if (!window.confirm(confirmText)) return
-    setBulkBusy(true)
-    setMessage('')
-    const ids = chambers.map((c) => c.id)
-    const { error } = await supabase.from('chambers').delete().in('id', ids)
-    setBulkBusy(false)
-    if (error) setMessage('Failed to delete all chambers: ' + error.message)
-    else {
-      setMessage('Deleted all chambers in recycle bin.')
-      loadChambers()
-    }
-  }
-
   return (
     <div className="space-y-6">
       <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
