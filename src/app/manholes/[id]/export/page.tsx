@@ -315,7 +315,6 @@ function formatValue(value: string | number | null) {
 }
 
 function formatCoverDimensions(manhole: ManholeRecord) {
-  const shape = (manhole.cover_shape || '').toLowerCase()
   const width = manhole.cover_width_mm
   const length = manhole.cover_length_mm
   const diameter = manhole.cover_diameter_mm
@@ -323,19 +322,14 @@ function formatCoverDimensions(manhole: ManholeRecord) {
   const mm = (v: number | null | undefined) =>
     v === null || v === undefined || !Number.isFinite(v) ? null : `${v} mm`
 
-  if (shape.includes('circle') || shape.includes('round') || shape.includes('circular')) {
-    const d = mm(diameter)
-    return d || '-'
-  }
+  const d = mm(diameter)
+  if (d) return d
 
-  if (shape.includes('rect') || shape.includes('square') || shape.includes('hex')) {
-    const w = mm(width)
-    const l = mm(length)
-    if (w && l) return `${w} x ${l}`
-    if (w) return w
-    if (l) return l
-    return '-'
-  }
+  const w = mm(width)
+  const l = mm(length)
+  if (w && l) return `${w} x ${l}`
+  if (w) return w
+  if (l) return l
 
   return '-'
 }
