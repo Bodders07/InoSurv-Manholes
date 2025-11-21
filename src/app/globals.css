@@ -62,6 +62,26 @@ html, body {
 .theme-dark table { color: #e5e7eb; }
 .theme-dark th, .theme-dark td { border-color: #374151 !important; }
 
+/* Topbar dark theming to match data table headers */
+.theme-dark .topbar {
+  background-color: #1f2937 !important; /* slate-800 */
+  border-color: #2d3646 !important;
+  color: #e5e7eb !important;
+}
+.theme-dark .topbar button,
+.theme-dark .topbar .rounded,
+.theme-dark .topbar .rounded-full {
+  background-color: #111827 !important; /* slate-900 */
+  border-color: #334155 !important; /* slate-700 */
+  color: #e5e7eb !important;
+}
+.theme-dark .topbar input,
+.theme-dark .topbar select {
+  background-color: #0f172a !important;
+  border-color: #334155 !important;
+  color: #e5e7eb !important;
+}
+
 /* Sidebar theming */
 .theme-dark .app-sidebar { background-color: #0b0b0b !important; border-color: #222 !important; color: #fff !important; }
 .theme-dark .app-sidebar h2 { color: #fff !important; border-color: #222 !important; }
