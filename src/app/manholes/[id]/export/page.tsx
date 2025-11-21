@@ -160,25 +160,16 @@ export default function ExportManholePage() {
 
         {!loading && manhole && (
           <div className="space-y-6">
-            {/* Row 1: survey meta only */}
-            <section className="grid grid-cols-1 gap-4">
+            {/* Row 1: General vs Coordinates side by side */}
+            <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <InfoCard
-                title="Survey Details"
+                title="General Details"
                 rows={[
                   { label: 'Identifier', value: manhole.identifier || '-' },
                   { label: 'Location', value: manhole.location_desc || '-' },
                   { label: 'Service', value: manhole.service || '-' },
                   { label: 'Chainage / Mileage', value: manhole.chainage_mileage || '-' },
                   { label: 'Offset (mm)', value: formatValue(manhole.measuring_offset_mm) },
-                ]}
-              />
-            </section>
-
-            {/* Row 2: general + coordinates side by side */}
-            <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <InfoCard
-                title="General Details"
-                rows={[
                   { label: 'Survey Date', value: formatValue(manhole.survey_date) },
                   { label: 'Tool', value: manhole.measuring_tool || '-' },
                   {
@@ -203,7 +194,7 @@ export default function ExportManholePage() {
               />
             </section>
 
-            {/* Row 3: cover + chamber side by side */}
+            {/* Row 2: cover + chamber side by side */}
             <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <InfoCard
                 title="Cover"
