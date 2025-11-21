@@ -1061,10 +1061,15 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
   }
 
   async function previewManhole(id: string, identifier?: string | null) {
-    // Use the new live export page instead of the legacy JS PDF preview
+    // Open the live export page in a popup window (same URL, no new tab)
     const slug = encodeURIComponent(identifier || id)
     const url = `/chambers/${slug}/export?embed=1`
-    window.open(url, '_blank')
+    const popup = typeof window !== 'undefined'
+      ? window.open(url, 'exportPreview', 'width=1400,height=900,noopener,noreferrer')
+      : null
+    if (!popup) {
+      setMessage('Popup blocked. Please allow popups for this site to preview the sheet.')
+    }
   }
 
   const SortButton = ({ label, keyName }: { label: string; keyName: SortKey }) => (
