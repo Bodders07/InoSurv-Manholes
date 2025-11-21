@@ -277,20 +277,6 @@ export default function RecycleContent() {
               {tab === 'chambers' ? 'Chambers' : 'Projects'}
             </button>
           ))}
-        </div>
-        <div className="mt-4 flex flex-wrap gap-2">
-              {(['chambers', 'projects'] as const).map((tab) => (
-                <button
-                  key={tab}
-                  type="button"
-              onClick={() => setActiveTab(tab)}
-              className={`rounded-full px-3 py-1.5 text-sm font-medium ${
-                activeTab === tab ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-            >
-              {tab === 'chambers' ? 'Chambers' : 'Projects'}
-            </button>
-          ))}
           {activeTab === 'chambers' && chambers.length > 0 && (
             <button
               type="button"
