@@ -160,8 +160,8 @@ export default function ExportManholePage() {
 
         {!loading && manhole && (
           <div className="space-y-6">
-            {/* Top row: survey + coordinates */}
-            <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Row 1: survey meta only */}
+            <section className="grid grid-cols-1 gap-4">
               <InfoCard
                 title="Survey Details"
                 rows={[
@@ -172,19 +172,9 @@ export default function ExportManholePage() {
                   { label: 'Offset (mm)', value: formatValue(manhole.measuring_offset_mm) },
                 ]}
               />
-              <InfoCard
-                title="Coordinates"
-                rows={[
-                  { label: 'Easting', value: formatValue(manhole.easting) },
-                  { label: 'Northing', value: formatValue(manhole.northing) },
-                  { label: 'Latitude', value: formatValue(manhole.latitude) },
-                  { label: 'Longitude', value: formatValue(manhole.longitude) },
-                  { label: 'Cover Level', value: formatValue(manhole.cover_level) },
-                ]}
-              />
             </section>
 
-            {/* Second row: general + cover/chamber */}
+            {/* Row 2: general + coordinates side by side */}
             <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <InfoCard
                 title="General Details"
@@ -202,6 +192,20 @@ export default function ExportManholePage() {
                 ]}
               />
               <InfoCard
+                title="Coordinates"
+                rows={[
+                  { label: 'Easting', value: formatValue(manhole.easting) },
+                  { label: 'Northing', value: formatValue(manhole.northing) },
+                  { label: 'Latitude', value: formatValue(manhole.latitude) },
+                  { label: 'Longitude', value: formatValue(manhole.longitude) },
+                  { label: 'Cover Level', value: formatValue(manhole.cover_level) },
+                ]}
+              />
+            </section>
+
+            {/* Row 3: cover + chamber side by side */}
+            <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <InfoCard
                 title="Cover"
                 rows={[
                   { label: 'Shape', value: manhole.cover_shape || '-' },
@@ -212,9 +216,6 @@ export default function ExportManholePage() {
                   { label: 'Reason', value: manhole.cover_lifted_reason || '-' },
                 ]}
               />
-            </section>
-
-            <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <InfoCard
                 title="Chamber"
                 rows={[
