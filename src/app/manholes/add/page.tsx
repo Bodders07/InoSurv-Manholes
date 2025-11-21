@@ -9,6 +9,7 @@ import { getCachedList } from '@/lib/offlineCache'
 import NextDynamic from 'next/dynamic'
 import { type SketchState } from '@/app/components/sketch/ChamberSketch'
 const ChamberSketch = NextDynamic(() => import('@/app/components/sketch/ChamberSketch'), { ssr: false })
+import { storeOfflineFile } from '@/lib/offlinePhotos'
 
 interface Project {
   id: string
@@ -359,6 +360,9 @@ function AddManholeForm({ standaloneLayout = true }: { standaloneLayout?: boolea
           setMessage('Offline: no cached projects to assign. Go online once, then retry.')
           return
         }
+        const offline_photos: { internal?: string | null; external?: string | null } = {}
+        if (internalPhoto) offline_photos.internal = await storeOfflineFile(internalPhoto)
+        if (externalPhoto) offline_photos.external = await storeOfflineFile(externalPhoto)
         const project_lookup = selectedProject
           ? {
               project_number: selectedProject.project_number || null,
@@ -366,7 +370,8 @@ function AddManholeForm({ standaloneLayout = true }: { standaloneLayout?: boolea
               client: selectedProject.client || null,
             }
           : undefined
-        await enqueueMutation('chamber-insert', project_lookup ? { ...payload, project_lookup } : payload)
+        const payloadWithPhotos = offline_photos.internal || offline_photos.external ? { ...payload, offline_photos } : payload
+        await enqueueMutation('chamber-insert', project_lookup ? { ...payloadWithPhotos, project_lookup } : payloadWithPhotos)
         setMessage('Offline: Chamber queued for sync. Photos will upload after you reconnect.')
         resetForm()
         return
