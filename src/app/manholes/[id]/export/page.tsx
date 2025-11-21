@@ -84,15 +84,32 @@ export default function ExportManholePage() {
       setLoading(true)
       setMessage(null)
       try {
-        const { data: mhRow, error: mhError } = await supabase
-          .from('chambers')
-          .select('*')
-          .eq('id', manholeId)
-          .is('deleted_at', null)
-          .maybeSingle()
-        if (mhError) throw mhError
-        if (!mhRow) throw new Error('Manhole not found')
-        const record = mhRow as ManholeRecord
+        // Try by UUID first, then by identifier (e.g., MH05)
+        const fetchChamber = async (key: string) => {
+          let record: ManholeRecord | null = null
+
+          const { data: byId, error: idError } = await supabase
+            .from('chambers')
+            .select('*')
+            .eq('id', key)
+            .is('deleted_at', null)
+            .maybeSingle()
+          if (byId) record = byId as ManholeRecord
+          if (!record) {
+            const { data: byIdent, error: identError } = await supabase
+              .from('chambers')
+              .select('*')
+              .eq('identifier', key)
+              .is('deleted_at', null)
+              .maybeSingle()
+            if (identError) throw identError
+            record = byIdent as ManholeRecord | null
+          }
+          if (!record) throw new Error('Chamber not found')
+          return record
+        }
+
+        const record = await fetchChamber(manholeId)
 
         let projectRow: ProjectRecord | null = null
         if (record.project_id) {
@@ -111,7 +128,7 @@ export default function ExportManholePage() {
         setProject(projectRow)
       } catch (err) {
         if (!active) return
-        setMessage(err instanceof Error ? err.message : String(err))
+        setMessage(toErrorText(err))
         setManhole(null)
         setProject(null)
       } finally {
@@ -332,4 +349,15 @@ function formatCoverDimensions(manhole: ManholeRecord) {
   if (l) return l
 
   return '-'
+}
+
+function toErrorText(err: unknown) {
+  if (!err) return 'Unknown error'
+  if (typeof err === 'string') return err
+  if (err instanceof Error) return err.message
+  try {
+    return JSON.stringify(err)
+  } catch {
+    return String(err)
+  }
 }
