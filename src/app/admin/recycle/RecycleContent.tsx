@@ -35,6 +35,18 @@ const formatDeletedBy = (userId?: string | null) => {
   return `${userId.slice(0, 8)}…`
 }
 
+const bucketName = 'manhole-photos'
+const extractStoragePath = (url?: string | null) => {
+  if (!url) return null
+  try {
+    const u = new URL(url)
+    const match = u.pathname.match(/manhole-photos\/(.+)$/)
+    return match?.[1] || null
+  } catch {
+    return null
+  }
+}
+
 export default function RecycleContent() {
   const { has } = usePermissions()
   const canRestore = has('run-maintenance') || has('manage-permissions')
@@ -125,11 +137,29 @@ export default function RecycleContent() {
     setBulkBusy(true)
     setMessage('')
     const ids = chambers.map((c) => c.id)
+    const { data: files } = await supabase
+      .from('chambers')
+      .select('internal_photo_url, external_photo_url')
+      .in('id', ids)
+    const paths =
+      files
+        ?.map((row) => [extractStoragePath(row.internal_photo_url), extractStoragePath(row.external_photo_url)])
+        .flat()
+        .filter((p): p is string => Boolean(p)) ?? []
+    const uniquePaths = Array.from(new Set(paths))
+
     const { error } = await supabase.from('chambers').delete().in('id', ids)
     setBulkBusy(false)
     if (error) setMessage('Failed to delete all chambers: ' + error.message)
     else {
-      setMessage('Deleted all chambers in recycle bin.')
+      if (uniquePaths.length) {
+        try {
+          await supabase.storage.from(bucketName).remove(uniquePaths)
+        } catch {
+          /* ignore storage cleanup errors */
+        }
+      }
+      setMessage('Deleted all chambers in recycle bin and cleaned storage.')
       loadChambers()
     }
   }
