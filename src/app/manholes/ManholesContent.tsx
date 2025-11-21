@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState, useDeferredValue, type ReactNode } from 'react'
+import React, { useCallback, useEffect, useMemo, useState, useDeferredValue, type ReactNode } from 'react'
 import { jsPDF } from 'jspdf'
 import { supabase } from '@/lib/supabaseClient'
 import type { SketchState } from '@/app/components/sketch/ChamberSketch'
@@ -71,6 +71,47 @@ type PipeRow = {
   depth: string
   invert: string
   notes: string
+}
+
+class ChamberModalBoundary extends React.Component<
+  { children: ReactNode; onError?: (err: Error) => void },
+  { error: Error | null }
+> {
+  constructor(props: { children: ReactNode; onError?: (err: Error) => void }) {
+    super(props)
+    this.state = { error: null }
+  }
+  static getDerivedStateFromError(error: Error) {
+    return { error }
+  }
+  componentDidCatch(error: Error) {
+    try {
+      localStorage.setItem(
+        'lastNewChamberError',
+        JSON.stringify({ message: error.message, stack: error.stack, ts: Date.now() })
+      )
+    } catch {
+      /* ignore */
+    }
+    if (this.props.onError) this.props.onError(error)
+  }
+  render() {
+    if (this.state.error) {
+      return (
+        <div className="p-4 text-sm text-red-700 bg-red-50 rounded border border-red-200">
+          <p className="font-semibold">New Chamber error (captured locally)</p>
+          <p className="mt-1 break-words">{this.state.error.message}</p>
+          {this.state.error.stack && (
+            <pre className="mt-2 whitespace-pre-wrap text-xs text-red-800">{this.state.error.stack}</pre>
+          )}
+          <p className="mt-2 text-xs text-gray-600">
+            Screenshot this block and share it so we can patch the iOS offline crash.
+          </p>
+        </div>
+      )
+    }
+    return this.props.children as ReactNode
+  }
 }
 
 

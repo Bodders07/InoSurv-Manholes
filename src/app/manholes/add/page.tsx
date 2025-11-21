@@ -6,9 +6,7 @@ import SidebarLayout from '@/app/components/SidebarLayout'
 import { supabase } from '@/lib/supabaseClient'
 import { enqueueMutation } from '@/lib/mutationQueue'
 import { getCachedList } from '@/lib/offlineCache'
-import NextDynamic from 'next/dynamic'
-import { type SketchState } from '@/app/components/sketch/ChamberSketch'
-const ChamberSketch = NextDynamic(() => import('@/app/components/sketch/ChamberSketch'), { ssr: false })
+import ChamberSketch, { type SketchState } from '@/app/components/sketch/ChamberSketch'
 import { storeOfflineFile } from '@/lib/offlinePhotos'
 
 interface Project {
