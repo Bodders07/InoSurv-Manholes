@@ -48,6 +48,10 @@ html, body {
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
+/* Auth title override: keep login heading white in dark mode */
+.auth-title { color: #0f172a; }
+.theme-dark .auth-title { color: #ffffff !important; }
+
 /* Dark theme overrides for common utility classes and components */
 .theme-dark .bg-white { background-color: #121212 !important; }
 .theme-dark .bg-gray-50 { background-color: #1f2937 !important; }

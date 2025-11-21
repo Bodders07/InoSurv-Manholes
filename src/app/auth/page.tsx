@@ -67,7 +67,7 @@ export default function AuthPage() {
   return (
     <div className="min-h-screen w-full bg-gradient-to-b from-slate-50 to-slate-100 flex items-center justify-center p-4">
       <div className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white px-6 py-7 text-slate-900 shadow-xl">
-        <h1 className="text-2xl font-bold mb-2 text-center text-slate-900 theme-dark:text-white">Surveyor Login</h1>
+        <h1 className="text-2xl font-bold mb-2 text-center auth-title">Surveyor Login</h1>
         <p className="text-xs text-slate-500 mb-6 text-center">
           Accounts are created by administrator invitation only.
         </p>
