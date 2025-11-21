@@ -449,10 +449,10 @@ export default function EditManholePage() {
                 <input className="w-full border p-2 rounded" value={identifier} onChange={(e)=>setIdentifier(e.target.value)} />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium mb-1">Survey Date</label>
-                <input type="date" className="w-full border p-2 rounded" value={surveyDate} onChange={(e)=>setSurveyDate(e.target.value)} />
-              </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Survey Date</label>
+            <input type="date" className="w-full border p-2 rounded" value={surveyDate} onChange={(e)=>setSurveyDate(e.target.value)} />
+          </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Measuring Tools</label>
                 <select className="w-full border p-2 rounded" value={measuringTool} onChange={(e)=>setMeasuringTool(e.target.value)}>
@@ -468,7 +468,10 @@ export default function EditManholePage() {
                 <label className="block text-sm font-medium mb-1">Location (description)</label>
                 <input className="w-full border p-2 rounded" value={locationDesc} onChange={(e)=>setLocationDesc(e.target.value)} />
               </div>
+            </div>
 
+            <h2 className="text-xl font-semibold mt-8 mb-3">Coordinates</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <div>
                 <div className="flex items-center justify-between">
                   <label className="block text-sm font-medium mb-1">Latitude</label>
@@ -498,7 +501,10 @@ export default function EditManholePage() {
                 <label className="block text-sm font-medium mb-1">Cover Level</label>
                 <input className="w-full border p-2 rounded" value={coverLevel} onChange={(e)=>setCoverLevel(e.target.value)} />
               </div>
+            </div>
 
+            <h2 className="text-xl font-semibold mt-8 mb-3">General Details</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <div>
                 <label className="block text-sm font-medium mb-1">Service Type</label>
                 <select className="w-full border p-2 rounded" value={serviceType} onChange={(e)=>setServiceType(e.target.value)}>
@@ -540,15 +546,15 @@ export default function EditManholePage() {
                 <input className="mt-2 w-full border p-2 rounded" placeholder="If No, specify why" value={coverNotReason} onChange={(e)=>setCoverNotReason(e.target.value)} />
               )}
             </div>
-          </div>
-          <div>
-            <label className="block text-sm mb-1">Chainage / Mileage</label>
-            <input
-              className="w-full border p-2 rounded"
-              placeholder="Enter chainage or mileage"
-              value={chainageMileage}
-              onChange={(e)=>setChainageMileage(e.target.value)}
-            />
+            <div className="md:col-span-3">
+              <label className="block text-sm mb-1">Chainage / Mileage</label>
+              <input
+                className="w-full border p-2 rounded"
+                placeholder="Enter chainage or mileage"
+                value={chainageMileage}
+                onChange={(e)=>setChainageMileage(e.target.value)}
+              />
+            </div>
           </div>
 
           {/* Cover */}

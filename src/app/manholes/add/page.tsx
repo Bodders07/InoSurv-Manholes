@@ -557,7 +557,10 @@ ALTER TABLE public.chambers
             <label className="block text-sm font-medium mb-1">Location (description)</label>
             <input className="w-full border p-2 rounded" value={locationDesc} onChange={(e)=>setLocationDesc(e.target.value)} placeholder="e.g., Near signal, left cess" />
           </div>
+        </div>
 
+        <h2 className="text-xl font-semibold mt-8 mb-3">Coordinates</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <div>
             <div className="flex items-center justify-between">
               <label className="block text-sm font-medium mb-1">Latitude</label>
@@ -587,7 +590,10 @@ ALTER TABLE public.chambers
             <label className="block text-sm font-medium mb-1">Cover Level</label>
             <input className="w-full border p-2 rounded" value={coverLevel} onChange={(e)=>setCoverLevel(e.target.value)} />
           </div>
+        </div>
 
+        <h2 className="text-xl font-semibold mt-8 mb-3">General Details</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <div>
             <label className="block text-sm font-medium mb-1">Service Type</label>
             <select className="w-full border p-2 rounded" value={serviceType} onChange={(e)=>setServiceType(e.target.value)}>
@@ -630,17 +636,18 @@ ALTER TABLE public.chambers
             {coverLifted === 'No' && (
               <input className="mt-2 w-full border p-2 rounded" placeholder="If No, specify why" value={coverNotReason} onChange={(e)=>setCoverNotReason(e.target.value)} />
             )}
+          </div>
+
+          <div className="md:col-span-3">
+            <label className="block text-sm mb-1">Chainage / Mileage</label>
+            <input
+              className="w-full border p-2 rounded"
+              placeholder="Enter chainage or mileage"
+              value={chainageMileage}
+              onChange={(e) => setChainageMileage(e.target.value)}
+            />
+          </div>
         </div>
-      </div>
-      <div>
-        <label className="block text-sm mb-1">Chainage / Mileage</label>
-        <input
-          className="w-full border p-2 rounded"
-          placeholder="Enter chainage or mileage"
-          value={chainageMileage}
-          onChange={(e) => setChainageMileage(e.target.value)}
-        />
-      </div>
 
         {/* Cover */}
         <h2 className="text-xl font-semibold mt-8 mb-3">Cover</h2>
