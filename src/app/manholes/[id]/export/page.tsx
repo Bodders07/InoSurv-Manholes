@@ -7,7 +7,7 @@ import type { SketchState } from '@/app/components/sketch/ChamberSketch'
 import { supabase } from '@/lib/supabaseClient'
 
 const ChamberSketch = NextDynamic(() => import('@/app/components/sketch/ChamberSketch'), { ssr: false })
-const BUILD_TAG = 'export-layout-v2'
+const BUILD_TAG = 'export-layout-v3'
 
 type Pipe = {
   label?: string | null
