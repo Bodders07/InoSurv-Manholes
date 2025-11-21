@@ -32,6 +32,20 @@ export default function SyncStatus() {
     refreshCount()
   }
 
+  // Auto-sync when the browser regains connectivity
+  useEffect(() => {
+    function handleOnline() {
+      if (queued > 0 && !syncing) {
+        syncNow()
+      }
+    }
+    if (typeof window !== 'undefined') {
+      window.addEventListener('online', handleOnline)
+      return () => window.removeEventListener('online', handleOnline)
+    }
+    return undefined
+  }, [queued, syncing])
+
   const clearAll = async () => {
     await clearQueue()
     setMessage('Cleared offline queue.')
