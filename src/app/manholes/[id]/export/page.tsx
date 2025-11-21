@@ -245,7 +245,7 @@ export default function ExportManholePage() {
               {manhole.sketch_json ? (
                 <div className="border border-gray-400 p-2">
                   <div className="text-center font-semibold mb-2">Chamber Sketch</div>
-                  <div className="border border-gray-300 inline-block">
+                  <div className="border border-gray-300 inline-block sketch-preview">
                     <div className="w-[220px] h-[220px] pointer-events-none select-none">
                       <ChamberSketch compact value={manhole.sketch_json} palette="print-light" />
                     </div>
