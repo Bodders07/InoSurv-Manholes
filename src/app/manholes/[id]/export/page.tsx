@@ -163,21 +163,31 @@ export default function ExportManholePage() {
                 title="Survey Details"
               rows={[
                 { label: 'Identifier', value: manhole.identifier || 'â€”' },
-                { label: 'Service', value: manhole.service || 'â€”' },
-                { label: 'Survey Date', value: formatValue(manhole.survey_date) },
-                { label: 'Measuring Tool', value: manhole.measuring_tool || 'â€”' },
+                { label: 'Location', value: manhole.location_desc || '—' },
+                { label: 'Service', value: manhole.service || '—' },
+                { label: 'Chainage / Mileage', value: manhole.chainage_mileage || '—' },
                 { label: 'Offset (mm)', value: formatValue(manhole.measuring_offset_mm) },
-                { label: 'Location', value: manhole.location_desc || 'â€”' },
-                { label: 'Chainage / Mileage', value: manhole.chainage_mileage || 'â€”' },
-              ]}
-            />
+                ]}
+              />
+              <InfoCard
+                title="General Details"
+                rows={[
+                  { label: 'Survey Date', value: formatValue(manhole.survey_date) },
+                  { label: 'Tool', value: manhole.measuring_tool || '—' },
+                  { label: 'Cover Lifted', value: manhole.cover_lifted === 'No' ? ('No - ' + (manhole.cover_lifted_reason || '-')) : manhole.cover_lifted || '—' },
+                  { label: 'Type', value: manhole.type_other || manhole.type || '—' },
+                ]}
+              />
+
+            </section>
+            <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <InfoCard
                 title="Coordinates"
                 rows={[
-                  { label: 'Latitude', value: formatValue(manhole.latitude) },
-                  { label: 'Longitude', value: formatValue(manhole.longitude) },
                   { label: 'Easting', value: formatValue(manhole.easting) },
                   { label: 'Northing', value: formatValue(manhole.northing) },
+                  { label: 'Latitude', value: formatValue(manhole.latitude) },
+                  { label: 'Longitude', value: formatValue(manhole.longitude) },
                   { label: 'Cover Level', value: formatValue(manhole.cover_level) },
                 ]}
               />
