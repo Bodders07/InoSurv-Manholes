@@ -1,10 +1,17 @@
-const APP_SHELL_CACHE = 'app-shell-v3'
-const RUNTIME_CACHE = 'runtime-v3'
+const APP_SHELL_CACHE = 'app-shell-v4'
+const RUNTIME_CACHE = 'runtime-v4'
 const PRECACHE_ROUTES = [
   '/',
   '/offline.html',
   '/favicon.ico',
   '/manifest.json',
+  // Core app areas to allow cold offline start
+  '/projects',
+  '/projects?embed=1',
+  '/chambers',
+  '/chambers?embed=1',
+  '/manholes',
+  // Add forms (modal embeds)
   '/chambers/add',
   '/chambers/add?embed=1',
   '/manholes/add',
