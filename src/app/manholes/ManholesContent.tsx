@@ -1023,15 +1023,10 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
       } else if (exportFormat === 'jpeg') {
         downloadJpegFiles(records)
       } else {
-        // For PDF, open the new export page per selected chamber (new layout)
-        const selectedRows = rows.filter((r) => exportSelected.includes(r.id))
-        if (!selectedRows.length) throw new Error('No data found for the selected Chambers.')
-        selectedRows.forEach((r) => {
-          const slug = encodeURIComponent(r.identifier || r.id)
-          const url = `/chambers/${slug}/export?embed=1`
-          window.open(url, '_blank')
-        })
-        setMessage(`Opened ${selectedRows.length} export tab(s).`)
+        // PDF: download a single file; when multiple chambers are selected we combine them
+        // into one multi-page PDF so the user has one download instead of many tabs.
+        await downloadPdfFiles(records)
+        setMessage(`Downloaded ${records.length} PDF${records.length > 1 ? 's (combined into one file)' : ''}.`)
         setExportOpen(false)
       }
     } catch (err) {
