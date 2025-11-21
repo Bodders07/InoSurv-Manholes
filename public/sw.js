@@ -59,7 +59,11 @@ self.addEventListener('fetch', (event) => {
           return network
         } catch (err) {
           const cache = await caches.open(APP_SHELL_CACHE)
-          const cached = (await cache.match(request)) || (await cache.match('/'))
+          // Try exact match, then ignore search (handles ?embed=1), then root, then offline
+          const cached =
+            (await cache.match(request)) ||
+            (await cache.match(url.pathname, { ignoreSearch: true })) ||
+            (await cache.match('/'))
           if (cached) return cached
           const offline = await cache.match('/offline.html')
           return offline || Response.error()
