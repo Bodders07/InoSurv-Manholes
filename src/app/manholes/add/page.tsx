@@ -424,7 +424,7 @@ ALTER TABLE public.chambers
               cacheControl: '3600',
             })
             if (up.error) {
-              uploadMsg += \`\\nNote: Failed to upload \${kind} photo (\${up.error.message}). Ensure a public storage bucket named 'manhole-photos' exists and Authenticated users can upload.\`
+              uploadMsg += '\nNote: Failed to upload ' + kind + ' photo (' + up.error.message + '). Ensure a public storage bucket named "manhole-photos" exists and Authenticated users can upload.'
               return null
             }
             const pub = bucket.getPublicUrl(path)
@@ -434,7 +434,7 @@ ALTER TABLE public.chambers
               .update(kind === 'internal' ? { internal_photo_url: url } : { external_photo_url: url })
               .eq('id', newId)
             if (upRow.error) {
-              uploadMsg += \`\\nNote: Saved file but failed to write URL to DB (\${upRow.error.message}). Check manholes RLS allows your role to update.\`
+              uploadMsg += '\nNote: Saved file but failed to write URL to DB (' + upRow.error.message + '). Check manholes RLS allows your role to update.'
             }
             return url
           }
@@ -986,4 +986,3 @@ function AddManholePageInner() {
   const embed = params?.get('embed') === '1'
   return <AddManholeForm standaloneLayout={!embed} />
 }
-
