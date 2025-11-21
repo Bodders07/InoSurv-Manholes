@@ -691,7 +691,7 @@ export default function EditManholePage() {
                   </div>
                 </div>
                 <div className="p-3 overflow-auto">
-                  <ChamberSketch compact value={sketchDraft ?? undefined} onChange={(s)=>setSketchDraft(s)} />
+                  <ChamberSketch compact minimal value={sketchDraft ?? undefined} onChange={(s)=>setSketchDraft(s)} />
                 </div>
               </div>
             </div>

@@ -65,11 +65,13 @@ export default function ChamberSketch({
   onChange,
   compact = false,
   palette = 'auto',
+  minimal = false,
 }: {
   value?: SketchState
   onChange?: (s: SketchState) => void
   compact?: boolean
   palette?: 'auto' | 'print-light'
+  minimal?: boolean // hides legend, cover controls, and dashed cover overlay
 }) {
   const [state, setSketchState] = useState<SketchState>(() => {
     if (value) {
@@ -331,19 +333,21 @@ export default function ChamberSketch({
     <div className="w-full">
       {/* Toolbar */}
       <div className={`flex flex-wrap items-center ${compact ? 'gap-1 mb-1' : 'gap-2 mb-2'} sketch-toolbar`}>
-        <div className={`flex items-center ${compact ? 'gap-1 px-2 py-1' : 'gap-2 px-2 py-1'} border rounded sketch-group`}>
-          <span className={`${compact ? 'text-xs' : 'text-sm'} font-semibold sketch-group__label`}>Cover</span>
-          {(['Circle', 'Square', 'Rectangle', 'Triangle'] as const).map((s) => (
-            <button
-              key={s}
-              type="button"
-              onClick={() => setCover(s)}
-              className={`sketch-btn ${compact ? 'text-xs px-2 py-1' : 'px-2 py-1'} rounded border ${state.coverShape === s ? 'sketch-btn--active' : ''}`}
-            >
-              {s}
-            </button>
-          ))}
-        </div>
+        {!minimal && (
+          <div className={`flex items-center ${compact ? 'gap-1 px-2 py-1' : 'gap-2 px-2 py-1'} border rounded sketch-group`}>
+            <span className={`${compact ? 'text-xs' : 'text-sm'} font-semibold sketch-group__label`}>Cover</span>
+            {(['Circle', 'Square', 'Rectangle', 'Triangle'] as const).map((s) => (
+              <button
+                key={s}
+                type="button"
+                onClick={() => setCover(s)}
+                className={`sketch-btn ${compact ? 'text-xs px-2 py-1' : 'px-2 py-1'} rounded border ${state.coverShape === s ? 'sketch-btn--active' : ''}`}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+        )}
         <div className={`flex items-center ${compact ? 'gap-1 px-2 py-1' : 'gap-2 px-2 py-1'} border rounded sketch-group`}>
           <span className={`${compact ? 'text-xs' : 'text-sm'} font-semibold sketch-group__label`}>Chamber</span>
           {(['Circle', 'Square', 'Rectangle', 'Hexagon'] as const).map((s) => (
@@ -454,15 +458,17 @@ export default function ChamberSketch({
           onPointerDown={startNearestHandleDrag}
         >
           {/* Key / Legend (top-left) */}
-          <g transform={compact ? 'translate(8,8)' : 'translate(12,12)'}>
-            <rect x="0" y="0" width={compact ? 140 : 170} height={compact ? 38 : 46} rx="6" ry="6" fill="var(--sketch-legend-bg, #ffffff)" stroke="var(--sketch-legend-border, #e5e7eb)" />
-            {/* Cover sample (dashed) */}
-            <rect x={compact ? 8 : 10} y={compact ? 8 : 10} width={compact ? 16 : 20} height={compact ? 8 : 10} strokeDasharray="4 3" stroke="var(--sketch-cover, #333)" fill="none" strokeWidth="2" />
-            <text x={compact ? 30 : 38} y={compact ? 16 : 18} fontSize={compact ? 10 : 12} fill="var(--sketch-text, #374151)">Cover (dashed)</text>
-            {/* Chamber sample (solid) */}
-            <line x1={compact ? 8 : 10} y1={compact ? 26 : 32} x2={compact ? 24 : 30} y2={compact ? 26 : 32} stroke="var(--sketch-chamber, #777)" strokeWidth="3" />
-            <text x={compact ? 30 : 38} y={compact ? 29 : 35} fontSize={compact ? 10 : 12} fill="var(--sketch-text, #374151)">Chamber (solid)</text>
-          </g>
+          {!minimal && (
+            <g transform={compact ? 'translate(8,8)' : 'translate(12,12)'}>
+              <rect x="0" y="0" width={compact ? 140 : 170} height={compact ? 38 : 46} rx="6" ry="6" fill="var(--sketch-legend-bg, #ffffff)" stroke="var(--sketch-legend-border, #e5e7eb)" />
+              {/* Cover sample (dashed) */}
+              <rect x={compact ? 8 : 10} y={compact ? 8 : 10} width={compact ? 16 : 20} height={compact ? 8 : 10} strokeDasharray="4 3" stroke="var(--sketch-cover, #333)" fill="none" strokeWidth="2" />
+              <text x={compact ? 30 : 38} y={compact ? 16 : 18} fontSize={compact ? 10 : 12} fill="var(--sketch-text, #374151)">Cover (dashed)</text>
+              {/* Chamber sample (solid) */}
+              <line x1={compact ? 8 : 10} y1={compact ? 26 : 32} x2={compact ? 24 : 30} y2={compact ? 26 : 32} stroke="var(--sketch-chamber, #777)" strokeWidth="3" />
+              <text x={compact ? 30 : 38} y={compact ? 29 : 35} fontSize={compact ? 10 : 12} fill="var(--sketch-text, #374151)">Chamber (solid)</text>
+            </g>
+          )}
 
           {/* north/high-miles arrow */}
           <g transform="translate(40,420)">
@@ -472,7 +478,7 @@ export default function ChamberSketch({
             </text>
           </g>
 
-          {coverPath}
+          {!minimal && coverPath}
           {chamberPath}
 
           {/* Items */}
