@@ -8,6 +8,7 @@ import ServiceWorkerRegister from "./components/ServiceWorkerRegister";
 import SyncStatus from "./components/SyncStatus";
 import OnlineStatusBar from "./components/OnlineStatusBar";
 import UpdateCheckButton from "./components/UpdateCheckButton";
+import ChunkErrorBanner from "./components/ChunkErrorBanner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -47,6 +48,7 @@ export default function RootLayout({
         <SyncStatus />
         <OnlineStatusBar />
         <UpdateCheckButton />
+        <ChunkErrorBanner />
         <ViewProvider>
           <PermissionsProvider>
             {children}

@@ -1,5 +1,6 @@
-const APP_SHELL_CACHE = 'app-shell-v4'
-const RUNTIME_CACHE = 'runtime-v4'
+// Bump versions to force fresh cache after deploy (offline PWA stability)
+const APP_SHELL_CACHE = 'app-shell-v5'
+const RUNTIME_CACHE = 'runtime-v5'
 const PRECACHE_ROUTES = [
   '/',
   '/offline.html',
