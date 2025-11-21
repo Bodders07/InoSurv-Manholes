@@ -65,23 +65,23 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 theme-dark:from-gray-950 theme-dark:to-gray-900 p-4">
-      <div className="bg-white theme-dark:bg-[#0f1626] border border-slate-200 theme-dark:border-slate-800 p-8 rounded-xl shadow-md w-full max-w-sm text-slate-900 theme-dark:text-slate-100">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 p-4 auth-light">
+      <div className="bg-white border border-slate-200 p-8 rounded-xl shadow-md w-full max-w-sm text-slate-900 auth-card">
         <h1 className="text-2xl font-bold mb-4 text-center">{heading}</h1>
-        {!recovering && <p className="text-sm text-slate-600 theme-dark:text-slate-300 mb-4">{subcopy}</p>}
+        {!recovering && <p className="text-sm text-slate-600 mb-4">{subcopy}</p>}
         <input
           type="password"
           placeholder="New password"
           value={newPassword}
           onChange={(e) => setNewPassword(e.target.value)}
-          className="w-full border border-slate-200 theme-dark:border-slate-700 rounded p-2 mb-3 bg-white theme-dark:bg-[#0e121a] text-slate-900 theme-dark:text-slate-100 placeholder:text-slate-400 theme-dark:placeholder:text-slate-500"
+          className="w-full border border-slate-200 rounded p-2 mb-3 bg-white text-slate-900 placeholder:text-slate-400"
         />
         <input
           type="password"
           placeholder="Confirm new password"
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
-          className="w-full border border-slate-200 theme-dark:border-slate-700 rounded p-2 mb-4 bg-white theme-dark:bg-[#0e121a] text-slate-900 theme-dark:text-slate-100 placeholder:text-slate-400 theme-dark:placeholder:text-slate-500"
+          className="w-full border border-slate-200 rounded p-2 mb-4 bg-white text-slate-900 placeholder:text-slate-400"
         />
         <button
           onClick={updatePassword}
@@ -90,7 +90,7 @@ export default function ResetPasswordPage() {
         >
           {updating ? (fromInvite ? 'Setting…' : 'Updating…') : (fromInvite ? 'Set Password' : 'Update Password')}
         </button>
-        {message && <p className="mt-4 text-center text-sm text-red-500 theme-dark:text-red-300">{message}</p>}
+        {message && <p className="mt-4 text-center text-sm text-red-500">{message}</p>}
       </div>
     </div>
   )
