@@ -261,8 +261,19 @@ export default function ExportManholePage() {
             </div>
 
             {/* Pipes tables */}
-            <PipeTableLegacy title="Incoming Pipes" pipes={incoming} coverLevel={numberOrNull(manhole.cover_level)} />
-            <PipeTableLegacy title="Outgoing Pipes" pipes={outgoing} coverLevel={numberOrNull(manhole.cover_level)} />
+            {(() => {
+              const allPipes = [...incoming, ...outgoing]
+              const usesNumericLabels = allPipes.some((p) => isNumericLabel(p.label))
+              if (usesNumericLabels) {
+                return <PipeTableLegacy title="Pipe Information" pipes={allPipes} coverLevel={numberOrNull(manhole.cover_level)} />
+              }
+              return (
+                <>
+                  <PipeTableLegacy title="Incoming Pipes" pipes={incoming} coverLevel={numberOrNull(manhole.cover_level)} />
+                  <PipeTableLegacy title="Outgoing Pipes" pipes={outgoing} coverLevel={numberOrNull(manhole.cover_level)} />
+                </>
+              )
+            })()}
 
             {/* Photos / sketch */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -454,4 +465,16 @@ function formatCoverLifted(m: ManholeRecord) {
     return reason ? `No - ${reason}` : 'No -'
   }
   return m.cover_lifted || '-'
+}
+
+function numberOrNull(v: string | number | null | undefined) {
+  if (v === null || v === undefined) return null
+  const n = typeof v === 'string' ? Number(v) : v
+  return Number.isFinite(n) ? n : null
+}
+
+function isNumericLabel(label?: string | null) {
+  if (!label) return false
+  const s = label.trim()
+  return /^(\s*pipe\s*)?\d+$/i.test(s) || /^\d+/.test(s)
 }
