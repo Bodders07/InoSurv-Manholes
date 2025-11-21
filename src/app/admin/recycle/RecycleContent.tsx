@@ -45,6 +45,8 @@ export default function RecycleContent() {
   const [loadingProjects, setLoadingProjects] = useState(false)
   const [message, setMessage] = useState('')
   const [busyId, setBusyId] = useState<string | null>(null)
+  const [bulkBusy, setBulkBusy] = useState(false)
+  const [bulkBusy, setBulkBusy] = useState(false)
 
   const loadChambers = useCallback(async () => {
     setLoadingChambers(true)
@@ -109,6 +111,46 @@ export default function RecycleContent() {
     if (error) setMessage('Failed to restore project: ' + error.message)
     else {
       setMessage('Project restored.')
+      loadProjects()
+    }
+  }
+
+  const deleteAllChambers = async () => {
+    if (!canRestore) {
+      setMessage('You do not have permission to delete chambers.')
+      return
+    }
+    if (!chambers.length) return
+    const confirmText = `Permanently delete ${chambers.length} chamber(s)? This cannot be undone.`
+    if (!window.confirm(confirmText)) return
+    setBulkBusy(true)
+    setMessage('')
+    const ids = chambers.map((c) => c.id)
+    const { error } = await supabase.from('chambers').delete().in('id', ids)
+    setBulkBusy(false)
+    if (error) setMessage('Failed to delete all chambers: ' + error.message)
+    else {
+      setMessage('Deleted all chambers in recycle bin.')
+      loadChambers()
+    }
+  }
+
+  const deleteAllProjects = async () => {
+    if (!canRestore) {
+      setMessage('You do not have permission to delete projects.')
+      return
+    }
+    if (!projects.length) return
+    const confirmText = `Permanently delete ${projects.length} project(s)? This cannot be undone.`
+    if (!window.confirm(confirmText)) return
+    setBulkBusy(true)
+    setMessage('')
+    const ids = projects.map((p) => p.id)
+    const { error } = await supabase.from('projects').delete().in('id', ids)
+    setBulkBusy(false)
+    if (error) setMessage('Failed to delete all projects: ' + error.message)
+    else {
+      setMessage('Deleted all projects in recycle bin.')
       loadProjects()
     }
   }
@@ -198,6 +240,46 @@ export default function RecycleContent() {
     )
   }, [busyId, canRestore, projects])
 
+  const deleteAllChambers = async () => {
+    if (!canRestore) {
+      setMessage('You do not have permission to delete chambers.')
+      return
+    }
+    if (!chambers.length) return
+    const confirmText = `Permanently delete ${chambers.length} chamber(s)? This cannot be undone.`
+    if (!window.confirm(confirmText)) return
+    setBulkBusy(true)
+    setMessage('')
+    const ids = chambers.map((c) => c.id)
+    const { error } = await supabase.from('chambers').delete().in('id', ids)
+    setBulkBusy(false)
+    if (error) setMessage('Failed to delete all chambers: ' + error.message)
+    else {
+      setMessage('Deleted all chambers in recycle bin.')
+      loadChambers()
+    }
+  }
+
+  const deleteAllProjects = async () => {
+    if (!canRestore) {
+      setMessage('You do not have permission to delete projects.')
+      return
+    }
+    if (!projects.length) return
+    const confirmText = `Permanently delete ${projects.length} project(s)? This cannot be undone.`
+    if (!window.confirm(confirmText)) return
+    setBulkBusy(true)
+    setMessage('')
+    const ids = projects.map((p) => p.id)
+    const { error } = await supabase.from('projects').delete().in('id', ids)
+    setBulkBusy(false)
+    if (error) setMessage('Failed to delete all projects: ' + error.message)
+    else {
+      setMessage('Deleted all projects in recycle bin.')
+      loadProjects()
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
@@ -236,6 +318,40 @@ export default function RecycleContent() {
               {tab === 'chambers' ? 'Chambers' : 'Projects'}
             </button>
           ))}
+        </div>
+        <div className="mt-4 flex flex-wrap gap-2">
+          {(['chambers', 'projects'] as const).map((tab) => (
+            <button
+              key={tab}
+              type="button"
+              onClick={() => setActiveTab(tab)}
+              className={`rounded-full px-3 py-1.5 text-sm font-medium ${
+                activeTab === tab ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              {tab === 'chambers' ? 'Chambers' : 'Projects'}
+            </button>
+          ))}
+          {activeTab === 'chambers' && chambers.length > 0 && (
+            <button
+              type="button"
+              onClick={deleteAllChambers}
+              disabled={bulkBusy}
+              className="ml-auto rounded border border-red-600 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-60"
+            >
+              {bulkBusy ? 'Deleting...' : 'Delete All Chambers'}
+            </button>
+          )}
+          {activeTab === 'projects' && projects.length > 0 && (
+            <button
+              type="button"
+              onClick={deleteAllProjects}
+              disabled={bulkBusy}
+              className="ml-auto rounded border border-red-600 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-60"
+            >
+              {bulkBusy ? 'Deleting...' : 'Delete All Projects'}
+            </button>
+          )}
         </div>
       </div>
 
