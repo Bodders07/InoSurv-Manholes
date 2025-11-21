@@ -186,6 +186,7 @@ export default function ExportManholePage() {
                 <div className="p-3 text-sm space-y-1">
                   <div><span className="font-semibold">Survey Date:</span> {formatValue(manhole.survey_date)}</div>
                   <div><span className="font-semibold">Tool:</span> {manhole.measuring_tool || '-'}</div>
+                  <div><span className="font-semibold">Type:</span> {manhole.type_other || manhole.type || '-'}</div>
                   <div><span className="font-semibold">Cover Lifted:</span> {formatCoverLifted(manhole)}</div>
                   <div><span className="font-semibold">Service Type:</span> {manhole.service || '-'}</div>
                 </div>
@@ -193,8 +194,10 @@ export default function ExportManholePage() {
               <div className="border border-gray-400">
                 <div className="border-b border-gray-400 p-2 text-center font-semibold">Coordinates</div>
                 <div className="p-3 text-sm space-y-1">
-                  <div><span className="font-semibold">Easting/Northing:</span> {`${formatValue(manhole.easting)} / ${formatValue(manhole.northing)}`}</div>
-                  <div><span className="font-semibold">Lat / Lon:</span> {`${formatValue(manhole.latitude)} / ${formatValue(manhole.longitude)}`}</div>
+                  <div><span className="font-semibold">Easting:</span> {formatValue(manhole.easting)}</div>
+                  <div><span className="font-semibold">Northing:</span> {formatValue(manhole.northing)}</div>
+                  <div><span className="font-semibold">Latitude:</span> {formatValue(manhole.latitude)}</div>
+                  <div><span className="font-semibold">Longitude:</span> {formatValue(manhole.longitude)}</div>
                   <div><span className="font-semibold">Cover Level:</span> {formatValue(manhole.cover_level)}</div>
                 </div>
               </div>
@@ -209,7 +212,6 @@ export default function ExportManholePage() {
                   <div><span className="font-semibold">Cover Shape:</span> {manhole.cover_shape || '-'}</div>
                   <div><span className="font-semibold">Cover Size:</span> {formatCoverDimensions(manhole)}</div>
                   <div><span className="font-semibold">Cover Cond:</span> {manhole.cover_condition || '-'}</div>
-                  <div><span className="font-semibold">Cover Duty:</span> {manhole.cover_duty || '-'}</div>
                 </div>
               </div>
               <div className="border border-gray-400">
