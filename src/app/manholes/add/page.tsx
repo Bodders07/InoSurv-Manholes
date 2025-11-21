@@ -311,67 +311,70 @@ function AddManholeForm({ standaloneLayout = true }: { standaloneLayout?: boolea
     setOutgoing((arr) => arr.filter((_, i) => i !== index))
   }
 
-  async function addChamber() {
-    if (!projectId || !identifier) {
-      setMessage('Please select a project and enter an identifier.')
-      return
-    }
-    const selectedProject = projects.find((p) => p.id === projectId)
+    async function addChamber() {
+    try {
+      if (!projectId || !identifier) {
+        setMessage('Please select a project and enter an identifier.')
+        return
+      }
+      const selectedProject = projects.find((p) => p.id === projectId)
 
-    const payload: Record<string, unknown> = {
-      project_id: projectId,
-      identifier,
-      survey_date: surveyDate || null,
-      measuring_tool: measuringTool || null,
-      measuring_offset_mm: measuringTool === 'Laser Level' ? (laserOffset || null) : null,
-      location_desc: locationDesc || null,
-      latitude: latitude || null,
-      longitude: longitude || null,
-      easting: easting || null,
-      northing: northing || null,
-      cover_level: coverLevel || null,
-      // cover specifics
-      cover_shape: coverShape || null,
-      cover_material: coverMaterial || null,
-      cover_material_other: coverMaterial === 'Other' ? (coverMaterialOther || null) : null,
-      cover_condition: coverCondition || null,
-      // chamber specifics
-      chamber_shape: chamberShape || null,
-      chamber_diameter_mm: (chamberShape === 'Circle' || chamberShape === 'Hexagon') ? (chamberDiameter || null) : null,
-      chamber_width_mm: (chamberShape === 'Square' || chamberShape === 'Rectangle') ? (chamberWidth || null) : null,
-      chamber_length_mm: (chamberShape === 'Square' || chamberShape === 'Rectangle') ? (chamberLength || null) : null,
-      chamber_material: chamberMaterial || null,
-      chamber_material_other: chamberMaterial === 'Other' ? (chamberMaterialOther || null) : null,
-      chamber_condition: chamberCondition || null,
-      service_type: serviceType || null,
-      type: type || null,
-      type_other: type === 'Other' ? (typeOther || null) : null,
-      cover_lifted: coverLifted || null,
-      cover_lifted_reason: coverLifted === 'No' ? (coverNotReason || null) : null,
-      chainage_mileage: chainageMileage || null,
-      incoming_pipes: incoming,
-      outgoing_pipes: outgoing,
-      sketch_json: sketch ? sketch : null,
-    }
+      const payload: Record<string, unknown> = {
+        project_id: projectId,
+        identifier,
+        survey_date: surveyDate || null,
+        measuring_tool: measuringTool || null,
+        measuring_offset_mm: measuringTool === 'Laser Level' ? (laserOffset || null) : null,
+        location_desc: locationDesc || null,
+        latitude: latitude || null,
+        longitude: longitude || null,
+        easting: easting || null,
+        northing: northing || null,
+        cover_level: coverLevel || null,
+        cover_shape: coverShape || null,
+        cover_material: coverMaterial || null,
+        cover_material_other: coverMaterial === 'Other' ? (coverMaterialOther || null) : null,
+        cover_condition: coverCondition || null,
+        chamber_shape: chamberShape || null,
+        chamber_diameter_mm: (chamberShape === 'Circle' || chamberShape === 'Hexagon') ? (chamberDiameter || null) : null,
+        chamber_width_mm: (chamberShape === 'Square' || chamberShape === 'Rectangle') ? (chamberWidth || null) : null,
+        chamber_length_mm: (chamberShape === 'Square' || chamberShape === 'Rectangle') ? (chamberLength || null) : null,
+        chamber_material: chamberMaterial || null,
+        chamber_material_other: chamberMaterial === 'Other' ? (chamberMaterialOther || null) : null,
+        chamber_condition: chamberCondition || null,
+        service_type: serviceType || null,
+        type: type || null,
+        type_other: type === 'Other' ? (typeOther || null) : null,
+        cover_lifted: coverLifted || null,
+        cover_lifted_reason: coverLifted === 'No' ? (coverNotReason || null) : null,
+        chainage_mileage: chainageMileage || null,
+        incoming_pipes: incoming,
+        outgoing_pipes: outgoing,
+        sketch_json: sketch ? sketch : null,
+      }
 
-    const isOffline = typeof navigator !== 'undefined' && navigator.onLine === false
-    if (isOffline) {
-      const project_lookup = selectedProject
-        ? {
-            project_number: selectedProject.project_number || null,
-            name: selectedProject.name || null,
-            client: selectedProject.client || null,
-          }
-        : undefined
-      await enqueueMutation('chamber-insert', project_lookup ? { ...payload, project_lookup } : payload)
-      setMessage('Offline: Chamber queued for sync. Photos will upload after you reconnect.')
-      resetForm()
-      return
-    }
+      const isOffline = typeof navigator !== 'undefined' && navigator.onLine === false
+      if (isOffline) {
+        if (!projects.length) {
+          setMessage('Offline: no cached projects to assign. Go online once, then retry.')
+          return
+        }
+        const project_lookup = selectedProject
+          ? {
+              project_number: selectedProject.project_number || null,
+              name: selectedProject.name || null,
+              client: selectedProject.client || null,
+            }
+          : undefined
+        await enqueueMutation('chamber-insert', project_lookup ? { ...payload, project_lookup } : payload)
+        setMessage('Offline: Chamber queued for sync. Photos will upload after you reconnect.')
+        resetForm()
+        return
+      }
 
-    const insertRes = await supabase.from('chambers').insert([payload]).select('id').single()
-    if (insertRes.error) {
-      const hint = `
+      const insertRes = await supabase.from('chambers').insert([payload]).select('id').single()
+      if (insertRes.error) {
+        const hint = `
 To support these fields, add columns in Supabase (run once):
 
 ALTER TABLE public.chambers
@@ -405,38 +408,41 @@ ALTER TABLE public.chambers
   ADD COLUMN IF NOT EXISTS cover_lifted_reason text,
   ADD COLUMN IF NOT EXISTS incoming_pipes jsonb,
   ADD COLUMN IF NOT EXISTS outgoing_pipes jsonb;`
-      setMessage('Error: ' + insertRes.error.message + hint)
-    } else {
-      const newId = insertRes.data?.id
-      let uploadMsg = ''
-      if (newId && (internalPhoto || externalPhoto)) {
-        const bucket = supabase.storage.from('manhole-photos')
-        async function uploadOne(file: File | null, kind: 'internal' | 'external') {
-          if (!file) return null
-          const ext = (file.name.split('.').pop() || 'jpg').toLowerCase()
-          const path = `${newId}/${kind}-${Date.now()}.${ext}`
-          const up = await bucket.upload(path, file, {
-            upsert: true,
-            contentType: file.type || 'image/jpeg',
-            cacheControl: '3600',
-          })
-          if (up.error) {
-            uploadMsg += `\nNote: Failed to upload ${kind} photo (${up.error.message}). Ensure a public storage bucket named 'manhole-photos' exists and Authenticated users can upload.`
-            return null
+        setMessage('Error: ' + insertRes.error.message + hint)
+      } else {
+        const newId = insertRes.data?.id
+        let uploadMsg = ''
+        if (newId && (internalPhoto || externalPhoto)) {
+          const bucket = supabase.storage.from('manhole-photos')
+          async function uploadOne(file: File | null, kind: 'internal' | 'external') {
+            if (!file) return null
+            const ext = (file.name.split('.').pop() || 'jpg').toLowerCase()
+            const path = `${newId}/${kind}-${Date.now()}.${ext}`
+            const up = await bucket.upload(path, file, {
+              upsert: true,
+              contentType: file.type || 'image/jpeg',
+              cacheControl: '3600',
+            })
+            if (up.error) {
+              uploadMsg += \`\\nNote: Failed to upload \${kind} photo (\${up.error.message}). Ensure a public storage bucket named 'manhole-photos' exists and Authenticated users can upload.\`
+              return null
+            }
+            const pub = bucket.getPublicUrl(path)
+            const url = pub.data.publicUrl
+            const upRow = await supabase
+              .from('chambers')
+              .update(kind === 'internal' ? { internal_photo_url: url } : { external_photo_url: url })
+              .eq('id', newId)
+            if (upRow.error) {
+              uploadMsg += \`\\nNote: Saved file but failed to write URL to DB (\${upRow.error.message}). Check manholes RLS allows your role to update.\`
+            }
+            return url
           }
-          const pub = bucket.getPublicUrl(path)
-          const url = pub.data.publicUrl
-          const upRow = await supabase
-            .from('chambers')
-            .update(kind === 'internal' ? { internal_photo_url: url } : { external_photo_url: url })
-            .eq('id', newId)
-          if (upRow.error) {
-            uploadMsg += `\nNote: Saved file but failed to write URL to DB (${upRow.error.message}). Check manholes RLS allows your role to update.`
-          }
-          return url
+          await uploadOne(internalPhoto, 'internal')
+          await uploadOne(externalPhoto, 'external')
         }
-        await uploadOne(internalPhoto, 'internal')
-        await uploadOne(externalPhoto, 'external')
+        setMessage('Success: Chamber created.' + uploadMsg)
+        resetForm()
       }
       setMessage('Success: Manhole created.' + uploadMsg)
       // Reset fields; optionally keep project/date/tool when copyList is enabled
