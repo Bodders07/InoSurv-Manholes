@@ -105,6 +105,7 @@ export default function ExportManholePage() {
               .select('*')
               .eq('identifier', key)
               .is('deleted_at', null)
+              .limit(1)
               .maybeSingle()
             if (identError) throw identError
             record = byIdent as ManholeRecord | null
