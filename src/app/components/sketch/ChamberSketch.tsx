@@ -66,12 +66,14 @@ export default function ChamberSketch({
   compact = false,
   palette = 'auto',
   minimal = false,
+  showHandlesAlways = false,
 }: {
   value?: SketchState
   onChange?: (s: SketchState) => void
   compact?: boolean
   palette?: 'auto' | 'print-light'
   minimal?: boolean // hides legend, cover controls, and dashed cover overlay
+  showHandlesAlways?: boolean
 }) {
   const [state, setSketchState] = useState<SketchState>(() => {
     if (value) {
@@ -521,7 +523,7 @@ export default function ChamberSketch({
                       }}
                       style={{ cursor: 'pointer' }}
                     />
-                    {selectedId === it.id && (
+                    {(selectedId === it.id || showHandlesAlways) && (
                       <>
                         <rect
                           x={sx - hh}
