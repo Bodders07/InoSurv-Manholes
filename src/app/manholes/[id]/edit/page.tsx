@@ -92,6 +92,7 @@ type ManholeRow = {
   cover_material: string | null
   cover_material_other: string | null
   cover_condition: string | null
+  cover_thickness_mm?: number | null
   chamber_shape: string | null
   chamber_diameter_mm: number | null
   chamber_width_mm: number | null
@@ -150,6 +151,7 @@ export default function EditManholePage() {
   const [coverMaterial, setCoverMaterial] = useState('')
   const [coverMaterialOther, setCoverMaterialOther] = useState('')
   const [coverCondition, setCoverCondition] = useState('')
+  const [coverThickness, setCoverThickness] = useState('')
 
   // Chamber shape
   const [chamberShape, setChamberShape] = useState('')
@@ -280,6 +282,7 @@ export default function EditManholePage() {
         setCoverMaterial(row.cover_material || '')
         setCoverMaterialOther(row.cover_material_other || '')
         setCoverCondition(row.cover_condition || '')
+        setCoverThickness((row as { cover_thickness_mm?: number | null }).cover_thickness_mm?.toString() || '')
         setCoverDiameter((row.cover_diameter_mm ?? '').toString())
         setCoverWidth((row.cover_width_mm ?? '').toString())
         setCoverLength((row.cover_length_mm ?? '').toString())
@@ -368,6 +371,7 @@ export default function EditManholePage() {
       cover_material: coverMaterial || null,
       cover_material_other: coverMaterial === 'Other' ? (coverMaterialOther || null) : null,
       cover_condition: coverCondition || null,
+      cover_thickness_mm: type === 'Catchpit' ? (coverThickness || null) : null,
       chamber_shape: chamberShape || null,
       chamber_diameter_mm: (chamberShape === 'Circle' || chamberShape === 'Hexagon') ? (chamberDiameter || null) : null,
       chamber_width_mm: (chamberShape === 'Square' || chamberShape === 'Rectangle') ? (chamberWidth || null) : null,
@@ -601,6 +605,16 @@ export default function EditManholePage() {
                 {['Good','OK','Cracked','Rocking','Re-Set','Replace','Needs Attention','Urgent Attention'].map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
+            {type === 'Catchpit' && (
+              <div>
+                <label className="block text-sm mb-1">Cover Thickness (mm)</label>
+                <input
+                  className="w-full border p-2 rounded"
+                  value={coverThickness}
+                  onChange={(e)=>setCoverThickness(e.target.value)}
+                />
+              </div>
+            )}
           </div>
 
           {/* Cover Material */}

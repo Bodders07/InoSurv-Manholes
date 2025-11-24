@@ -174,6 +174,7 @@ function AddManholeForm({ standaloneLayout = true }: { standaloneLayout?: boolea
     setCoverCondition('')
     setCoverMaterial('')
     setCoverMaterialOther('')
+    setCoverThickness('')
     setChamberShape('')
     setChamberDiameter('')
     setChamberWidth('')
@@ -228,6 +229,7 @@ function AddManholeForm({ standaloneLayout = true }: { standaloneLayout?: boolea
   const [coverMaterial, setCoverMaterial] = useState('')
   const [coverMaterialOther, setCoverMaterialOther] = useState('')
   const [coverCondition, setCoverCondition] = useState('')
+  const [coverThickness, setCoverThickness] = useState('')
 
   // Chamber
   const [chamberShape, setChamberShape] = useState('')
@@ -368,6 +370,7 @@ function AddManholeForm({ standaloneLayout = true }: { standaloneLayout?: boolea
         cover_material: coverMaterial || null,
         cover_material_other: coverMaterial === 'Other' ? (coverMaterialOther || null) : null,
         cover_condition: coverCondition || null,
+        cover_thickness_mm: type === 'Catchpit' ? (coverThickness || null) : null,
         chamber_shape: chamberShape || null,
         chamber_diameter_mm: (chamberShape === 'Circle' || chamberShape === 'Hexagon') ? (chamberDiameter || null) : null,
         chamber_width_mm: (chamberShape === 'Square' || chamberShape === 'Rectangle') ? (chamberWidth || null) : null,
@@ -681,6 +684,16 @@ ALTER TABLE public.chambers
               {['Good','OK','Cracked','Rocking','Re-Set','Replace','Needs Attention','Urgent Attention'].map(c => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
+          {type === 'Catchpit' && (
+            <div>
+              <label className="block text-sm mb-1">Cover Thickness (mm)</label>
+              <input
+                className="w-full border p-2 rounded"
+                value={coverThickness}
+                onChange={(e)=>setCoverThickness(e.target.value)}
+              />
+            </div>
+          )}
           <div>
             <label className="block text-sm mb-1">Cover Material</label>
             <select className="w-full border p-2 rounded" value={coverMaterial} onChange={(e)=>setCoverMaterial(e.target.value)}>
