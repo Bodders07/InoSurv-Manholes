@@ -245,15 +245,15 @@ export default function ExportManholePage() {
               {manhole.sketch_json ? (
                 <div className="border border-gray-400 p-2">
                   <div className="text-center font-semibold mb-2">Chamber Sketch</div>
-                  <div className="border border-gray-300 inline-block sketch-preview">
-                    <div className="w-[220px] h-[220px] pointer-events-none select-none">
-                      <ChamberSketch compact value={manhole.sketch_json} palette="print-light" />
+                    <div className="border border-gray-300 inline-block sketch-preview">
+                      <div className="w-[220px] h-[220px] pointer-events-none select-none">
+                        <ChamberSketch compact minimal value={manhole.sketch_json} palette="print-light" />
+                      </div>
                     </div>
                   </div>
-                </div>
-              ) : (
-                <div className="border border-gray-400 p-2 text-sm text-gray-500 text-center">Chamber Sketch: No data</div>
-              )}
+                ) : (
+                  <div className="border border-gray-400 p-2 text-sm text-gray-500 text-center">Chamber Sketch: No data</div>
+                )}
               {manhole.internal_photo_url ? (
                 <PhotoCard label="Internal Photo" url={manhole.internal_photo_url} />
               ) : (
