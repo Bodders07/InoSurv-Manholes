@@ -689,6 +689,7 @@ ALTER TABLE public.chambers
               <label className="block text-sm mb-1">Cover Thickness (mm)</label>
               <input
                 className="w-full border p-2 rounded"
+                placeholder="Leave blank if measuring depth to lid"
                 value={coverThickness}
                 onChange={(e)=>setCoverThickness(e.target.value)}
               />

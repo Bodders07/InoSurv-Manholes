@@ -605,16 +605,17 @@ export default function EditManholePage() {
                 {['Good','OK','Cracked','Rocking','Re-Set','Replace','Needs Attention','Urgent Attention'].map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
-            {type === 'Catchpit' && (
-              <div>
-                <label className="block text-sm mb-1">Cover Thickness (mm)</label>
-                <input
-                  className="w-full border p-2 rounded"
-                  value={coverThickness}
-                  onChange={(e)=>setCoverThickness(e.target.value)}
-                />
-              </div>
-            )}
+          {type === 'Catchpit' && (
+            <div>
+              <label className="block text-sm mb-1">Cover Thickness (mm)</label>
+              <input
+                className="w-full border p-2 rounded"
+                placeholder="Leave blank if measuring depth to lid"
+                value={coverThickness}
+                onChange={(e)=>setCoverThickness(e.target.value)}
+              />
+            </div>
+          )}
           </div>
 
           {/* Cover Material */}
