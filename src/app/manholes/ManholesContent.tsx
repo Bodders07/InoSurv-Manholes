@@ -333,8 +333,14 @@ function renderSketchToDataUrl(sketch?: SketchState | null) {
     } else {
       const sx = scale(item.sx)
       const sy = scale(item.sy)
-      const ex = scale(item.ex)
-      const ey = scale(item.ey)
+      let ex = scale(item.ex)
+      let ey = scale(item.ey)
+      // Extend pipe lines a bit to match live preview proportions
+      const dx = ex - sx
+      const dy = ey - sy
+      const extend = 1.25
+      ex = sx + dx * extend
+      ey = sy + dy * extend
       const isInlet = item.type === 'in'
       const color = item.type === 'out' ? '#b91c1c' : '#2563eb'
       const startX = isInlet ? ex : sx
