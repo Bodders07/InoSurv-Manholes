@@ -576,15 +576,30 @@ export default function EditManholePage() {
                 {['Circle','Square','Rectangle','Triangle'].map(s => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>
+            {coverShape === 'Circle' && (
+              <div>
+                <label className="block text-sm mb-1">Diameter (mm)</label>
+                <input className="w-full border p-2 rounded" value={coverDiameter} onChange={(e)=>setCoverDiameter(e.target.value)} />
+              </div>
+            )}
+            {['Square','Rectangle','Hexagon'].includes(coverShape) && (
+              <>
+                <div>
+                  <label className="block text-sm mb-1">Width (mm)</label>
+                  <input className="w-full border p-2 rounded" value={coverWidth} onChange={(e)=>setCoverWidth(e.target.value)} />
+                </div>
+                <div>
+                  <label className="block text-sm mb-1">Length (mm)</label>
+                  <input className="w-full border p-2 rounded" value={coverLength} onChange={(e)=>setCoverLength(e.target.value)} />
+                </div>
+              </>
+            )}
             <div>
               <label className="block text-sm mb-1">Cover Condition</label>
               <select className="w-full border p-2 rounded" value={coverCondition} onChange={(e)=>setCoverCondition(e.target.value)}>
                 <option value="">Select condition</option>
                 {['Good','OK','Cracked','Rocking','Re-Set','Replace','Needs Attention','Urgent Attention'].map(c => <option key={c} value={c}>{c}</option>)}
               </select>
-            </div>
-            <div className="md:col-span-3 text-sm text-gray-500">
-              Cover dimensions are not required for edits.
             </div>
           </div>
 
