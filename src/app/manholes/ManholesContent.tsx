@@ -751,9 +751,11 @@ async function addChartsPage(doc: jsPDF, records: DetailedManholeRecord[]) {
     doc.setFontSize(14)
     doc.text(`Chamber Invert Chart - ${loc}`, margin, margin)
 
-    const points = list
-      .map((rec) => ({ id: rec.identifier || rec.id, invert: computeDeepestInvert(rec) }))
-      .filter((p) => p.invert !== null) as Array<{ id: string; invert: number }>
+    const points: Array<{ id: string; invert: number }> = []
+    list.forEach((rec) => {
+      const inv = computeDeepestInvert(rec)
+      if (inv !== null) points.push({ id: rec.identifier || rec.id, invert: inv })
+    })
 
     const chartX = margin
     const chartY = margin + 8
