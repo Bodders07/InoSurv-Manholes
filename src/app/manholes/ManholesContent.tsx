@@ -304,32 +304,7 @@ function renderSketchToDataUrl(sketch?: SketchState | null) {
         break
     }
   }
-  const drawCover = () => {
-    ctx.setLineDash([6, 4])
-    switch (sketch.coverShape) {
-      case 'Square':
-        ctx.strokeRect(cx - 80, cy - 80, 160, 160)
-        break
-      case 'Rectangle':
-        ctx.strokeRect(cx - 60, cy - 80, 120, 160)
-        break
-      case 'Triangle':
-        ctx.beginPath()
-        ctx.moveTo(cx, cy - 80)
-        ctx.lineTo(cx + 80, cy + 80)
-        ctx.lineTo(cx - 80, cy + 80)
-        ctx.closePath()
-        ctx.stroke()
-        break
-      default:
-        ctx.beginPath()
-        ctx.arc(cx, cy, 80, 0, Math.PI * 2)
-        ctx.stroke()
-    }
-    ctx.setLineDash([])
-  }
   drawChamber()
-  drawCover()
   const drawArrow = (sx: number, sy: number, ex: number, ey: number, color: string) => {
     ctx.strokeStyle = color
     ctx.fillStyle = color
