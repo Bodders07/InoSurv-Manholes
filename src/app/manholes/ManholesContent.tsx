@@ -35,6 +35,7 @@ type DetailedManholeRecord = Record<string, unknown> & {
   cover_material_other?: string | null
   cover_condition?: string | null
   cover_duty?: string | null
+  cover_thickness_mm?: number | null
   chamber_shape?: string | null
   chamber_diameter_mm?: number | null
   chamber_width_mm?: number | null
@@ -716,7 +717,9 @@ const parseNumber = (value?: string | number | null, divisor = 1) => {
 const computeDeepestInvert = (record: DetailedManholeRecord) => {
   const pipes = [...(record.incoming_pipes || []), ...(record.outgoing_pipes || [])]
   if (!pipes.length) return null
-  const coverLevel = typeof record.cover_level === 'number' ? record.cover_level : null
+  const coverLevelRaw = typeof record.cover_level === 'number' ? record.cover_level : null
+  const thickness = parseNumber(record.cover_thickness_mm, 1000) ?? 0
+  const coverLevel = coverLevelRaw !== null ? coverLevelRaw - thickness : null
   let best: number | null = null
   pipes.forEach((p) => {
     const invertDepth = parseNumber(p.invert_depth_m)
@@ -801,8 +804,10 @@ async function addChartsPage(doc: jsPDF, records: DetailedManholeRecord[]) {
   }
 }
 
-const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null, limit = 6) => {
+const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null, coverThicknessMm?: number | null, limit = 6) => {
   if (!pipes || !pipes.length) return []
+  const thickness = parseNumber(coverThicknessMm, 1000) ?? 0
+  const coverAdjusted = coverLevel !== null && coverLevel !== undefined ? coverLevel - thickness : coverLevel
   return pipes.slice(0, limit).map((pipe) => {
     const invertDepth = parseNumber(pipe.invert_depth_m)
     const soffitLevel = parseNumber(pipe.soffit_level)
@@ -817,8 +822,8 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
           : '-'
 
     const computedInvert = (() => {
-      if (derivedDepth !== null && coverLevel !== null && coverLevel !== undefined) {
-        return (coverLevel - derivedDepth).toFixed(3)
+      if (derivedDepth !== null && coverAdjusted !== null && coverAdjusted !== undefined) {
+        return (coverAdjusted - derivedDepth).toFixed(3)
       }
       return '-'
     })()
@@ -1020,8 +1025,8 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
         }
         return rowY
       }
-      const incomingEntries = summarizePipes(record.incoming_pipes, record.cover_level as number | null, 6)
-      const outgoingEntries = summarizePipes(record.outgoing_pipes, record.cover_level as number | null, 2)
+      const incomingEntries = summarizePipes(record.incoming_pipes, record.cover_level as number | null, record.cover_thickness_mm ?? null, 6)
+      const outgoingEntries = summarizePipes(record.outgoing_pipes, record.cover_level as number | null, record.cover_thickness_mm ?? null, 2)
       const allPipeEntries = [...incomingEntries, ...outgoingEntries]
       const hasNumericLabels = allPipeEntries.some((entry) => /^\s*Pipe\s*\d+/i.test(entry.label || ''))
       if (hasNumericLabels) {
