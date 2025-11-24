@@ -274,20 +274,23 @@ function renderSketchToDataUrl(sketch?: SketchState | null) {
   const drawChamber = () => {
     switch (sketch.chamberShape) {
       case 'Square':
+        // Match live preview sizing
         ctx.strokeRect(cx - 110, cy - 110, 220, 220)
         break
       case 'Rectangle':
-        ctx.strokeRect(cx - 90, cy - 150, 180, 300)
+        // Match live preview sizing (taller than wide)
+        ctx.strokeRect(cx - 80, cy - 150, 160, 300)
         break
       case 'Hexagon': {
+        // Match live preview sizing
         ctx.beginPath()
         const points = [
-          [cx, cy - 120],
-          [cx + 105, cy - 60],
-          [cx + 105, cy + 60],
-          [cx, cy + 120],
-          [cx - 105, cy + 60],
-          [cx - 105, cy - 60],
+          [cx, cy - 130],
+          [cx + 110, cy - 60],
+          [cx + 110, cy + 60],
+          [cx, cy + 130],
+          [cx - 110, cy + 60],
+          [cx - 110, cy - 60],
         ]
         points.forEach(([x, y], idx) => {
           if (idx === 0) ctx.moveTo(x, y)
@@ -298,8 +301,9 @@ function renderSketchToDataUrl(sketch?: SketchState | null) {
         break
       }
       default:
+        // Match live preview sizing
         ctx.beginPath()
-        ctx.arc(cx, cy, 115, 0, Math.PI * 2)
+        ctx.arc(cx, cy, 120, 0, Math.PI * 2)
         ctx.stroke()
         break
     }
