@@ -224,7 +224,7 @@ export default function ExportManholePage() {
                   <div><span className="font-semibold">Dimensions:</span> {formatChamberDimensions(manhole)}</div>
                   <div><span className="font-semibold">Material:</span> {manhole.chamber_material_other || manhole.chamber_material || '-'}</div>
                   <div><span className="font-semibold">Condition:</span> {manhole.chamber_condition || '-'}</div>
-                  <div><span className="font-semibold">Sump Depth (m):</span> {formatValue(manhole.sump_depth_m)}</div>
+                  <div><span className="font-semibold">Sump Depth (m):</span> {formatValue(manhole.sump_depth_m ?? null)}</div>
                 </div>
               </div>
             </div>
