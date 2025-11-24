@@ -92,6 +92,7 @@ type ManholeRow = {
   cover_material: string | null
   cover_material_other: string | null
   cover_condition: string | null
+  cover_duty?: string | null
   cover_thickness_mm?: number | null
   chamber_shape: string | null
   chamber_diameter_mm: number | null
@@ -105,6 +106,7 @@ type ManholeRow = {
   cover_lifted: string | null
   cover_lifted_reason: string | null
   chainage_mileage: string | null
+  sump_depth_m?: string | null
   incoming_pipes: Pipe[] | null
   outgoing_pipes: Pipe[] | null
   internal_photo_url: string | null
@@ -152,6 +154,7 @@ export default function EditManholePage() {
   const [coverMaterialOther, setCoverMaterialOther] = useState('')
   const [coverCondition, setCoverCondition] = useState('')
   const [coverThickness, setCoverThickness] = useState('')
+  const [coverDuty, setCoverDuty] = useState('')
 
   // Chamber shape
   const [chamberShape, setChamberShape] = useState('')
@@ -163,6 +166,7 @@ export default function EditManholePage() {
   const [chamberCondition, setChamberCondition] = useState('')
   const chamberConditionOption = chamberCondition.startsWith('Other:') ? 'Other' : chamberCondition
   const chamberConditionOtherText = chamberCondition.startsWith('Other:') ? chamberCondition.replace(/^Other:\s*/, '') : ''
+  const [sumpDepth, setSumpDepth] = useState('')
 
   // photos
   const [internalPhotoUrl, setInternalPhotoUrl] = useState('')
@@ -283,6 +287,7 @@ export default function EditManholePage() {
         setCoverMaterialOther(row.cover_material_other || '')
         setCoverCondition(row.cover_condition || '')
         setCoverThickness((row as { cover_thickness_mm?: number | null }).cover_thickness_mm?.toString() || '')
+        setCoverDuty((row as { cover_duty?: string | null }).cover_duty || '')
         setCoverDiameter((row.cover_diameter_mm ?? '').toString())
         setCoverWidth((row.cover_width_mm ?? '').toString())
         setCoverLength((row.cover_length_mm ?? '').toString())
@@ -293,6 +298,7 @@ export default function EditManholePage() {
         setChamberMaterial(row.chamber_material || '')
         setChamberMaterialOther(row.chamber_material_other || '')
         setChamberCondition((row as { chamber_condition?: string | null }).chamber_condition || '')
+        setSumpDepth((row as { sump_depth_m?: string | null }).sump_depth_m || '')
         setServiceType(row.service_type || '')
         setType(row.type || '')
         setTypeOther(row.type_other || '')
@@ -371,6 +377,7 @@ export default function EditManholePage() {
       cover_material: coverMaterial || null,
       cover_material_other: coverMaterial === 'Other' ? (coverMaterialOther || null) : null,
       cover_condition: coverCondition || null,
+      cover_duty: coverDuty || null,
       cover_thickness_mm: type === 'Catchpit' ? (coverThickness || null) : null,
       chamber_shape: chamberShape || null,
       chamber_diameter_mm: (chamberShape === 'Circle' || chamberShape === 'Hexagon') ? (chamberDiameter || null) : null,
@@ -380,6 +387,7 @@ export default function EditManholePage() {
       type: type || null,
       type_other: type === 'Other' ? (typeOther || null) : null,
       chamber_condition: chamberCondition || null,
+      sump_depth_m: sumpDepth || null,
       cover_lifted: coverLifted || null,
       cover_lifted_reason: coverLifted === 'No' ? (coverNotReason || null) : null,
       chainage_mileage: chainageMileage || null,
@@ -605,6 +613,13 @@ export default function EditManholePage() {
                 {['Good','OK','Cracked','Rocking','Re-Set','Replace','Needs Attention','Urgent Attention'].map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
+            <div>
+              <label className="block text-sm mb-1">Cover Duty</label>
+              <select className="w-full border p-2 rounded" value={coverDuty} onChange={(e)=>setCoverDuty(e.target.value)}>
+                <option value="">Select duty</option>
+                {['Light','Medium','Heavy','N/A'].map(d => <option key={d} value={d}>{d}</option>)}
+              </select>
+            </div>
           {type === 'Catchpit' && (
             <div>
               <label className="block text-sm mb-1">Cover Thickness (mm)</label>
@@ -685,6 +700,14 @@ export default function EditManholePage() {
                 onChange={(e)=>setChamberCondition(`Other: ${e.target.value}`)}
               />
             )}
+          </div>
+          <div>
+            <label className="block text-sm mb-1">Sump Depth (m)</label>
+            <input
+              className="w-full border p-2 rounded"
+              value={sumpDepth}
+              onChange={(e)=>setSumpDepth(e.target.value)}
+            />
           </div>
 
           {/* Chamber Material */}

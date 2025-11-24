@@ -42,6 +42,7 @@ type DetailedManholeRecord = Record<string, unknown> & {
   chamber_length_mm?: number | null
   chamber_material?: string | null
   chamber_material_other?: string | null
+  sump_depth_m?: number | null
   service_type?: string | null
   type?: string | null
   type_other?: string | null
@@ -938,25 +939,27 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
             record.cover_diameter_mm,
             record.cover_width_mm,
             record.cover_length_mm,
-          ),
-        },
-        { label: 'Material:', value: valueOrDash(record.cover_material || record.cover_material_other) },
-        { label: 'Condition:', value: valueOrDash(record.cover_condition) },
-      ]
-      const chamberRows = [
-        { label: 'Shape:', value: valueOrDash(record.chamber_shape) },
-        {
+        ),
+      },
+      { label: 'Material:', value: valueOrDash(record.cover_material || record.cover_material_other) },
+      { label: 'Duty:', value: valueOrDash(record.cover_duty) },
+      { label: 'Condition:', value: valueOrDash(record.cover_condition) },
+    ]
+    const chamberRows = [
+      { label: 'Shape:', value: valueOrDash(record.chamber_shape) },
+      {
           label: 'Dimensions:',
           value: formatDimensionByShape(
             record.chamber_shape,
             record.chamber_diameter_mm,
             record.chamber_width_mm,
             record.chamber_length_mm,
-          ),
-        },
-        { label: 'Material:', value: valueOrDash(record.chamber_material || record.chamber_material_other) },
-        { label: 'Condition:', value: valueOrDash(record.chamber_condition) },
-      ]
+        ),
+      },
+      { label: 'Material:', value: valueOrDash(record.chamber_material || record.chamber_material_other) },
+      { label: 'Condition:', value: valueOrDash(record.chamber_condition) },
+      { label: 'Sump Depth (m):', value: valueOrDash(record.sump_depth_m) },
+    ]
       const coverHeightNeeded = coverRows.length * 6 + 8
       const chamberHeightNeeded = chamberRows.length * 6 + 8
       const normalizedHeight = Math.max(coverHeightNeeded, chamberHeightNeeded)

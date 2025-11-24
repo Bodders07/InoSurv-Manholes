@@ -51,6 +51,7 @@ type ManholeRecord = {
   chamber_width_mm?: number | null
   chamber_diameter_mm?: number | null
   chamber_condition?: string | null
+  sump_depth_m?: number | null
   type: string | null
   type_other: string | null
   cover_lifted: string | null
@@ -212,6 +213,7 @@ export default function ExportManholePage() {
                   <div><span className="font-semibold">Cover Material:</span> {manhole.cover_material_other || manhole.cover_material || '-'}</div>
                   <div><span className="font-semibold">Cover Shape:</span> {manhole.cover_shape || '-'}</div>
                   <div><span className="font-semibold">Cover Size:</span> {formatCoverDimensions(manhole)}</div>
+                  <div><span className="font-semibold">Cover Duty:</span> {manhole.cover_duty || '-'}</div>
                   <div><span className="font-semibold">Cover Cond:</span> {manhole.cover_condition || '-'}</div>
                 </div>
               </div>
@@ -222,6 +224,7 @@ export default function ExportManholePage() {
                   <div><span className="font-semibold">Dimensions:</span> {formatChamberDimensions(manhole)}</div>
                   <div><span className="font-semibold">Material:</span> {manhole.chamber_material_other || manhole.chamber_material || '-'}</div>
                   <div><span className="font-semibold">Condition:</span> {manhole.chamber_condition || '-'}</div>
+                  <div><span className="font-semibold">Sump Depth (m):</span> {formatValue(manhole.sump_depth_m)}</div>
                 </div>
               </div>
             </div>

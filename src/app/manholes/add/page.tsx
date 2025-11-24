@@ -175,6 +175,8 @@ function AddManholeForm({ standaloneLayout = true }: { standaloneLayout?: boolea
     setCoverMaterial('')
     setCoverMaterialOther('')
     setCoverThickness('')
+    setCoverDuty('')
+    setSumpDepth('')
     setChamberShape('')
     setChamberDiameter('')
     setChamberWidth('')
@@ -230,6 +232,7 @@ function AddManholeForm({ standaloneLayout = true }: { standaloneLayout?: boolea
   const [coverMaterialOther, setCoverMaterialOther] = useState('')
   const [coverCondition, setCoverCondition] = useState('')
   const [coverThickness, setCoverThickness] = useState('')
+  const [coverDuty, setCoverDuty] = useState('')
 
   // Chamber
   const [chamberShape, setChamberShape] = useState('')
@@ -241,6 +244,7 @@ function AddManholeForm({ standaloneLayout = true }: { standaloneLayout?: boolea
   const [chamberCondition, setChamberCondition] = useState('')
   const chamberConditionOption = chamberCondition.startsWith('Other:') ? 'Other' : chamberCondition
   const chamberConditionOtherText = chamberCondition.startsWith('Other:') ? chamberCondition.replace(/^Other:\s*/, '') : ''
+  const [sumpDepth, setSumpDepth] = useState('')
   // Photos
   const [internalPhoto, setInternalPhoto] = useState<File | null>(null)
   const [internalPreview, setInternalPreview] = useState('')
@@ -371,6 +375,7 @@ function AddManholeForm({ standaloneLayout = true }: { standaloneLayout?: boolea
         cover_material_other: coverMaterial === 'Other' ? (coverMaterialOther || null) : null,
         cover_condition: coverCondition || null,
         cover_thickness_mm: type === 'Catchpit' ? (coverThickness || null) : null,
+        cover_duty: coverDuty || null,
         chamber_shape: chamberShape || null,
         chamber_diameter_mm: (chamberShape === 'Circle' || chamberShape === 'Hexagon') ? (chamberDiameter || null) : null,
         chamber_width_mm: (chamberShape === 'Square' || chamberShape === 'Rectangle') ? (chamberWidth || null) : null,
@@ -378,6 +383,7 @@ function AddManholeForm({ standaloneLayout = true }: { standaloneLayout?: boolea
         chamber_material: chamberMaterial || null,
         chamber_material_other: chamberMaterial === 'Other' ? (chamberMaterialOther || null) : null,
         chamber_condition: chamberCondition || null,
+        sump_depth_m: sumpDepth || null,
         service_type: serviceType || null,
         type: type || null,
         type_other: type === 'Other' ? (typeOther || null) : null,
@@ -684,6 +690,13 @@ ALTER TABLE public.chambers
               {['Good','OK','Cracked','Rocking','Re-Set','Replace','Needs Attention','Urgent Attention'].map(c => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
+          <div>
+            <label className="block text-sm mb-1">Cover Duty</label>
+            <select className="w-full border p-2 rounded" value={coverDuty} onChange={(e)=>setCoverDuty(e.target.value)}>
+              <option value="">Select duty</option>
+              {['Light','Medium','Heavy','N/A'].map(d => <option key={d} value={d}>{d}</option>)}
+            </select>
+          </div>
           {type === 'Catchpit' && (
             <div>
               <label className="block text-sm mb-1">Cover Thickness (mm)</label>
@@ -772,6 +785,14 @@ ALTER TABLE public.chambers
               </div>
             </>
           ) : null}
+          <div>
+            <label className="block text-sm mb-1">Sump Depth (m)</label>
+            <input
+              className="w-full border p-2 rounded"
+              value={sumpDepth}
+              onChange={(e)=>setSumpDepth(e.target.value)}
+            />
+          </div>
         </div>
 
         {/* Incoming Pipes */}
