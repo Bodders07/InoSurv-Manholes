@@ -67,6 +67,7 @@ export default function ChamberSketch({
   palette = 'auto',
   minimal = false,
   showHandlesAlways = false,
+  hideCoverControls = false,
 }: {
   value?: SketchState
   onChange?: (s: SketchState) => void
@@ -74,6 +75,7 @@ export default function ChamberSketch({
   palette?: 'auto' | 'print-light'
   minimal?: boolean // hides legend, cover controls, and dashed cover overlay
   showHandlesAlways?: boolean
+  hideCoverControls?: boolean
 }) {
   const [state, setSketchState] = useState<SketchState>(() => {
     if (value) {
@@ -335,7 +337,7 @@ export default function ChamberSketch({
     <div className="w-full">
       {/* Toolbar */}
       <div className={`flex flex-wrap items-center ${compact ? 'gap-1 mb-1' : 'gap-2 mb-2'} sketch-toolbar`}>
-        {!minimal && (
+        {!minimal && !hideCoverControls && (
           <div className={`flex items-center ${compact ? 'gap-1 px-2 py-1' : 'gap-2 px-2 py-1'} border rounded sketch-group`}>
             <span className={`${compact ? 'text-xs' : 'text-sm'} font-semibold sketch-group__label`}>Cover</span>
             {(['Circle', 'Square', 'Rectangle', 'Triangle'] as const).map((s) => (
