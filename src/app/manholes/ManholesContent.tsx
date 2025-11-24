@@ -274,23 +274,23 @@ function renderSketchToDataUrl(sketch?: SketchState | null) {
   const drawChamber = () => {
     switch (sketch.chamberShape) {
       case 'Square':
-        // Slightly smaller to match live preview
-        ctx.strokeRect(cx - 100, cy - 100, 200, 200)
+        // Further reduced to match live preview proportions
+        ctx.strokeRect(cx - 90, cy - 90, 180, 180)
         break
       case 'Rectangle':
-        // Slightly smaller to match live preview (taller than wide)
-        ctx.strokeRect(cx - 70, cy - 120, 140, 240)
+        // Further reduced (taller than wide) to match live preview
+        ctx.strokeRect(cx - 60, cy - 110, 120, 220)
         break
       case 'Hexagon': {
-        // Slightly smaller to match live preview
+        // Further reduced to match live preview proportions
         ctx.beginPath()
         const points = [
-          [cx, cy - 115],
-          [cx + 100, cy - 55],
-          [cx + 100, cy + 55],
-          [cx, cy + 115],
-          [cx - 100, cy + 55],
-          [cx - 100, cy - 55],
+          [cx, cy - 105],
+          [cx + 90, cy - 50],
+          [cx + 90, cy + 50],
+          [cx, cy + 105],
+          [cx - 90, cy + 50],
+          [cx - 90, cy - 50],
         ]
         points.forEach(([x, y], idx) => {
           if (idx === 0) ctx.moveTo(x, y)
@@ -301,9 +301,9 @@ function renderSketchToDataUrl(sketch?: SketchState | null) {
         break
       }
       default:
-        // Slightly smaller circle to match live preview
+        // Further reduced circle to match live preview
         ctx.beginPath()
-        ctx.arc(cx, cy, 105, 0, Math.PI * 2)
+        ctx.arc(cx, cy, 95, 0, Math.PI * 2)
         ctx.stroke()
         break
     }
