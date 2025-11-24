@@ -435,6 +435,13 @@ export default function ChambersContent() {
   const canDeleteManhole = has('manhole-delete')
   const canExportChambers = has('export-pdf') || has('export-csv')
 
+  // Auto-clear success/info messages after a short delay (leave errors)
+  useEffect(() => {
+    if (!message || message.toLowerCase().startsWith('error')) return
+    const t = setTimeout(() => setMessage(''), 4000)
+    return () => clearTimeout(t)
+  }, [message])
+
   useEffect(() => {
     async function loadData() {
       setLoading(true)
