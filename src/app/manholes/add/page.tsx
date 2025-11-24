@@ -263,48 +263,36 @@ function AddManholeForm({ standaloneLayout = true }: { standaloneLayout?: boolea
     return `Pipe ${nextNumber}`
   }
 
-  const relabelPipesToNumbers = () => {
-    let counter = 1
-    setIncoming(prev => prev.map(pipe => ({ ...pipe, label: `Pipe ${counter++}` })))
-    setOutgoing(prev => prev.map(pipe => ({ ...pipe, label: `Pipe ${counter++}` })))
-  }
-
-  const relabelPipesToLetters = () => {
-    setIncoming(prev => {
-      const source = prev.length ? prev : [createEmptyPipe('Pipe A')]
-      return source.map((pipe, idx) => ({ ...pipe, label: `Pipe ${letterForIndex(65, idx)}` }))
-    })
-    setOutgoing(prev => {
-      const source = prev.length ? prev : [createEmptyPipe('Pipe X')]
-      return source.map((pipe, idx) => ({ ...pipe, label: `Pipe ${letterForIndex(88, idx)}` }))
-    })
-  }
-
   const handlePipeModeChange = (mode: PipeLabelMode) => {
     setPipeLabelMode(mode)
-    if (mode === 'numbers') {
-      relabelPipesToNumbers()
-    } else {
-      relabelPipesToLetters()
-    }
   }
 
   useEffect(() => {
     if (type !== 'Catchpit' && pipeLabelMode !== 'letters') {
       setPipeLabelMode('letters')
-      relabelPipesToLetters()
     }
   }, [type, pipeLabelMode])
 
+  // Keep minimal defaults per mode: letters => Pipe A (incoming) and Pipe X (outgoing),
+  // numbers => Pipe 1 only (incoming) and no outgoing until added.
   useEffect(() => {
-    if (pipeLabelMode !== 'numbers') return
-    if (!outgoing.length) return
-    setIncoming((prev) => {
-      const combined = [...prev, ...outgoing]
-      return combined.map((pipe, idx) => ({ ...pipe, label: `Pipe ${idx + 1}` }))
-    })
-    setOutgoing([])
-  }, [pipeLabelMode, outgoing])
+    if (pipeLabelMode === 'numbers') {
+      setOutgoing([])
+      setIncoming((prev) => {
+        const first = prev[0] ? { ...prev[0], label: 'Pipe 1' } : createEmptyPipe('Pipe 1')
+        return [first]
+      })
+    } else {
+      setIncoming((prev) => {
+        const first = prev[0] ? { ...prev[0], label: `Pipe ${letterForIndex(65, 0)}` } : createEmptyPipe('Pipe A')
+        return [first]
+      })
+      setOutgoing((prev) => {
+        const first = prev[0] ? { ...prev[0], label: `Pipe ${letterForIndex(88, 0)}` } : createEmptyPipe('Pipe X')
+        return [first]
+      })
+    }
+  }, [pipeLabelMode])
 
   useEffect(() => {
     async function fetchProjects() {
