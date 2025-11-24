@@ -348,9 +348,11 @@ function renderSketchToDataUrl(sketch?: SketchState | null) {
       const endX = isInlet ? sx : ex
       const endY = isInlet ? sy : ey
       drawArrow(startX, startY, endX, endY, color)
-      const labelX = isInlet ? startX : endX
-      const labelY = isInlet ? startY : endY
-      if (item.label) ctx.fillText(item.label, labelX + 4, labelY + 4)
+      // Offset label away from the arrow to prevent overlap (especially for outlets)
+      const labelOffset = 8
+      const labelX = isInlet ? startX + labelOffset : endX + labelOffset
+      const labelY = isInlet ? startY - labelOffset : endY - labelOffset
+      if (item.label) ctx.fillText(item.label, labelX, labelY)
     }
   })
   return canvas.toDataURL('image/png')
