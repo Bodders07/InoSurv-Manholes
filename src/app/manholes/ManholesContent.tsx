@@ -753,7 +753,7 @@ async function addChartsPage(doc: jsPDF, records: DetailedManholeRecord[]) {
 
     const points = list
       .map((rec) => ({ id: rec.identifier || rec.id, invert: computeDeepestInvert(rec) }))
-      .filter((p) => p.invert !== null) as { id: string; invert: number }[]
+      .filter((p) => p.invert !== null) as Array<{ id: string; invert: number }>
 
     const chartX = margin
     const chartY = margin + 8
