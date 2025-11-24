@@ -713,6 +713,92 @@ const parseNumber = (value?: string | number | null, divisor = 1) => {
   return parsed / divisor
 }
 
+const computeDeepestInvert = (record: DetailedManholeRecord) => {
+  const pipes = [...(record.incoming_pipes || []), ...(record.outgoing_pipes || [])]
+  if (!pipes.length) return null
+  const coverLevel = typeof record.cover_level === 'number' ? record.cover_level : null
+  let best: number | null = null
+  pipes.forEach((p) => {
+    const invertDepth = parseNumber(p.invert_depth_m)
+    const soffit = parseNumber(p.soffit_level)
+    const diaMeters = parseNumber(p.diameter_mm, 1000)
+    const depth = invertDepth ?? (soffit !== null && diaMeters !== null ? soffit + diaMeters : null)
+    if (depth !== null && coverLevel !== null) {
+      const invert = coverLevel - depth
+      if (best === null || invert < best) best = invert
+    }
+  })
+  return best
+}
+
+async function addChartsPage(doc: jsPDF, records: DetailedManholeRecord[]) {
+  if (!records.length) return
+  const margin = 12
+  const chartWidth = 190
+  const chartHeight = 120
+  const groups = records.reduce((map, rec) => {
+    const loc = (rec.location_desc || '-').trim() || '-'
+    const arr = map.get(loc) || []
+    arr.push(rec)
+    map.set(loc, arr)
+    return map
+  }, new Map<string, DetailedManholeRecord[]>())
+
+  let first = true
+  for (const [loc, list] of groups) {
+    if (!first) doc.addPage()
+    first = false
+    doc.setFontSize(14)
+    doc.text(`Chamber Invert Chart - ${loc}`, margin, margin)
+
+    const points = list
+      .map((rec) => ({ id: rec.identifier || rec.id, invert: computeDeepestInvert(rec) }))
+      .filter((p) => p.invert !== null) as { id: string; invert: number }[]
+
+    const chartX = margin
+    const chartY = margin + 8
+    doc.rect(chartX, chartY, chartWidth, chartHeight)
+    doc.setFontSize(10)
+    doc.text('Chamber ID', chartX + chartWidth / 2, chartY + chartHeight + 8, { align: 'center' })
+    doc.text('Invert (m)', chartX - 2, chartY - 4, { align: 'left' })
+
+    if (!points.length) {
+      doc.text('No invert data for this location.', chartX + 4, chartY + 10)
+      continue
+    }
+
+    const minInvert = Math.min(...points.map((p) => p.invert))
+    const maxInvert = Math.max(...points.map((p) => p.invert))
+    const pad = 0.2
+    const yMin = minInvert - pad
+    const yMax = maxInvert + pad
+    const toY = (val: number) => {
+      const norm = (val - yMin) / (yMax - yMin || 1)
+      return chartY + chartHeight - norm * chartHeight
+    }
+    const gap = chartWidth / Math.max(points.length, 1)
+    points.forEach((p, idx) => {
+      const x = chartX + gap * (idx + 0.5)
+      const y = toY(p.invert)
+      doc.circle(x, y, 1.5, 'F')
+      doc.text(p.id, x, y - 3, { align: 'center' })
+    })
+
+    // ticks
+    doc.setFontSize(8)
+    const mid = (yMin + yMax) / 2
+    ;[
+      { v: yMax, label: yMax.toFixed(2) },
+      { v: mid, label: mid.toFixed(2) },
+      { v: yMin, label: yMin.toFixed(2) },
+    ].forEach((tick) => {
+      const y = toY(tick.v)
+      doc.line(chartX, y, chartX + 3, y)
+      doc.text(tick.label, chartX - 4, y + 2, { align: 'right' })
+    })
+  }
+}
+
 const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null, limit = 6) => {
   if (!pipes || !pipes.length) return []
   return pipes.slice(0, limit).map((pipe) => {
@@ -1015,12 +1101,12 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
   async function downloadPdfFiles(records: DetailedManholeRecord[]) {
     if (!records.length) return
     const logo = await getLogoAsset()
-    const [first, ...rest] = records
-    const doc = await createPdfDoc(first, logo || null)
-    for (const record of rest) {
-      await renderPdfPage(doc, record, logo || null, true)
+    const doc = new jsPDF({ unit: 'mm', format: 'a4' })
+    await addChartsPage(doc, records)
+    for (const [idx, record] of records.entries()) {
+      await renderPdfPage(doc, record, logo || null, idx > 0 || doc.getNumberOfPages() > 0)
     }
-    const base = first
+    const base = records[0]
     const segments = [
       base.project_number || 'Project',
       base.project_client || 'Client',
