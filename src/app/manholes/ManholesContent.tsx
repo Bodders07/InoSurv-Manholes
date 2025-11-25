@@ -845,13 +845,16 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
     if (addPage) doc.addPage()
     const pageWidth = doc.internal.pageSize.getWidth()
     const pageHeight = doc.internal.pageSize.getHeight()
-    const margin = 6
-    const innerWidth = pageWidth - margin * 2
-    const startX = margin
+    const horizontalMargin = 10
+    const topMargin = 2
+    const bottomMargin = 8
+    const innerWidth = pageWidth - horizontalMargin * 2
+    const innerHeight = pageHeight - topMargin - bottomMargin
+    const startX = horizontalMargin
     doc.setDrawColor(60)
-    doc.rect(startX, margin, innerWidth, pageHeight - margin * 2)
+    doc.rect(startX, topMargin, innerWidth, innerHeight)
       doc.setFontSize(10)
-      const jobBoxY = margin + 18
+      const jobBoxY = topMargin + 18
       const jobBoxWidth = innerWidth - 4
       const jobBoxHeight = 32
       const jobBoxX = startX + 2
