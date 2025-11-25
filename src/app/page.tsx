@@ -11,6 +11,8 @@ import SettingsPanel from './components/panels/SettingsPanel'
 import StoragePanel from './components/panels/StoragePanel'
 import MapViewPanel from './components/panels/MapViewPanel'
 import RecyclePanel from './components/panels/RecyclePanel'
+import ProjectOverviewCard from './components/dashboard/ProjectOverviewCard'
+import SyncQueueCard from './components/dashboard/SyncQueueCard'
 
 export default function HomePage() {
   const { view } = useView()
@@ -18,10 +20,16 @@ export default function HomePage() {
   return (
     <SidebarLayout>
       {view === 'dashboard' && (
-        <>
-          <h1 className="text-3xl font-semibold mb-4">Dashboard</h1>
-          <p className="text-gray-600">Welcome to your dashboard! Use the sidebar to navigate.</p>
-        </>
+        <div className="space-y-6">
+          <div>
+            <h1 className="text-3xl font-semibold mb-2">Dashboard</h1>
+            <p className="text-gray-600">A quick overview of project progress and offline queue status.</p>
+          </div>
+          <div className="grid gap-4 lg:grid-cols-2">
+            <ProjectOverviewCard />
+            <SyncQueueCard />
+          </div>
+        </div>
       )}
 
       {view === 'projects' && <ProjectsPanel />}
