@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { promises as fs } from 'fs'
 import path from 'path'
 import { createClient } from '@supabase/supabase-js'
+import { deriveRoleInfo } from '@/lib/roles'
 import type { PermissionConfig, RoleKey, CategoryKey } from '@/types/permissions'
 
 const CONFIG_PATH = path.join(process.cwd(), 'src/config/permissions.json')
@@ -9,6 +10,7 @@ const STORAGE_BUCKET = 'system-config'
 const STORAGE_OBJECT = 'permissions.json'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 const supabaseAdmin =
   supabaseUrl && serviceRoleKey
@@ -85,6 +87,31 @@ async function saveToStorage(json: PermissionConfig) {
   if (error) throw error
 }
 
+async function ensureSuperAdmin(request: Request):
+  Promise<{ ok: true } | { response: NextResponse }> {
+  if (!supabaseUrl || !supabaseAnonKey) {
+    return { response: NextResponse.json({ error: 'Server not configured' }, { status: 500 }) }
+  }
+  const authHeader = request.headers.get('authorization') || ''
+  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : ''
+  if (!token) {
+    return { response: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }) }
+  }
+  const requester = createClient(supabaseUrl, supabaseAnonKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+    global: { headers: { Authorization: `Bearer ${token}` } },
+  })
+  const { data, error } = await requester.auth.getUser()
+  if (error || !data?.user) {
+    return { response: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }) }
+  }
+  const info = deriveRoleInfo(data.user)
+  if (info.roleKey !== 'superadmin') {
+    return { response: NextResponse.json({ error: 'Forbidden' }, { status: 403 }) }
+  }
+  return { ok: true }
+}
+
 export async function GET() {
   const baseline = await loadBaseline()
   const stored = await loadFromStorage()
@@ -96,6 +123,8 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const authCheck = await ensureSuperAdmin(request)
+  if ('response' in authCheck) return authCheck.response
   try {
     const body = (await request.json()) as { permissions: PermissionConfig }
     if (!body || !body.permissions) {

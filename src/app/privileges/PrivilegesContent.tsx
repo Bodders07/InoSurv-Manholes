@@ -1,7 +1,9 @@
-'use client'
+"use client"
 
-import { useEffect, useState } from 'react'
-import type { PermissionConfig, RoleKey, CategoryKey } from '@/types/permissions'
+import { useEffect, useState } from "react"
+import type { PermissionConfig, RoleKey, CategoryKey } from "@/types/permissions"
+import { supabase } from "@/lib/supabaseClient"
+import { usePermissions } from "@/app/components/PermissionsContext"
 
 const ROLE_TABS: { id: RoleKey; label: string; description: string }[] = [
   { id: 'viewer', label: 'Viewer', description: 'Read-only access to records' },
@@ -29,6 +31,8 @@ export default function PrivilegesContent() {
   const [status, setStatus] = useState<string>('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const { has } = usePermissions()
+  const canModify = has('manage-permissions')
 
   useEffect(() => {
     async function load() {
@@ -61,6 +65,10 @@ export default function PrivilegesContent() {
   }
 
   const startEdit = () => {
+    if (!canModify) {
+      setStatus('You do not have permission to edit privileges.')
+      return
+    }
     if (!permissions) return
     setDraft(structuredClone(permissions))
     setEditable(true)
@@ -75,12 +83,22 @@ export default function PrivilegesContent() {
 
   const saveChanges = async () => {
     if (!draft) return
+    if (!canModify) {
+      setStatus('You do not have permission to edit privileges.')
+      return
+    }
+    const { data } = await supabase.auth.getSession()
+    const token = data.session?.access_token
+    if (!token) {
+      setStatus('Missing auth session. Please sign in again.')
+      return
+    }
     setSaving(true)
     setStatus('')
     try {
       const res = await fetch('/api/permissions', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ permissions: draft }),
       })
       if (!res.ok) throw new Error('Failed to save permissions')
@@ -126,7 +144,7 @@ export default function PrivilegesContent() {
         </div>
         {activeDescription && <p className="mt-4 text-sm text-gray-600">{activeDescription}</p>}
         <div className="mt-4 flex gap-2">
-          {editable ? (
+          {canModify && editable ? (
             <>
               <button
                 className="px-3 py-1.5 rounded border border-gray-300 text-gray-700 hover:bg-gray-50"
@@ -143,7 +161,7 @@ export default function PrivilegesContent() {
                 {saving ? 'Saving…' : 'Save Changes'}
               </button>
             </>
-          ) : (
+          ) : canModify ? (
             <button
               className="px-3 py-1.5 rounded bg-orange-500 text-white hover:bg-orange-600 disabled:opacity-60"
               onClick={startEdit}
@@ -151,6 +169,11 @@ export default function PrivilegesContent() {
             >
               Edit Permissions
             </button>
+          ) : null}
+          {!canModify && (
+            <p className="text-sm text-red-600 mt-2">
+              You do not have permission to modify roles. Contact a super admin if changes are required.
+            </p>
           )}
         </div>
       </div>
