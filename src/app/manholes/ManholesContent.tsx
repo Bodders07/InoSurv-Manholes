@@ -845,7 +845,7 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
     if (addPage) doc.addPage()
     const pageWidth = doc.internal.pageSize.getWidth()
     const pageHeight = doc.internal.pageSize.getHeight()
-    const margin = 10
+    const margin = 6
     const innerWidth = pageWidth - margin * 2
     const startX = margin
     doc.setDrawColor(60)
