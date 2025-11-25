@@ -850,14 +850,6 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
     const startX = margin
     doc.setDrawColor(60)
     doc.rect(startX, margin, innerWidth, pageHeight - margin * 2)
-    if (logo) {
-      const logoWidth = 44
-      const logoHeight = logoWidth * (logo.height && logo.width ? logo.height / logo.width : 0.35)
-      doc.addImage(logo.dataUrl, logo.format, startX + 4, margin + 4, logoWidth, logoHeight, undefined, 'FAST')
-    } else {
-      doc.setFontSize(18)
-      doc.text('InoRail', startX + 24, margin + 12, { align: 'left' })
-    }
       doc.setFontSize(10)
       const jobBoxY = margin + 18
       const jobBoxWidth = innerWidth - 4
