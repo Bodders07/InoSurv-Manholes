@@ -1,4 +1,4 @@
-'use client'
+﻿"use client"
 
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
@@ -27,7 +27,7 @@ export default function ProjectOverviewCard() {
     setLoading(true)
     setError('')
     try {
-      const [{ count: totalProjects, error: totalError }, { count: archived, error: archivedError }, { count: completed, error: completedError }, { count: chamberCount, error: chamberError }] = await Promise.all([
+      const [{ count: totalProjects, error: totalError }, { count: archivedProjects, error: archivedError }, { count: completedProjects, error: completedError }, { count: chamberCount, error: chamberError }] = await Promise.all([
         supabase.from('projects').select('id', { count: 'exact', head: true }).is('deleted_at', null),
         supabase.from('projects').select('id', { count: 'exact', head: true }).eq('archived', true).is('deleted_at', null),
         supabase.from('projects').select('id', { count: 'exact', head: true }).eq('completed', true).is('deleted_at', null),
@@ -41,8 +41,8 @@ export default function ProjectOverviewCard() {
 
       setStats({
         total: totalProjects ?? 0,
-        archived: archived ?? 0,
-        completed: completed ?? 0,
+        archived: archivedProjects ?? 0,
+        completed: completedProjects ?? 0,
         chambers: chamberCount ?? 0,
       })
 
@@ -81,7 +81,7 @@ export default function ProjectOverviewCard() {
           className="rounded border border-gray-300 px-3 py-1 text-sm hover:bg-gray-50 disabled:opacity-60"
           disabled={loading}
         >
-          {loading ? 'Refreshing�' : 'Refresh'}
+          {loading ? 'Refreshing…' : 'Refresh'}
         </button>
       </div>
       {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
