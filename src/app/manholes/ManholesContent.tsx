@@ -854,7 +854,7 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
     doc.setDrawColor(60)
     doc.rect(startX, topMargin, innerWidth, innerHeight)
       doc.setFontSize(10)
-      const jobBoxY = topMargin + 18
+      const jobBoxY = topMargin + 6
       const jobBoxWidth = innerWidth - 4
       const jobBoxHeight = 32
       const jobBoxX = startX + 2
