@@ -1062,7 +1062,7 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
 
       const bottomHeight = 60
       const boxWidth = (jobBoxWidth - 8) / 3
-      const boxY = Math.min(currentY, pageHeight - bottomHeight - margin - 5)
+      const boxY = Math.min(currentY, pageHeight - bottomHeight - bottomMargin - 5)
       const boxes: Array<{ label: string; dataUrl: string | null; url?: string | null; width?: number; height?: number }> = [
         { label: 'Chamber Sketch', dataUrl: renderSketchToDataUrl(record.sketch_json), width: 320, height: 320 },
         { label: 'Internal Photo', dataUrl: null, url: record.internal_photo_url },
