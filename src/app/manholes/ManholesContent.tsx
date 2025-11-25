@@ -861,21 +861,47 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
       doc.setFontSize(10)
       const jobBoxY = margin + 18
       const jobBoxWidth = innerWidth - 4
-      const jobBoxHeight = 28
+      const jobBoxHeight = 32
       const jobBoxX = startX + 2
-      doc.rect(jobBoxX, jobBoxY, jobBoxWidth, jobBoxHeight)
-      const idBoxWidth = 55
-      doc.line(jobBoxX + jobBoxWidth - idBoxWidth, jobBoxY, jobBoxX + jobBoxWidth - idBoxWidth, jobBoxY + jobBoxHeight)
-      doc.text('Job No.:', jobBoxX + 3, jobBoxY + 6)
-      doc.text(valueOrDash(record.project_number), jobBoxX + 25, jobBoxY + 6)
-      doc.text('Project:', jobBoxX + 3, jobBoxY + 12)
-      doc.text(valueOrDash(record.project_name), jobBoxX + 25, jobBoxY + 12)
-      doc.text('Location:', jobBoxX + 3, jobBoxY + 18)
-      doc.text(valueOrDash(record.location_desc), jobBoxX + 25, jobBoxY + 18)
-      doc.text('Chainage/Mileage:', jobBoxX + 3, jobBoxY + 24)
-      doc.text(valueOrDash(record.chainage_mileage), jobBoxX + 32, jobBoxY + 24)
-      doc.text('Reference ID', jobBoxX + jobBoxWidth - idBoxWidth + 3, jobBoxY + 6)
-      doc.text(valueOrDash(record.identifier), jobBoxX + jobBoxWidth - idBoxWidth + 3, jobBoxY + 12)
+      const leftBoxWidth = 55
+      const rightBoxWidth = 60
+      const middleWidth = jobBoxWidth - leftBoxWidth - rightBoxWidth
+      // Left logo box
+      doc.rect(jobBoxX, jobBoxY, leftBoxWidth, jobBoxHeight)
+      if (logo) {
+        const scale = 0.35
+        const logoHeight = (logo.height && logo.width ? logo.height / logo.width : scale) * (leftBoxWidth - 10)
+        doc.addImage(
+          logo.dataUrl,
+          logo.format,
+          jobBoxX + 4,
+          jobBoxY + (jobBoxHeight - logoHeight) / 2,
+          leftBoxWidth - 8,
+          logoHeight,
+          undefined,
+          'FAST',
+        )
+      } else {
+        doc.setFontSize(14)
+        doc.text('InoRail', jobBoxX + leftBoxWidth / 2, jobBoxY + jobBoxHeight / 2 + 4, { align: 'center' })
+        doc.setFontSize(10)
+      }
+      // Middle info box
+      const middleX = jobBoxX + leftBoxWidth
+      doc.rect(middleX, jobBoxY, middleWidth, jobBoxHeight)
+      doc.text('Job No.:', middleX + 3, jobBoxY + 7)
+      doc.text(valueOrDash(record.project_number), middleX + 26, jobBoxY + 7)
+      doc.text('Project:', middleX + 3, jobBoxY + 13)
+      doc.text(valueOrDash(record.project_name), middleX + 26, jobBoxY + 13)
+      doc.text('Location:', middleX + 3, jobBoxY + 19)
+      doc.text(valueOrDash(record.location_desc), middleX + 26, jobBoxY + 19)
+      doc.text('Chainage/Mileage:', middleX + 3, jobBoxY + 25)
+      doc.text(valueOrDash(record.chainage_mileage), middleX + 38, jobBoxY + 25)
+      // Right reference box
+      const rightX = jobBoxX + jobBoxWidth - rightBoxWidth
+      doc.rect(rightX, jobBoxY, rightBoxWidth, jobBoxHeight)
+      doc.text('Reference ID', rightX + 3, jobBoxY + 10)
+      doc.text(valueOrDash(record.identifier), rightX + 3, jobBoxY + 18)
 
       const sectionY = jobBoxY + jobBoxHeight + 8
       const columnWidth = (jobBoxWidth - 4) / 2
