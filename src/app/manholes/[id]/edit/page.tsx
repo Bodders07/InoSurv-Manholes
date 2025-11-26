@@ -55,6 +55,7 @@ const SERVICE_TYPES = [
   'Traffic Sig','CATV','SV','FH','AV','WO','CCTV','Comms','Fuel Tank','Fuel Vent','Fuel Filler','WM','Empty','GV','Other',
   'Cables','Ducts','Fibre','FWS','Gas','Heating Pipes','Pipes','CWS','SWS','Unidentified'
 ]
+const SERVICE_TYPE_SET = new Set(SERVICE_TYPES)
 const TYPE_OPTIONS = [
   'Manhole',
   'Catchpit',
@@ -383,7 +384,9 @@ export default function EditManholePage() {
       chamber_diameter_mm: (chamberShape === 'Circle' || chamberShape === 'Hexagon') ? (chamberDiameter || null) : null,
       chamber_width_mm: (chamberShape === 'Square' || chamberShape === 'Rectangle') ? (chamberWidth || null) : null,
       chamber_length_mm: (chamberShape === 'Square' || chamberShape === 'Rectangle') ? (chamberLength || null) : null,
-      service_type: serviceType || null,
+      service_type: serviceType
+        ? (SERVICE_TYPE_SET.has(serviceType) ? serviceType : 'Other')
+        : null,
       type: type || null,
       type_other: type === 'Other' ? (typeOther || null) : null,
       chamber_condition: chamberCondition || null,

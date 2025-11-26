@@ -72,6 +72,7 @@ const SERVICE_TYPES = [
   'Traffic Sig','CATV','SV','FH','AV','WO','CCTV','Comms','Fuel Tank','Fuel Vent','Fuel Filler','WM','Empty','GV','Other',
   'Cables','Ducts','Fibre','FWS','Gas','Heating Pipes','Pipes','CWS','SWS','Unidentified'
 ]
+const SERVICE_TYPE_SET = new Set(SERVICE_TYPES)
 
 const TYPE_OPTIONS = [
   'Manhole',
@@ -384,7 +385,9 @@ function AddManholeForm({ standaloneLayout = true }: { standaloneLayout?: boolea
         chamber_material_other: chamberMaterial === 'Other' ? (chamberMaterialOther || null) : null,
         chamber_condition: chamberCondition || null,
         sump_depth_m: sumpDepth || null,
-        service_type: serviceType || null,
+        service_type: serviceType
+          ? (SERVICE_TYPE_SET.has(serviceType) ? serviceType : 'Other')
+          : null,
         type: type || null,
         type_other: type === 'Other' ? (typeOther || null) : null,
         cover_lifted: coverLifted || null,
