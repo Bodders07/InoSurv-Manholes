@@ -514,6 +514,13 @@ export default function ChamberSketch({
                   : endPoint
             const handleSize = compact ? 20 : 24
             const hh = handleSize / 2
+            const angle = Math.atan2(endPoint.y - startPoint.y, endPoint.x - startPoint.x)
+            const offsetDistance = (compact ? 10 : 12)
+            const offsetX = labelPoint.x + Math.cos(angle) * (hasArrowHead ? (isNumeric ? 6 : 8) : 6)
+            const offsetY = labelPoint.y + Math.sin(angle) * (hasArrowHead ? (isNumeric ? 6 : 8) : 6)
+            const labelBaselineX = offsetX + Math.cos(angle) * offsetDistance
+            const labelBaselineY = offsetY + Math.sin(angle) * offsetDistance
+
             return (
               <g key={it.id}>
                 {it.type !== 'label' && (
@@ -554,9 +561,25 @@ export default function ChamberSketch({
                     )}
                     {/* Labels sit at the handle end (ex,ey) for both types */}
                     {it.label && (
-                      <text x={labelPoint.x + 8} y={labelPoint.y - 8} fontSize="12" fill={color} fontWeight={600}>
-                        {it.label}
-                      </text>
+                      <>
+                        <line
+                          x1={labelPoint.x}
+                          y1={labelPoint.y}
+                          x2={labelBaselineX}
+                          y2={labelBaselineY}
+                          stroke={color}
+                          strokeWidth={1}
+                        />
+                        <text
+                          x={labelBaselineX + 2}
+                          y={labelBaselineY - 2}
+                          fontSize="12"
+                          fill={color}
+                          fontWeight={600}
+                        >
+                          {it.label}
+                        </text>
+                      </>
                     )}
                   </>
                 )}
