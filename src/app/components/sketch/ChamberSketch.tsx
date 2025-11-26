@@ -506,7 +506,12 @@ export default function ChamberSketch({
             const arrowPath = isInlet ? `M ${ex},${ey} L ${sx},${sy}` : `M ${sx},${sy} L ${ex},${ey}`
             const startPoint = isInlet ? { x: ex, y: ey } : { x: sx, y: sy }
             const endPoint = isInlet ? { x: sx, y: sy } : { x: ex, y: ey }
-            const labelPoint = (it.type === 'in') ? startPoint : endPoint
+            const labelPoint =
+              it.type === 'in'
+                ? startPoint
+                : it.type === 'numeric-known' || it.type === 'numeric-unknown'
+                  ? { x: (startPoint.x + endPoint.x) / 2, y: (startPoint.y + endPoint.y) / 2 }
+                  : endPoint
             const handleSize = compact ? 20 : 24
             const hh = handleSize / 2
             return (
