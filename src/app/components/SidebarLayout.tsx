@@ -247,11 +247,25 @@ export default function SidebarLayout({
     window.location.reload()
   }
 
-  const sidebarWidth = isSmallScreen ? (collapsed ? 'w-0' : 'w-64') : (collapsed ? 'w-14' : 'w-64')
+  const showMobileOverlay = isSmallScreen && !collapsed
+  const sidebarClasses = [
+    'app-sidebar bg-gray-500 border-r border-gray-400 shadow-sm flex flex-col transition-transform duration-200 ease-in-out',
+    isSmallScreen
+      ? `fixed inset-y-0 left-0 z-40 w-64 ${collapsed ? '-translate-x-full' : 'translate-x-0'}`
+      : `${collapsed ? 'w-14' : 'w-64'} static`,
+  ].join(' ')
+
   return (
-    <div className="flex min-h-screen">
+    <div className="relative flex min-h-screen bg-slate-100">
+      {showMobileOverlay && (
+        <div
+          className="fixed inset-0 z-30 bg-black/40 backdrop-blur-sm md:hidden"
+          onClick={() => setCollapsed(true)}
+          aria-hidden="true"
+        />
+      )}
       {/* Sidebar */}
-      <div className={`app-sidebar ${sidebarWidth} bg-gray-500 border-r border-gray-400 shadow-sm flex flex-col transition-all duration-200 ease-in-out overflow-hidden`}>
+      <div className={sidebarClasses}>
         <div className="p-3 border-b border-gray-400 flex items-center justify-center gap-2">
           <Link href="/" className="inline-flex items-center justify-center flex-1">
             <Image
@@ -265,7 +279,7 @@ export default function SidebarLayout({
             <span className="sr-only">Manhole Inspection</span>
           </Link>
         </div>
-        <nav className={`p-2 ${collapsed ? 'space-y-1' : 'p-4 space-y-1'}`}>
+        <nav className={`p-2 ${collapsed ? 'space-y-1' : 'p-4 space-y-1'} flex-1 overflow-y-auto`}>
           {publicNav.map((item) => {
             const isActive = view === item.id
             return (
