@@ -1193,11 +1193,27 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
   }
 
   async function previewManhole(id: string, identifier?: string | null) {
-    // Open the live export page inside an in-app modal (iframe) instead of a new tab/popup
-    const slug = encodeURIComponent(identifier || id)
-    const url = `/chambers/${slug}/export?embed=1`
-    setPreviewTitle(identifier || 'Chamber Preview')
-    setPreviewPdf(url)
+    if (previewLoadingId) return
+    setPreviewLoadingId(id)
+    setMessage('')
+    try {
+      const [record] = await fetchDetailedChambers([id])
+      if (!record) throw new Error('Chamber not found')
+      const logo = await getLogoAsset()
+      const doc = new jsPDF({ unit: 'mm', format: 'a4' })
+      await addChartsPage(doc, [record])
+      await renderPdfPage(doc, record, logo || null, doc.getNumberOfPages() > 0)
+      const blob = doc.output('blob') as Blob
+      const blobUrl = URL.createObjectURL(blob)
+      setPreviewTitle(identifier || record.identifier || 'Chamber Preview')
+      setPreviewPdf(blobUrl)
+    } catch (err) {
+      const messageText = err instanceof Error ? err.message : 'Unable to preview chamber.'
+      setMessage('Preview failed: ' + messageText)
+      setPreviewPdf(null)
+    } finally {
+      setPreviewLoadingId(null)
+    }
   }
 
   const SortButton = ({ label, keyName }: { label: string; keyName: SortKey }) => (
