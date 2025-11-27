@@ -68,9 +68,30 @@ class ChamberFormBoundary extends React.Component<{ children: ReactNode }, { err
 }
 
 const SERVICE_TYPES = [
-  'Water','Foul Water','Surface Water','Combined','Soakaway','Interceptor','Storm Water Overflow','Electric','BT','Telecom',
-  'Traffic Sig','CATV','SV','FH','AV','WO','CCTV','Comms','Fuel Tank','Fuel Vent','Fuel Filler','WM','Empty','GV','Other',
-  'Cables','Ducts','Fibre','FWS','Gas','Heating Pipes','Pipes','CWS','SWS','Unidentified'
+  'Water',
+  'Foul Water',
+  'Surface Water',
+  'Combined',
+  'Soakaway',
+  'Interceptor',
+  'Storm Water overflow',
+  'Electric',
+  'BT',
+  'Telecom',
+  'Traffic Signal',
+  'CATV',
+  'SV',
+  'FH',
+  'AV',
+  'Water Outlet',
+  'CCTV',
+  'Comms',
+  'Fuel Vent',
+  'Fuel Filler',
+  'WM',
+  'Empty',
+  'Gas Valve',
+  'Other',
 ]
 const SERVICE_TYPE_SET = new Set(SERVICE_TYPES)
 
