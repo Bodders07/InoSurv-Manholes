@@ -554,8 +554,8 @@ export default function ChamberSketch({
                       </>
                     )}
                     {/* Labels sit at the handle end (ex,ey) for both types */}
-                    {it.label && (
-                      isNumeric ? (
+                    {it.label &&
+                      (isNumeric ? (
                         <text
                           transform={`translate(${(startPoint.x + endPoint.x) / 2}, ${(startPoint.y + endPoint.y) / 2}) rotate(${
                             (() => {
@@ -563,7 +563,7 @@ export default function ChamberSketch({
                               if (deg > 90 || deg < -90) deg += 180
                               return deg
                             })()
-                          })`}
+                          }) translate(0,-6)`}
                           textAnchor="middle"
                           dominantBaseline="middle"
                           fontSize="12"
@@ -576,8 +576,7 @@ export default function ChamberSketch({
                         <text x={labelPoint.x + 8} y={labelPoint.y - 8} fontSize="12" fill={color} fontWeight={600}>
                           {it.label}
                         </text>
-                      )
-                    )}
+                      ))}
                   </>
                 )}
                 {it.type === 'label' && (

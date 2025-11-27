@@ -366,7 +366,7 @@ function renderSketchToDataUrl(sketch?: SketchState | null) {
           ctx.rotate(deg)
           ctx.textAlign = 'center'
           ctx.textBaseline = 'middle'
-          ctx.fillText(item.label, 0, -2)
+          ctx.fillText(item.label, 0, -6)
           ctx.restore()
         } else {
           const labelOffset = 8
