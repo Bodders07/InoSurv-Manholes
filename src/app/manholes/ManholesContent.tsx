@@ -344,17 +344,39 @@ function renderSketchToDataUrl(sketch?: SketchState | null) {
       ex = sx + dx * extend
       ey = sy + dy * extend
       const isInlet = item.type === 'in'
-      const color = item.type === 'out' ? '#b91c1c' : '#2563eb'
+      const isNumeric = item.type === 'numeric-known' || item.type === 'numeric-unknown'
+      const color = isNumeric ? '#111827' : item.type === 'out' ? '#b91c1c' : '#2563eb'
       const startX = isInlet ? ex : sx
       const startY = isInlet ? ey : sy
       const endX = isInlet ? sx : ex
       const endY = isInlet ? sy : ey
       drawArrow(startX, startY, endX, endY, color)
       // Offset label away from the arrow to prevent overlap (especially for outlets)
-      const labelOffset = 8
-      const labelX = isInlet ? startX + labelOffset : endX + labelOffset
-      const labelY = isInlet ? startY - labelOffset : endY - labelOffset
-      if (item.label) ctx.fillText(item.label, labelX, labelY)
+      const angle = Math.atan2(endY - startY, endX - startX)
+      if (item.label) {
+        if (isNumeric) {
+          const midX = (startX + endX) / 2
+          const midY = (startY + endY) / 2
+          const perpX = -Math.sin(angle)
+          const perpY = Math.cos(angle)
+          const attachX = midX
+          const attachY = midY
+          const leaderX = attachX + perpX * 10
+          const leaderY = attachY + perpY * 10
+          ctx.beginPath()
+          ctx.moveTo(attachX, attachY)
+          ctx.lineTo(leaderX, leaderY)
+          ctx.strokeStyle = color
+          ctx.lineWidth = 2
+          ctx.stroke()
+          ctx.fillText(item.label, leaderX + perpX * 4, leaderY + perpY * 4)
+        } else {
+          const labelOffset = 8
+          const labelX = isInlet ? startX + labelOffset : endX + labelOffset
+          const labelY = isInlet ? startY - labelOffset : endY - labelOffset
+          ctx.fillText(item.label, labelX, labelY)
+        }
+      }
     }
   })
   return canvas.toDataURL('image/png')
