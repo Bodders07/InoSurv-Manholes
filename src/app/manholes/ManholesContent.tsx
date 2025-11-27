@@ -357,19 +357,17 @@ function renderSketchToDataUrl(sketch?: SketchState | null) {
         if (isNumeric) {
           const midX = (startX + endX) / 2
           const midY = (startY + endY) / 2
-          const perpX = -Math.sin(angle)
-          const perpY = Math.cos(angle)
-          const attachX = midX
-          const attachY = midY
-          const leaderX = attachX + perpX * 10
-          const leaderY = attachY + perpY * 10
-          ctx.beginPath()
-          ctx.moveTo(attachX, attachY)
-          ctx.lineTo(leaderX, leaderY)
-          ctx.strokeStyle = color
-          ctx.lineWidth = 2
-          ctx.stroke()
-          ctx.fillText(item.label, leaderX + perpX * 4, leaderY + perpY * 4)
+          ctx.save()
+          ctx.translate(midX, midY)
+          let deg = angle
+          if (deg > Math.PI / 2 || deg < -Math.PI / 2) {
+            deg += Math.PI
+          }
+          ctx.rotate(deg)
+          ctx.textAlign = 'center'
+          ctx.textBaseline = 'middle'
+          ctx.fillText(item.label, 0, -2)
+          ctx.restore()
         } else {
           const labelOffset = 8
           const labelX = isInlet ? startX + labelOffset : endX + labelOffset
