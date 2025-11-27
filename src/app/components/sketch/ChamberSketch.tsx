@@ -68,6 +68,8 @@ export default function ChamberSketch({
   minimal = false,
   showHandlesAlways = false,
   hideCoverControls = false,
+  showLegend = true,
+  showCoverOverlay = true,
 }: {
   value?: SketchState
   onChange?: (s: SketchState) => void
@@ -76,6 +78,8 @@ export default function ChamberSketch({
   minimal?: boolean // hides legend, cover controls, and dashed cover overlay
   showHandlesAlways?: boolean
   hideCoverControls?: boolean
+  showLegend?: boolean
+  showCoverOverlay?: boolean
 }) {
   const [state, setSketchState] = useState<SketchState>(() => {
     if (value) {
@@ -462,7 +466,7 @@ export default function ChamberSketch({
           onPointerDown={startNearestHandleDrag}
         >
           {/* Key / Legend (top-left) */}
-          {!minimal && (
+          {showLegend && !minimal && (
             <g transform={compact ? 'translate(8,8)' : 'translate(12,12)'}>
               <rect x="0" y="0" width={compact ? 140 : 170} height={compact ? 38 : 46} rx="6" ry="6" fill="var(--sketch-legend-bg, #ffffff)" stroke="var(--sketch-legend-border, #e5e7eb)" />
               {/* Cover sample (dashed) */}
@@ -482,7 +486,7 @@ export default function ChamberSketch({
             </text>
           </g>
 
-          {!minimal && coverPath}
+          {showCoverOverlay && !minimal && coverPath}
           {chamberPath}
 
           {/* Items */}

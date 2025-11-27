@@ -1034,7 +1034,7 @@ ALTER TABLE public.chambers
                 </div>
               </div>
               <div className="p-3 overflow-auto">
-                  <ChamberSketch compact showHandlesAlways hideCoverControls value={sketchDraft ?? undefined} onChange={(s)=>setSketchDraft(s)} />
+                  <ChamberSketch compact showHandlesAlways hideCoverControls showLegend={false} showCoverOverlay={false} value={sketchDraft ?? undefined} onChange={(s)=>setSketchDraft(s)} />
               </div>
             </div>
           </div>
