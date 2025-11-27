@@ -311,21 +311,23 @@ function renderSketchToDataUrl(sketch?: SketchState | null) {
     }
   }
   drawChamber()
-  const drawArrow = (sx: number, sy: number, ex: number, ey: number, color: string) => {
+  const drawArrow = (sx: number, sy: number, ex: number, ey: number, color: string, drawHead = true) => {
     ctx.strokeStyle = color
     ctx.fillStyle = color
     ctx.beginPath()
     ctx.moveTo(sx, sy)
     ctx.lineTo(ex, ey)
     ctx.stroke()
-    const angle = Math.atan2(ey - sy, ex - sx)
-    const len = 12
-    ctx.beginPath()
-    ctx.moveTo(ex, ey)
-    ctx.lineTo(ex - len * Math.cos(angle - Math.PI / 6), ey - len * Math.sin(angle - Math.PI / 6))
-    ctx.lineTo(ex - len * Math.cos(angle + Math.PI / 6), ey - len * Math.sin(angle + Math.PI / 6))
-    ctx.closePath()
-    ctx.fill()
+    if (drawHead) {
+      const angle = Math.atan2(ey - sy, ex - sx)
+      const len = 12
+      ctx.beginPath()
+      ctx.moveTo(ex, ey)
+      ctx.lineTo(ex - len * Math.cos(angle - Math.PI / 6), ey - len * Math.sin(angle - Math.PI / 6))
+      ctx.lineTo(ex - len * Math.cos(angle + Math.PI / 6), ey - len * Math.sin(angle + Math.PI / 6))
+      ctx.closePath()
+      ctx.fill()
+    }
   }
   ctx.font = '16px Arial'
   ctx.fillStyle = '#111827'
@@ -350,7 +352,7 @@ function renderSketchToDataUrl(sketch?: SketchState | null) {
       const startY = isInlet ? ey : sy
       const endX = isInlet ? sx : ex
       const endY = isInlet ? sy : ey
-      drawArrow(startX, startY, endX, endY, color)
+      drawArrow(startX, startY, endX, endY, color, item.type !== 'numeric-unknown')
       // Offset label away from the arrow to prevent overlap (especially for outlets)
       const angle = Math.atan2(endY - startY, endX - startX)
       if (item.label) {
