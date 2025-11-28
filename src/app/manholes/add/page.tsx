@@ -72,6 +72,7 @@ const SERVICE_TYPES = [
   'Foul Water',
   'Surface Water',
   'Combined',
+  'Unidentified',
   'Soakaway',
   'Interceptor',
   'Storm Water overflow',
