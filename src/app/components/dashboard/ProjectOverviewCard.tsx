@@ -32,6 +32,7 @@ export default function ProjectOverviewCard() {
         { count: totalProjects, error: totalError },
         { count: archivedProjects, error: archivedError },
         { count: completedProjects, error: completedError },
+        { count: activeProjects, error: activeError },
         { count: bothArchivedCompleted, error: overlapError },
         { count: chamberCount, error: chamberError },
       ] = await Promise.all([
@@ -41,14 +42,20 @@ export default function ProjectOverviewCard() {
         supabase
           .from('projects')
           .select('id', { count: 'exact', head: true })
+          .neq('archived', true)
+          .neq('completed', true)
+          .is('deleted_at', null),
+        supabase
+          .from('projects')
+          .select('id', { count: 'exact', head: true })
           .eq('archived', true)
           .eq('completed', true)
           .is('deleted_at', null),
         supabase.from('chambers').select('id', { count: 'exact', head: true }).is('deleted_at', null),
       ])
 
-      if (totalError || archivedError || completedError || chamberError || overlapError) {
-        const err = totalError || archivedError || completedError || chamberError || overlapError
+      if (totalError || archivedError || completedError || activeError || chamberError || overlapError) {
+        const err = totalError || archivedError || completedError || activeError || chamberError || overlapError
         throw err
       }
 
@@ -56,7 +63,8 @@ export default function ProjectOverviewCard() {
       const archived = archivedProjects ?? 0
       const completed = completedProjects ?? 0
       const overlap = bothArchivedCompleted ?? 0
-      const active = Math.max(total - archived - completed + overlap, 0)
+      // Active = not archived AND not completed (deleted filtered above). Use direct count to avoid double-counting.
+      const active = activeProjects ?? Math.max(total - archived - completed + overlap, 0)
 
       setStats({
         total,
