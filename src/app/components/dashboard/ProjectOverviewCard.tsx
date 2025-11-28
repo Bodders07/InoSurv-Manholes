@@ -7,6 +7,7 @@ interface ProjectSummary {
   total: number
   archived: number
   completed: number
+  active: number
   chambers: number
 }
 
@@ -18,7 +19,7 @@ interface RecentProject {
 }
 
 export default function ProjectOverviewCard() {
-  const [stats, setStats] = useState<ProjectSummary>({ total: 0, archived: 0, completed: 0, chambers: 0 })
+  const [stats, setStats] = useState<ProjectSummary>({ total: 0, archived: 0, completed: 0, active: 0, chambers: 0 })
   const [recent, setRecent] = useState<RecentProject[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -27,22 +28,41 @@ export default function ProjectOverviewCard() {
     setLoading(true)
     setError('')
     try {
-      const [{ count: totalProjects, error: totalError }, { count: archivedProjects, error: archivedError }, { count: completedProjects, error: completedError }, { count: chamberCount, error: chamberError }] = await Promise.all([
+      const [
+        { count: totalProjects, error: totalError },
+        { count: archivedProjects, error: archivedError },
+        { count: completedProjects, error: completedError },
+        { count: bothArchivedCompleted, error: overlapError },
+        { count: chamberCount, error: chamberError },
+      ] = await Promise.all([
         supabase.from('projects').select('id', { count: 'exact', head: true }).is('deleted_at', null),
         supabase.from('projects').select('id', { count: 'exact', head: true }).eq('archived', true).is('deleted_at', null),
         supabase.from('projects').select('id', { count: 'exact', head: true }).eq('completed', true).is('deleted_at', null),
+        supabase
+          .from('projects')
+          .select('id', { count: 'exact', head: true })
+          .eq('archived', true)
+          .eq('completed', true)
+          .is('deleted_at', null),
         supabase.from('chambers').select('id', { count: 'exact', head: true }).is('deleted_at', null),
       ])
 
-      if (totalError || archivedError || completedError || chamberError) {
-        const err = totalError || archivedError || completedError || chamberError
+      if (totalError || archivedError || completedError || chamberError || overlapError) {
+        const err = totalError || archivedError || completedError || chamberError || overlapError
         throw err
       }
 
+      const total = totalProjects ?? 0
+      const archived = archivedProjects ?? 0
+      const completed = completedProjects ?? 0
+      const overlap = bothArchivedCompleted ?? 0
+      const active = Math.max(total - archived - completed + overlap, 0)
+
       setStats({
-        total: totalProjects ?? 0,
-        archived: archivedProjects ?? 0,
-        completed: completedProjects ?? 0,
+        total,
+        archived,
+        completed,
+        active,
         chambers: chamberCount ?? 0,
       })
 
@@ -66,8 +86,6 @@ export default function ProjectOverviewCard() {
     load()
   }, [load])
 
-  const active = Math.max(stats.total - stats.archived, 0)
-
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
       <div className="flex items-center justify-between">
@@ -88,7 +106,7 @@ export default function ProjectOverviewCard() {
       <dl className="mt-4 grid grid-cols-2 gap-4 text-sm">
         <div>
           <dt className="text-gray-500">Active projects</dt>
-          <dd className="text-2xl font-semibold">{active}</dd>
+          <dd className="text-2xl font-semibold">{stats.active}</dd>
         </div>
         <div>
           <dt className="text-gray-500">Completed projects</dt>
