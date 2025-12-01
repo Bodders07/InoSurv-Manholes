@@ -62,6 +62,7 @@ export default function UsersContent() {
     if (loadingRef.current && !force) return
     loadingRef.current = true
     if (!silent) setLoadingUsers(true)
+    let refreshed = false
     try {
       let authToken = tok
       if (!authToken) {
@@ -74,11 +75,22 @@ export default function UsersContent() {
         if (!silent) setLoadingUsers(false)
         return
       }
-      const res = await fetch('/api/admin/users', {
-        headers: { Authorization: `Bearer ${authToken}` },
-      })
-      const payload = (await res.json()) as UsersResponse
-      if (res.ok && payload.users) {
+      const fetchUsers = async (tokenValue: string) => {
+        const res = await fetch('/api/admin/users', {
+          headers: { Authorization: `Bearer ${tokenValue}` },
+        })
+        const payload = (await res.json()) as UsersResponse
+        if (res.status === 401 && !refreshed) {
+          refreshed = true
+          const { data, error: refreshErr } = await supabase.auth.refreshSession()
+          if (!refreshErr && data.session?.access_token) {
+            return fetchUsers(data.session.access_token)
+          }
+        }
+        if (!res.ok || !payload?.users) {
+          setMessage(`Error ${res.status}: ${payload?.error || res.statusText || 'Failed to load users'}`)
+          return
+        }
         const normalized = payload.users.map((u) => ({
           id: u.id,
           email: u.email,
@@ -92,9 +104,9 @@ export default function UsersContent() {
             return acc
           }, {}),
         )
-      } else {
-        setMessage('Error: ' + (payload.error || 'Failed to load users'))
       }
+
+      await fetchUsers(authToken)
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to load users'
       setMessage('Error: ' + msg)
@@ -145,7 +157,7 @@ export default function UsersContent() {
         body: JSON.stringify({ email, role: inviteRole }),
       })
       const payload = (await res.json()) as { error?: string }
-      if (!res.ok) throw new Error(payload.error || 'Failed to create user')
+      if (!res.ok) throw new Error(payload.error || `Failed to create user (${res.status})`)
       setMessage('Success: Invitation sent')
       setEmail('')
       setInviteRole('viewer')
@@ -180,7 +192,7 @@ export default function UsersContent() {
         body: JSON.stringify({ userId, ...payload }),
       })
       const result = (await res.json()) as { error?: string }
-      if (!res.ok) throw new Error(result.error || 'Failed to update user')
+      if (!res.ok) throw new Error(result.error || `Failed to update user (${res.status})`)
       setMessage('Success: User updated')
       await loadUsers(token, { force: true })
     } catch (err: unknown) {
@@ -230,7 +242,7 @@ export default function UsersContent() {
         body: JSON.stringify({ userId }),
       })
       const payload = (await res.json()) as { error?: string }
-      if (!res.ok) throw new Error(payload.error || 'Failed to delete user')
+      if (!res.ok) throw new Error(payload.error || `Failed to delete user (${res.status})`)
       setMessage('Success: User deleted')
       await loadUsers(token, { force: true })
     } catch (err: unknown) {
