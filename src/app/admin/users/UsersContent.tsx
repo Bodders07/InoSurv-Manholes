@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import { deriveRoleInfo } from '@/lib/roles'
 import { usePermissions } from '@/app/components/PermissionsContext'
@@ -30,6 +30,7 @@ export default function UsersContent() {
   const [deletingUserId, setDeletingUserId] = useState<string | null>(null)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [nameEdits, setNameEdits] = useState<Record<string, string>>({})
+  const loadingRef = useRef(false)
 
   const [showAuthDebug, setShowAuthDebug] = useState(false)
   const [dbgEmail, setDbgEmail] = useState('')
@@ -55,8 +56,11 @@ export default function UsersContent() {
     setDbgIsSuper(superDetected)
   }, [])
 
-  const loadUsers = useCallback(async (tok?: string | null) => {
-    setLoadingUsers(true)
+  const loadUsers = useCallback(async (tok?: string | null, opts: { silent?: boolean } = {}) => {
+    if (loadingRef.current) return
+    const silent = Boolean(opts.silent)
+    loadingRef.current = true
+    if (!silent) setLoadingUsers(true)
     try {
       let authToken = tok
       if (!authToken) {
@@ -92,7 +96,8 @@ export default function UsersContent() {
       const msg = err instanceof Error ? err.message : 'Failed to load users'
       setMessage('Error: ' + msg)
     } finally {
-      setLoadingUsers(false)
+      loadingRef.current = false
+      if (!silent) setLoadingUsers(false)
     }
   }, [])
 
@@ -112,16 +117,10 @@ export default function UsersContent() {
       const tok = data.session?.access_token || null
       setToken(tok)
       await detectAccess()
-      await loadUsers(tok)
+      await loadUsers(tok, { silent: true })
     })
     return () => listener.subscription.unsubscribe()
   }, [detectAccess, loadUsers])
-
-  useEffect(() => {
-    if (token) {
-      loadUsers(token)
-    }
-  }, [token, loadUsers])
 
   const canInvite = useMemo(() => !!email && !!inviteRole && !submitting && canInviteUsers && !!token, [email, inviteRole, submitting, canInviteUsers, token])
 
