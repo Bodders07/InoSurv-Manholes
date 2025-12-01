@@ -56,9 +56,10 @@ export default function UsersContent() {
     setDbgIsSuper(superDetected)
   }, [])
 
-  const loadUsers = useCallback(async (tok?: string | null, opts: { silent?: boolean } = {}) => {
-    if (loadingRef.current) return
+  const loadUsers = useCallback(async (tok?: string | null, opts: { silent?: boolean; force?: boolean } = {}) => {
     const silent = Boolean(opts.silent)
+    const force = Boolean(opts.force)
+    if (loadingRef.current && !force) return
     loadingRef.current = true
     if (!silent) setLoadingUsers(true)
     try {
@@ -69,6 +70,8 @@ export default function UsersContent() {
       }
       if (!authToken) {
         setMessage('Please sign in to view users.')
+        loadingRef.current = false
+        if (!silent) setLoadingUsers(false)
         return
       }
       const res = await fetch('/api/admin/users', {
@@ -146,7 +149,7 @@ export default function UsersContent() {
       setMessage('Success: Invitation sent')
       setEmail('')
       setInviteRole('viewer')
-      await loadUsers(token)
+      await loadUsers(token, { force: true })
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed'
       setMessage('Error: ' + msg)
@@ -179,7 +182,7 @@ export default function UsersContent() {
       const result = (await res.json()) as { error?: string }
       if (!res.ok) throw new Error(result.error || 'Failed to update user')
       setMessage('Success: User updated')
-      await loadUsers(token)
+      await loadUsers(token, { force: true })
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to update user'
       setMessage('Error: ' + msg)
@@ -229,7 +232,7 @@ export default function UsersContent() {
       const payload = (await res.json()) as { error?: string }
       if (!res.ok) throw new Error(payload.error || 'Failed to delete user')
       setMessage('Success: User deleted')
-      await loadUsers(token)
+      await loadUsers(token, { force: true })
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to delete user'
       setMessage('Error: ' + msg)
