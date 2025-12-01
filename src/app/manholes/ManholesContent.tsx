@@ -1223,8 +1223,8 @@ const summarizePipes = (pipes?: PipeRecord[] | null, coverLevel?: number | null,
       if (!record) throw new Error('Chamber not found')
       const logo = await getLogoAsset()
       const doc = new jsPDF({ unit: 'mm', format: 'a4' })
-      await addChartsPage(doc, [record])
-      await renderPdfPage(doc, record, logo || null, doc.getNumberOfPages() > 0)
+      // For preview we focus on the chamber sheet itself so the first view isn't the chart page.
+      await renderPdfPage(doc, record, logo || null, false)
       const blob = doc.output('blob') as Blob
       const blobUrl = URL.createObjectURL(blob)
       setPreviewTitle(identifier || record.identifier || 'Chamber Preview')
