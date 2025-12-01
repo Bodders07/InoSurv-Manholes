@@ -158,17 +158,21 @@ export async function GET(req: NextRequest) {
     if (listErr) return NextResponse.json({ error: listErr.message }, { status: 400 })
     const users = (data?.users || []).map((user) => {
       const meta = user.user_metadata || {}
+      const appMeta = user.app_metadata || {}
       const fullName =
         (meta.full_name as string | undefined) ||
         (meta.name as string | undefined) ||
         `${meta.first_name ?? ''} ${meta.last_name ?? ''}`.trim() ||
         null
+      const appRoles = Array.isArray(appMeta.roles) ? appMeta.roles.map((r: unknown) => String(r)) : []
+      const rawRole = (appMeta.role as string | undefined) || (appRoles[0] as string | undefined) || null
+      const normalizedRole = normalizeRole(rawRole || '') || rawRole || null
       return {
         id: user.id,
         email: user.email,
         name: fullName,
-        role: (user.app_metadata?.role as string | undefined) || null,
-        roles: (user.app_metadata?.roles as string[] | undefined) || [],
+        role: normalizedRole,
+        roles: appRoles,
       }
     })
     return NextResponse.json({ users })
