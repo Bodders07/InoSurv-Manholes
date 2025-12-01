@@ -43,6 +43,29 @@ html { font-size: 15px; }
   --foreground: #f2f2f2;
 }
 
+.theme-dark body,
+.theme-dark #__next,
+.theme-dark main {
+  background-color: #050a12 !important;
+  color: #f8fafc !important;
+}
+.theme-dark h1,
+.theme-dark h2,
+.theme-dark h3,
+.theme-dark h4,
+.theme-dark h5,
+.theme-dark h6,
+.theme-dark label,
+.theme-dark .section-title {
+  color: #f8fafc !important;
+}
+.theme-dark .card,
+.theme-dark .rounded-lg,
+.theme-dark .shadow-sm {
+  background-color: #121826 !important;
+  border-color: #1f2937 !important;
+}
+
 /* Subtle transition when switching themes */
 html, body {
   transition: background-color 0.2s ease, color 0.2s ease;
