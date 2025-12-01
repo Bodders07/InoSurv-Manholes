@@ -320,7 +320,7 @@ export default function UsersContent() {
                   </thead>
                   <tbody>
                     {users.map((u) => {
-                      const current = (u.role || 'viewer').toLowerCase()
+                      const current = ROLES.some((r) => r.value === u.role) ? (u.role as string) : 'viewer'
                       return (
                         <tr key={u.id} className="hover:bg-gray-50">
                           <td className="px-4 py-2 border-b">{u.email}</td>
