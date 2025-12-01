@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useMemo, useState } from 'react'
+import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 
 export type AppView =
   | 'dashboard'
@@ -22,15 +22,17 @@ type ViewCtx = {
 const Ctx = createContext<ViewCtx | null>(null)
 
 export function ViewProvider({ children }: { children: React.ReactNode }) {
-  const [view, setView] = useState<AppView>(() => {
-    if (typeof window === 'undefined') return 'dashboard'
+  // Always start on dashboard, regardless of last saved view.
+  const [view, setView] = useState<AppView>('dashboard')
+
+  // On mount, force persisted value to dashboard so reloads open there.
+  useEffect(() => {
     try {
-      const saved = localStorage.getItem('appView') as AppView | null
-      return saved || 'dashboard'
+      localStorage.setItem('appView', 'dashboard')
     } catch {
-      return 'dashboard'
+      // ignore persistence errors
     }
-  })
+  }, [])
 
   const value = useMemo<ViewCtx>(() => ({
     view,
