@@ -116,6 +116,20 @@ export default function UsersContent() {
     }
   }, [])
 
+  const refreshAndLoad = useCallback(
+    async (force = false) => {
+      const { data, error } = await supabase.auth.getSession()
+      if (error) {
+        setMessage('Error refreshing session: ' + error.message)
+        return
+      }
+      const tok = data.session?.access_token ?? null
+      setToken(tok)
+      await loadUsers(tok, { force, silent: !force })
+    },
+    [loadUsers],
+  )
+
   useEffect(() => {
     async function init() {
       const { data } = await supabase.auth.getSession()
@@ -161,7 +175,7 @@ export default function UsersContent() {
       setMessage('Success: Invitation sent')
       setEmail('')
       setInviteRole('viewer')
-      await loadUsers(token, { force: true })
+      await refreshAndLoad(true)
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed'
       setMessage('Error: ' + msg)
@@ -194,7 +208,22 @@ export default function UsersContent() {
       const result = (await res.json()) as { error?: string }
       if (!res.ok) throw new Error(result.error || `Failed to update user (${res.status})`)
       setMessage('Success: User updated')
-      await loadUsers(token, { force: true })
+      // Optimistically update local state so UI reflects changes immediately
+      setUsers((prev) =>
+        prev.map((u) =>
+          u.id === userId
+            ? {
+                ...u,
+                role: payload.role !== undefined ? payload.role : u.role,
+                name: payload.name !== undefined ? payload.name : u.name,
+              }
+            : u,
+        ),
+      )
+      if (payload.name !== undefined) {
+        setNameEdits((prev) => ({ ...prev, [userId]: payload.name ?? '' }))
+      }
+      await refreshAndLoad(true)
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to update user'
       setMessage('Error: ' + msg)
@@ -244,7 +273,9 @@ export default function UsersContent() {
       const payload = (await res.json()) as { error?: string }
       if (!res.ok) throw new Error(payload.error || `Failed to delete user (${res.status})`)
       setMessage('Success: User deleted')
-      await loadUsers(token, { force: true })
+      // Remove locally so UI reflects immediately
+      setUsers((prev) => prev.filter((u) => u.id !== userId))
+      await refreshAndLoad(true)
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to delete user'
       setMessage('Error: ' + msg)
